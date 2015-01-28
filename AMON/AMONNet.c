@@ -1,5 +1,4 @@
 #include "AMONNet.h"
-#include "SIRDebug.h"
 
 AMON_RX_STATE g_LinkRxState[NUM_LINKS];
 
@@ -10,7 +9,7 @@ int g_MasterCount = 0;
 
 AMONMap *g_AMONmap = NULL;
 
-RESULT InitAmon() {
+RESULT InitAmon(int ticksPerSecond) {
 	RESULT r = R_OK;
 	int i = 0;
 
@@ -19,6 +18,8 @@ RESULT InitAmon() {
 	//StartAMON();
 
 	//ResetMasterCount();
+
+	g_SysTicksPerSecond = ticksPerSecond;
 
 	// Initialize the links
 	for(i = 0; i < NUM_LINKS; i++)
@@ -47,15 +48,18 @@ Error:
 
 #define DEFAULT_AMON_INTERVAL 1000
 
+#define AMON_SYSTICKS_PER_SECOND 76000
+
+int g_SysTicksPerSecond = AMON_SYSTICKS_PER_SECOND;
 volatile short m_AMONInterval = DEFAULT_AMON_INTERVAL;
-volatile int m_AMONIntervalSystick = DEFAULT_AMON_INTERVAL * (SYSTICKS_PER_SECOND / 1000);
+volatile int m_AMONIntervalSystick = DEFAULT_AMON_INTERVAL * (AMON_SYSTICKS_PER_SECOND / 1000);
 
 short GetAMONInterval() { return m_AMONInterval; }
 int GetAMONIntervalSystick() { return m_AMONIntervalSystick; }
 
-RESULT SetAMONInterval(short msTime) {
+RESULT SetAMONInterval(short msTime, int ticksPerSecond) {
 	m_AMONInterval = msTime;
-	m_AMONIntervalSystick = (short)(m_AMONInterval * (SYSTICKS_PER_SECOND / 1000));
+	m_AMONIntervalSystick = (short)(m_AMONInterval * (ticksPerSecond / 1000));
 	return R_OK;
 }
 
@@ -66,7 +70,7 @@ RESULT ConsoleSetAMONInterval(Console *pc, char *pszMsTime) {
 
 	CBRM((msTime < 5000 && msTime > 10), "ConsoleSetAMONInterval: Interval %d ms must be between 10 and 5000 ms", msTime);
 
-	CRM(SetAMONInterval(msTime), "ConsoleSetAMONInterval: Failed to set AMON interval to %d ms", msTime);
+	CRM(SetAMONInterval(msTime, g_SysTicksPerSecond), "ConsoleSetAMONInterval: Failed to set AMON interval to %d ms", msTime);
 
 Error:
 	return r;

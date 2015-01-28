@@ -3,8 +3,8 @@
 
 #include <stdarg.h>
 
-#include "RESULT.h"
-#include "console.h"
+#include "..\Common\RESULT.h"
+#include "..\OS\console.h"
 #include "amonmap.h"
 
 #include "AMON.h"		// The AMON Device
@@ -16,6 +16,8 @@
 #define AMONToShort(lsb, msb) 	 ((msb & 0xFF) << 8) + (lsb & 0xFF)
 
 //#define AMON_VERBOSE
+
+extern int g_SysTicksPerSecond;
 
 extern AMONMap *g_AMONmap;
 
@@ -90,7 +92,7 @@ RESULT HandleAMONPacket(AMON_LINK link);
 
 // AMON OnInterval
 RESULT OnAMONInterval();
-RESULT SetAMONInterval(short msTime);
+RESULT SetAMONInterval(short msTime, int ticksPerSecond);
 short GetAMONInterval();
 int GetAMONIntervalSystick();
 

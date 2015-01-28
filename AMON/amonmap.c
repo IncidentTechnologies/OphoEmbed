@@ -1,5 +1,5 @@
 #include "amonmap.h"
-#include "list.h"
+#include "..\DS\list.h"
 
 AMONNode *CreateAMONNode(int numLinks, int ID) {
 	AMONNode *newNode = (AMONNode*)calloc(1, sizeof(AMONNode));

@@ -1,4 +1,4 @@
-#include "SIRDebug.h"	// Required for console functions
+//#include "SIRDebug.h"	// Required for console functions
 
 #include "AMON.h"
 #include "AMONLink.h"

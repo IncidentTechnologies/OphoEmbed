@@ -1,8 +1,8 @@
 #ifndef AMONMAP_H_
 #define AMONMAP_H_
 
-#include "RESULT.h"
-#include "Console.h"
+#include "../Common/RESULT.h"
+#include "../OS/Console.h"
 
 typedef struct AMON_NODE{
 	int m_id;

@@ -3,7 +3,7 @@
 
 // The actual AMON device and high level control mechanisms
 
-#include "RESULT.h"
+#include "../Common/RESULT.h"
 #include "AMONLink.h"
 
 #define AMON_MASTER_ID 0

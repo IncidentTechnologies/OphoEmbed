@@ -1,8 +1,15 @@
-#include "SIRDebug.h"	// Required for console functions
+//#include "SIRDebug.h"	// Required for console functions
 
 #include "AMON.h"
 #include "AMONPHY.h"
 #include "AMONNet.h"	// Needed to funnel bytes to HandleAMONByte
+
+// TODO: Remove these - this should be entirely application side
+// The application will register the call backs for the actual PHY functionality
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/lm4f230h5qr.h"
+#include "driverlib/rom.h"
 
 AMON_PHY_STATE g_AMONLinkPhys[NUM_LINKS];
 

@@ -3,7 +3,7 @@
 
 // The AMON PHY is the actual byte level of the AMON protocol
 
-#include "RESULT.h"
+#include "..\Common\RESULT.h"
 #include "AMONLink.h"
 
 // Byte Mode Messages
@@ -38,6 +38,9 @@ typedef enum {
 } AMON_PHY_STATE;
 
 extern AMON_PHY_STATE g_AMONLinkPhys[NUM_LINKS];
+
+// TODO: Register
+typedef void*(*cbSendByteOnLink)(void*, void*);
 
 RESULT AMONErrorLink(AMON_LINK link);
 RESULT AMONReceiveByte(AMON_LINK link, unsigned char byte);

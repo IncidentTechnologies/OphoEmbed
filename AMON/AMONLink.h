@@ -3,7 +3,7 @@
 
 // The AMON Link
 
-#include "RESULT.h"
+#include "..\Common\RESULT.h"
 #include "AMON.h"
 
 #define NUM_LINKS 4
