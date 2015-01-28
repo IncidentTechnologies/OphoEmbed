@@ -65,7 +65,7 @@ Error:
 RESULT AMONReceiveByte(AMON_LINK link, unsigned char byte) {
 	RESULT r = R_OK;
 
-	SetLEDWithClearTimeout(1, 0, 50, 0, 10);
+//	SetLEDWithClearTimeout(1, 0, 50, 0, 10);
 
 	// No Link has yet to be established on this link
 	//if(g_amon.links[link].id == - 1 && g_AMONLinkPhys[link] != AMON_PHY_ESTABLISHED) {
