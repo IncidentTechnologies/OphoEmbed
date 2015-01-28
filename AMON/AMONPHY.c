@@ -13,6 +13,62 @@
 
 AMON_PHY_STATE g_AMONLinkPhys[NUM_LINKS];
 
+cbSendByteOnLink g_PHYSendByteCallbacks[NUM_LINKS];
+cbFlushLink g_PHYFlushCallbacks[NUM_LINKS];
+
+RESULT InitAMONPHY() {
+	RESULT r = R_OK;
+	int i = 0;
+
+	for(i = 0; i < NUM_LINKS; i++) {
+		g_PHYSendByteCallbacks[i] = NULL;
+		g_PHYFlushCallbacks[i] = NULL;
+	}
+
+Error:
+	return r;
+}
+
+RESULT RegisterLinkSendByteCallback(AMON_LINK link, cbSendByteOnLink cbSendByte) {
+	RESULT r = R_OK;
+
+	CBRM((g_PHYSendByteCallbacks[link] == NULL), "RegisterLinkSendByteCallback: Failed to register send byte callback on link %d", link);
+	g_PHYSendByteCallbacks[link] = cbSendByte;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterLinkSendByteCallback(AMON_LINK link) {
+	RESULT r = R_OK;
+
+	CBRM((g_PHYSendByteCallbacks[link] != NULL), "UnegisterLinkSendByteCallback: Failed to unregister send byte callback on link %d", link);
+	g_PHYSendByteCallbacks[link] = NULL;
+
+Error:
+	return r;
+}
+
+RESULT RegisterLinkFlushCallback(AMON_LINK link, cbFlushLink cbFlush) {
+	RESULT r = R_OK;
+
+	CBRM((g_PHYFlushCallbacks[link] == NULL), "RegisterLinkFlushCallback: Failed to register flush callback on link %d", link);
+	g_PHYFlushCallbacks[link] = cbFlush;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterLinkFlushCallback(AMON_LINK link) {
+	RESULT r = R_OK;
+
+	CBRM((g_PHYFlushCallbacks[link] != NULL), "UnegisterLinkFlushCallback: Failed to unregister flush callback on link %d", link);
+	g_PHYFlushCallbacks[link] = NULL;
+
+Error:
+	return r;
+}
+
 RESULT AMONReceiveByte(AMON_LINK link, unsigned char byte) {
 	RESULT r = R_OK;
 
@@ -155,24 +211,40 @@ Error:
 RESULT SendByte(AMON_LINK link, unsigned char byte) {
 	RESULT r = R_OK;
 
+	CBRM((g_PHYSendByteCallbacks[link] != NULL), "SendByte: Failed to send byte on link %d, cb not present", link);
+
+	return g_PHYSendByteCallbacks[link](byte);
+
+	/*
 	switch(link) {
 		case AMON_NORTH: ROM_UARTCharPut(UART1_BASE, byte); break;
 		case AMON_SOUTH: ROM_UARTCharPut(UART3_BASE, byte); break;
 		case AMON_EAST: ROM_UARTCharPut(UART4_BASE, byte); break;
 		case AMON_WEST: ROM_UARTCharPut(UART2_BASE, byte); break;
-	}
+	}*/
 
 Error:
 	return r;
 }
 
 RESULT FlushPHY(AMON_LINK link) {
+	RESULT r = R_OK;
+
+	CBRM((g_PHYFlushCallbacks[link] != NULL), "FlushPHY: Flush callback on link %d not present", link);
+
+	return g_PHYFlushCallbacks[link]();
+
+	/*
 	switch(link) {
 		case AMON_NORTH: return FlushUART(UART1_BASE); break;
 		case AMON_SOUTH: return FlushUART(UART3_BASE); break;
 		case AMON_EAST: return FlushUART(UART4_BASE); break;
 		case AMON_WEST: return FlushUART(UART2_BASE); break;
 	}
+	*/
+
+Error:
+	return r;
 }
 
 RESULT SendPing(AMON_LINK link) {

@@ -40,7 +40,19 @@ typedef enum {
 extern AMON_PHY_STATE g_AMONLinkPhys[NUM_LINKS];
 
 // TODO: Register
-typedef void*(*cbSendByteOnLink)(void*, void*);
+typedef RESULT (*cbSendByteOnLink)(unsigned char*);
+extern cbSendByteOnLink g_PHYSendByteCallbacks[NUM_LINKS];
+
+typedef RESULT (*cbFlushLink)();
+extern cbFlushLink g_PHYFlushCallbacks[NUM_LINKS];
+
+RESULT RegisterLinkSendByteCallback(AMON_LINK link, cbSendByteOnLink cbSendByte);
+RESULT UnregisterLinkSendByteCallback(AMON_LINK link);
+
+RESULT RegisterLinkFlushCallback(AMON_LINK link, cbFlushLink cbFlush);
+RESULT UnregisterLinkFlushCallback(AMON_LINK link);
+
+RESULT InitAMONPHY();
 
 RESULT AMONErrorLink(AMON_LINK link);
 RESULT AMONReceiveByte(AMON_LINK link, unsigned char byte);
