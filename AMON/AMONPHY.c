@@ -161,12 +161,12 @@ RESULT AMONHandlePHYByte(AMON_LINK link, unsigned char byte) {
 
 		case AMON_BYTE_PING: {
 			// TODO
-			SetLEDLinkClearTimeout(link, 50, 0, 0, 50);
+//			SetLEDLinkClearTimeout(link, 50, 0, 0, 50);
 			SendByte(link, AMON_BYTE_ECHO);		// respond with an echo
 		} break;
 
 		case AMON_BYTE_ECHO: {
-			SetLEDLinkClearTimeout(link, 0, 50, 0, 50);
+//			SetLEDLinkClearTimeout(link, 0, 50, 0, 50);
 			DEBUG_LINEOUT("Echo received on link %d, requesting link", link);
 
 			// If we get an echo and the link is uninitialized
@@ -180,7 +180,7 @@ RESULT AMONHandlePHYByte(AMON_LINK link, unsigned char byte) {
 
 		// If we get a link error, reset this link so we can try again
 		case AMON_BYTE_ERROR: {
-			g_AMONLinkPhys[link] == AMON_PHY_UNINITIALIZED;
+			g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
 			DEBUG_LINEOUT("Error received on link %d, resetting the link", link);
 		} break;
 	}
