@@ -41,7 +41,7 @@ RESULT InitAmon(int ticksPerSecond) {
 
 	AddConsoleFunctionByArgs(g_pConsole, ResetAMONLink, "AMONResetLink", 2, 0);
 
-	SetLEDWithClearTimeout(1, 20, 20, 100, 50);
+//	SetLEDWithClearTimeout(1, 20, 20, 100, 50);
 Error:
 	return r;
 }
@@ -505,11 +505,11 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 			AMON_LINK destLink = (AMON_LINK)pBuffer[7];
 			unsigned char byte = (unsigned char)pBuffer[8];
 
-			SetLEDLinkClearTimeout(destLink, 50, 50, 50, 100);
+//			SetLEDLinkClearTimeout(destLink, 50, 50, 50, 100);
 
 			if(g_amon.id == destID) {
 				DEBUG_LINEOUT("Received SEND BYTE ON DEST LINK on link %d from device %d byte 0x%x", link, originID, byte);
-				SetLEDLinkClearTimeout(destLink, 50, 0, 50, 100);
+//				SetLEDLinkClearTimeout(destLink, 50, 0, 50, 100);
 				CRM_NA(SendByte(destLink, byte), "HandleAMONPacket: Failed to send byte");
 			}
 			else {
@@ -857,42 +857,42 @@ Error:
 }
 
 // Convenience function, specific to debug board
-RESULT SetLEDLinkClearTimeout(AMON_LINK link, int red, int green, int blue, int count) {
-	RESULT r = R_OK;
-
-	switch(link) {
-		case AMON_NORTH: {
-			SetLEDWithClearTimeout(2, red, green, blue, count);
-			SetLEDWithClearTimeout(4, red, green, blue, count);
-		} break;
-
-		case AMON_SOUTH: {
-			SetLEDWithClearTimeout(0, red, green, blue, count);
-			SetLEDWithClearTimeout(3, red, green, blue, count);
-		} break;
-
-		case AMON_EAST: {
-			SetLEDWithClearTimeout(3, red, green, blue, count);
-			SetLEDWithClearTimeout(2, red, green, blue, count);
-		} break;
-
-		case AMON_WEST: {
-			SetLEDWithClearTimeout(4, red, green, blue, count);
-			SetLEDWithClearTimeout(0, red, green, blue, count);
-		} break;
-
-		case AMON_ALL: {
-			SetLEDWithClearTimeout(0, red, green, blue, count);
-			SetLEDWithClearTimeout(1, red, green, blue, count);
-			SetLEDWithClearTimeout(2, red, green, blue, count);
-			SetLEDWithClearTimeout(3, red, green, blue, count);
-			SetLEDWithClearTimeout(4, red, green, blue, count);
-		} break;
-	}
-
-Error:
-	return r;
-}
+//RESULT SetLEDLinkClearTimeout(AMON_LINK link, int red, int green, int blue, int count) {
+//	RESULT r = R_OK;
+//
+//	switch(link) {
+//		case AMON_NORTH: {
+//			SetLEDWithClearTimeout(2, red, green, blue, count);
+//			SetLEDWithClearTimeout(4, red, green, blue, count);
+//		} break;
+//
+//		case AMON_SOUTH: {
+//			SetLEDWithClearTimeout(0, red, green, blue, count);
+//			SetLEDWithClearTimeout(3, red, green, blue, count);
+//		} break;
+//
+//		case AMON_EAST: {
+//			SetLEDWithClearTimeout(3, red, green, blue, count);
+//			SetLEDWithClearTimeout(2, red, green, blue, count);
+//		} break;
+//
+//		case AMON_WEST: {
+//			SetLEDWithClearTimeout(4, red, green, blue, count);
+//			SetLEDWithClearTimeout(0, red, green, blue, count);
+//		} break;
+//
+//		case AMON_ALL: {
+//			SetLEDWithClearTimeout(0, red, green, blue, count);
+//			SetLEDWithClearTimeout(1, red, green, blue, count);
+//			SetLEDWithClearTimeout(2, red, green, blue, count);
+//			SetLEDWithClearTimeout(3, red, green, blue, count);
+//			SetLEDWithClearTimeout(4, red, green, blue, count);
+//		} break;
+//	}
+//
+//Error:
+//	return r;
+//}
 
 AMON_LINK GetLinkFromString(char *pszLink) {
 	int i = 0;
@@ -1012,11 +1012,11 @@ RESULT SendByteModeCommand(Console *pc, char *pszCmd, char *pszLink) {
 	CBRM_NA((byte != AMON_BYTE_INVALID), "SendByteModeCommand: Failed to get cmd byte");
 
 	if(link != AMON_ALL) {
-		SetLEDLinkClearTimeout(link, 0, 0, 50, 100);
+//		SetLEDLinkClearTimeout(link, 0, 0, 50, 100);
 		CRM_NA(SendByte(link, byte), "SendByteModeCommand: Failed to send byte");
 	}
 	else {
-		SetLEDLinkClearTimeout(AMON_ALL, 0, 0, 50, 100);
+//		SetLEDLinkClearTimeout(AMON_ALL, 0, 0, 50, 100);
 		CRM_NA(BroadcastByte(byte), "SendByteModeCommand: Failed to broadcast byte");
 	}
 
