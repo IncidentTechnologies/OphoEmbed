@@ -24,12 +24,17 @@ RESULT AddAMONNode(AMONMap* map, int destID, int linkID, int ID);
 RESULT RemoveAMONNodeByID(AMONMap* map, int ID);
 RESULT RemoveAMONNode(AMONNode* node);
 
+int GetNumberOfMapLinks(AMONNode* node, int id, int linkID, int depth);
+int GetNumberOfEastWestMapLinks(AMONMap *map, int id, int westLinkId, int eastLinkId);
 AMONNode *FindAMONNode(AMONMap *map, int id);
 AMONNode *FindAMONNodeParent(AMONMap *map, int id);	// This will acquire the AMON node parent
 
-RESULT PrintAMONMap(Console *pc, AMONMap *map);
-
 // Testing
+RESULT TestCreateAMONMap(Console *pc, char *pszLinks_n);
+RESULT TestAddAMONNode(Console *pc, char *pszDestID, char *pszLinkID);
+RESULT TestRemoveAMONNode(Console *pc, char *pszID);
+RESULT PrintAMONMap(Console *pc, AMONMap *map);
+RESULT TestNumberOfLinks(Console *pc, char *pszID, char *pszID);
 RESULT TestAMONMap(Console *pc);
 
 #endif // AMONMAP_H_

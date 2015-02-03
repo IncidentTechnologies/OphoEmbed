@@ -96,8 +96,17 @@ RESULT SetAMONInterval(short msTime, int ticksPerSecond);
 short GetAMONInterval();
 int GetAMONIntervalSystick();
 
+int GetNumberOfEastWestLinks(int id);
+
 // Command Mode
-RESULT SendMessage(AMON_MESSAGE_TYPE type, short destID, ...);
+typedef RESULT (*cbHandleAMONPayload)(AMON_LINK, short, unsigned char, unsigned char *, int);
+
+extern cbHandleAMONPayload g_HandleAMONPayloadCallback;
+RESULT RegisterHandleAMONPayloadCallback(cbHandleAMONPayload handleAMONPayloadCB);
+RESULT UnregisterHandleAMONPayloadCallback();
+
+RESULT SendMessagePayload(AMON_LINK link, short destID, unsigned char type, unsigned char *payloadBuffer, int payloadBuffer_n);
+RESULT SendMessageType(AMON_MESSAGE_TYPE type, short destID, ...);
 RESULT SendGetDeviceID(AMON_LINK link);
 RESULT SendDeviceID(AMON_LINK link);
 RESULT SendEstablishLink(AMON_LINK link);
