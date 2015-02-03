@@ -25,21 +25,21 @@ RESULT InitAmon(int ticksPerSecond) {
 	for(i = 0; i < NUM_LINKS; i++)
 		CRM(InitializeLink(i), "InitAmon: Failed to initialize link %d", i);
 
-	// Console Functions
-	AddConsoleFunctionByArgs(g_pConsole, SendByteModeCommand, "AMONSendByte", 3, 0);
-	AddConsoleFunctionByArgs(g_pConsole, SetAMONMasterConsole, "SetAMONMaster", 2, 0);
-	AddConsoleFunctionByArgs(g_pConsole, PrintAMONMasterMap, "PrintAMONMasterMap", 1, 0);
-	AddConsoleFunctionByArgs(g_pConsole, SendByteModeCommandDestLink, "AMONSendByteDestLink", 4, 0);
-
-	// TODO: Add variable params / min params
-	AddConsoleFunctionByArgs(g_pConsole, SendAMONMessage, "AMONMessage", 3, 0);
-	AddConsoleFunctionByArgs(g_pConsole, StartAMON, "StartAMON", 1, 0);
-	AddConsoleFunctionByArgs(g_pConsole, PrintAMONInfo, "PrintAMONInfo", 1, 0);
-
-	AddConsoleFunctionByArgs(g_pConsole, ConsoleCheckLinkStatus, "AMONCheckLinkStatus", 2, 0);
-	AddConsoleFunctionByArgs(g_pConsole, ConsoleSetAMONInterval, "AMONSetInterval", 2, 0);
-
-	AddConsoleFunctionByArgs(g_pConsole, ResetAMONLink, "AMONResetLink", 2, 0);
+//	// Console Functions
+//	AddConsoleFunctionByArgs(g_pConsole, SendByteModeCommand, "AMONSendByte", 3, 0);
+//	AddConsoleFunctionByArgs(g_pConsole, SetAMONMasterConsole, "SetAMONMaster", 2, 0);
+//	AddConsoleFunctionByArgs(g_pConsole, PrintAMONMasterMap, "PrintAMONMasterMap", 1, 0);
+//	AddConsoleFunctionByArgs(g_pConsole, SendByteModeCommandDestLink, "AMONSendByteDestLink", 4, 0);
+//
+//	// TODO: Add variable params / min params
+//	AddConsoleFunctionByArgs(g_pConsole, SendAMONMessage, "AMONMessage", 3, 0);
+//	AddConsoleFunctionByArgs(g_pConsole, StartAMON, "StartAMON", 1, 0);
+//	AddConsoleFunctionByArgs(g_pConsole, PrintAMONInfo, "PrintAMONInfo", 1, 0);
+//
+//	AddConsoleFunctionByArgs(g_pConsole, ConsoleCheckLinkStatus, "AMONCheckLinkStatus", 2, 0);
+//	AddConsoleFunctionByArgs(g_pConsole, ConsoleSetAMONInterval, "AMONSetInterval", 2, 0);
+//
+//	AddConsoleFunctionByArgs(g_pConsole, ResetAMONLink, "AMONResetLink", 2, 0);
 
 //	SetLEDWithClearTimeout(1, 20, 20, 100, 50);
 Error:
