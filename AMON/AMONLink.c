@@ -99,6 +99,16 @@ Error:
 	return r;
 }
 
+AMON_LINK GetMasterLink() {
+	int i = 0;
+
+	for(i = 0; i < NUM_LINKS; i++)
+		if(g_amon.links[i].fLinkToMaster)
+			return (AMON_LINK)(i);
+
+	return AMON_LINK_INVALID;
+}
+
 const char* GetLinkStateString(AMON_LINK_STATE state) {
 	switch(state) {
 		case AMON_LINK_UNINITIALIZED: return "uninitialized"; break;

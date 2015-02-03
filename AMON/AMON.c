@@ -28,3 +28,10 @@ RESULT StopAMON() {
 	g_amon.fStart = 0;
 	return R_OK;
 }
+
+unsigned char IsAMONMaster() {
+	if(g_amon.MasterState != AMON_MASTER_FALSE)
+		return true;
+	else
+		return false;
+}

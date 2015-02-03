@@ -9,6 +9,10 @@ int g_MasterCount = 0;
 
 AMONMap *g_AMONmap = NULL;
 
+int GetNumberOfEastWestLinks(int id) {
+	return GetNumberOfEastWestMapLinks(g_AMONmap, id, AMON_WEST, AMON_EAST);
+}
+
 RESULT InitAmon(int ticksPerSecond) {
 	RESULT r = R_OK;
 	int i = 0;
@@ -41,7 +45,30 @@ RESULT InitAmon(int ticksPerSecond) {
 
 	AddConsoleFunctionByArgs(g_pConsole, ResetAMONLink, "AMONResetLink", 2, 0);
 
+	AddConsoleFunctionByArgs(g_pConsole, TestAMONMap, "TestAMONMap", 1, 0);
+
 //	SetLEDWithClearTimeout(1, 20, 20, 100, 50);
+Error:
+	return r;
+}
+
+cbHandleAMONPayload g_HandleAMONPayloadCallback = NULL;
+RESULT RegisterHandleAMONPayloadCallback(cbHandleAMONPayload handleAMONPayloadCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_HandleAMONPayloadCallback == NULL), "RegisterAMONCallback: Callback already registered");
+	g_HandleAMONPayloadCallback = handleAMONPayloadCB;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterHandleAMONPayloadCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_HandleAMONPayloadCallback != NULL), "RegisterAMONCallback: Callback not registered");
+	g_HandleAMONPayloadCallback = NULL;
+
 Error:
 	return r;
 }
@@ -391,8 +418,29 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 
 		} break;
 
+		// Check to see if we're the destination, otherwise pass it on
 		case AMON_SEND: {
+			int originDeviceID = AMONToShort(pBuffer[3], pBuffer[4]);
+			int addressDeviceID = AMONToShort(pBuffer[5], pBuffer[6]);
+			unsigned char type = pBuffer[7];
+			unsigned char payload_n = pBuffer[8];
 
+			#ifdef AMON_VERBOSE
+				DEBUG_LINEOUT("Received AMON_SEND on link %d from device %d to device %d type %d", link, originDeviceID, addressDeviceID, type);
+			#endif
+
+			if(g_amon.id == addressDeviceID ) {
+				// Make a copy of the data so it doesn't get clobbered
+				unsigned char *pPayloadBuffer = (unsigned char*)calloc(sizeof(unsigned char), payload_n);
+				memcpy(pPayloadBuffer, pBuffer[9], sizeof(unsigned char) * payload_n);
+
+				// Note: The handler needs to delete the memory after it's been used
+				CRM(g_HandleAMONPayloadCallback(link, originDeviceID, type, pPayloadBuffer, payload_n),
+						"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", originDeviceID, link);
+			}
+			else {
+				CRM(PassThruAMONBuffer(link, pBuffer, pBuffer_n), "HandleAMONPacket: Failed to pass through message from link %d", link);
+			}
 		} break;
 
 		case AMON_GET_ID: {
@@ -575,7 +623,7 @@ Error:
 	return r;
 }
 
-RESULT SendMessage(AMON_MESSAGE_TYPE type, short destID, ...) {
+RESULT SendMessageType(AMON_MESSAGE_TYPE type, short destID, ...) {
 	RESULT r = R_OK;
 	int i = 0;
 
@@ -593,6 +641,29 @@ RESULT SendMessage(AMON_MESSAGE_TYPE type, short destID, ...) {
 	}
 
 Error:
+	return r;
+}
+
+RESULT SendMessagePayload(AMON_LINK link, short destID, unsigned char type, unsigned char *payloadBuffer, int payloadBuffer_n) {
+	RESULT r = R_OK;
+	unsigned char *pBuffer = NULL;
+
+	CBRM((payloadBuffer_n != 0), "SendMessagePayload: Cannot send message of %d bytes", payloadBuffer_n);
+
+	unsigned char linkID = (unsigned char)(g_amon.links[link].link_id);
+
+	int pBuffer_n = 9 + payloadBuffer_n;
+	pBuffer = (unsigned char *)calloc(sizeof(unsigned char), pBuffer_n);
+	CNRM_NA(pBuffer, "SendMessagePayload: Failed to initialize buffer to send");
+
+	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendMessagePayload: Failed to SendAMONBuffer %d bytes on link %d", pBuffer_n, link);
+
+Error:
+	if(pBuffer != NULL) {
+		free(pBuffer);
+		pBuffer = NULL;
+	}
+
 	return r;
 }
 
@@ -967,7 +1038,7 @@ RESULT SendAMONMessage(Console *pc, char *pszCmd, char *pszDestID) {
 	CBRM((FindAMONNode(g_AMONmap, destID) != NULL), "SendAMONMessage: Failed to find device id %d in map", destID);
 
 	// TODO: Params etc
-	CRM(SendMessage(message, destID), "SendAMONMessage: Failed to send message %d to device %d", message, destID);
+	CRM(SendMessageType(message, destID), "SendAMONMessage: Failed to send message %d to device %d", message, destID);
 
 Error:
 	return r;

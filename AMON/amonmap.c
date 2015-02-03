@@ -63,6 +63,28 @@ AMONNode *FindAMONNode(AMONMap *map, int id) {
 	return node;
 }
 
+int GetNumberOfMapLinks(AMONNode* node, int id, int linkID, int depth) {
+	if(node->m_links[linkID]->m_id == id)
+		return depth;
+	else if(node->m_links[linkID] == NULL)
+		return 0;
+	else
+		return GetNumberOfMapLinks(node->m_links[linkID], id, linkID, depth + 1);
+}
+
+int GetNumberOfEastWestMapLinks(AMONMap *map, int id, int westLinkId, int eastLinkId) {
+	AMONNode *node = NULL;
+	int links = 0;
+
+	// Search along only the provised west and east link ids
+	if((links = GetNumberOfMapLinks(map->m_root, id, eastLinkId, 1)) != 0)
+		return links;
+	else if((links = GetNumberOfMapLinks(map->m_root, id, westLinkId, 1)) != 0)
+		return links * -1;
+	else
+		return 0;
+}
+
 AMONNode *FindAMONNodeParent(AMONMap *map, int id) {
 	AMONNode *node = NULL;
 	int i = 0;
@@ -222,6 +244,24 @@ RESULT TestPrintAMONMap(Console *pc) {
 	return PrintAMONMap(pc, g_amonmap);
 }
 
+RESULT TestNumberOfLinks(Console *pc, char *pszID, char *pszLinkID) {
+	RESULT r = R_OK;
+
+	int id = atoi(pszID);
+	int linkID = atoi(pszLinkID);
+	int links = GetNumberOfMapLinks(g_amonmap->m_root, id, linkID, 1);
+
+	if(links != 0) {
+		DEBUG_LINEOUT("TestNumberOfLinks: Node %d found on link ID %d at depth %d", id, linkID, links);
+	}
+	else {
+		DEBUG_LINEOUT("TestNumberOfLinks: Node %d not found on link ID %d", id, linkID);
+	}
+
+Error:
+	return r;
+}
+
 RESULT TestAMONMap(Console *pc) {
 	RESULT r = R_OK;
 
@@ -229,6 +269,7 @@ RESULT TestAMONMap(Console *pc) {
 	AddConsoleFunctionByArgs(g_pConsole, TestAddAMONNode, "AddAMONNode", 3, 0);
 	AddConsoleFunctionByArgs(g_pConsole, TestRemoveAMONNode, "RemoveAMONNode", 2, 0);
 	AddConsoleFunctionByArgs(g_pConsole, TestPrintAMONMap, "PrintAMONMap", 1, 0);
+	AddConsoleFunctionByArgs(g_pConsole, TestNumberOfLinks, "AMONMapNumberOfLinks", 3, 0);
 
 Error:
 	return r;
