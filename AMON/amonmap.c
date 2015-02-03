@@ -81,8 +81,8 @@ int GetNumberOfEastWestMapLinks(AMONMap *map, int id, int westLinkId, int eastLi
 		return links;
 	else if((links = GetNumberOfMapLinks(map->m_root, id, westLinkId, 1)) != 0)
 		return links * -1;
-	else
-		return 0;
+
+	return 0;
 }
 
 AMONNode *FindAMONNodeParent(AMONMap *map, int id) {

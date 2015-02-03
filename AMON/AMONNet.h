@@ -134,6 +134,7 @@ RESULT SendAMONMessage(Console *pc, char *pszCmd, char *pszDestID);
 RESULT ConsoleCheckLinkStatus(Console *pc, char *pszLink);
 RESULT ConsoleSetAMONInterval(Console *pc, char *pszMsTime);
 RESULT PrintAMONInfo(Console *pc);
+RESULT TestAMONNumLinks(Console *pc, char *pszID);
 
 RESULT ResetAMONLink(Console *pc, char *pszLink);
 
