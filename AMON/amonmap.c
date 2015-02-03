@@ -248,13 +248,16 @@ RESULT TestNumberOfLinks(Console *pc, char *pszID, char *pszLinkID) {
 	RESULT r = R_OK;
 
 	int id = atoi(pszID);
-	int LinkID = atoi(pszLinkID);
+	int linkID = atoi(pszLinkID);
 	int links = GetNumberOfMapLinks(g_amonmap->m_root, id, linkID, 1);
 
-	if(links != 0)
-		DEBUG_LINEOUT("TestNumberOfLinks: Node %d found on link ID %d at depth %d", id, LinkID, links);
-	else
-		DEBUG_LINEOUT("TestNumberOfLinks: Node %d not found on link ID %d", id, LinkID);
+	if(links != 0) {
+		DEBUG_LINEOUT("TestNumberOfLinks: Node %d found on link ID %d at depth %d", id, linkID, links);
+	}
+	else {
+		DEBUG_LINEOUT("TestNumberOfLinks: Node %d not found on link ID %d", id, linkID);
+	}
+
 Error:
 	return r;
 }

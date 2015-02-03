@@ -34,7 +34,7 @@ RESULT TestCreateAMONMap(Console *pc, char *pszLinks_n);
 RESULT TestAddAMONNode(Console *pc, char *pszDestID, char *pszLinkID);
 RESULT TestRemoveAMONNode(Console *pc, char *pszID);
 RESULT PrintAMONMap(Console *pc, AMONMap *map);
-RESULT TestNumberOfLinks(Console *pc, char *pszID, char *pszID);
+RESULT TestNumberOfLinks(Console *pc, char *pszID, char *pszLinkID);
 RESULT TestAMONMap(Console *pc);
 
 #endif // AMONMAP_H_
