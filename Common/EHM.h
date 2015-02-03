@@ -77,13 +77,13 @@
 
 // Check Pointer Result 
 // Ensures that the pointer is not a NULL
-#define CPR(pointer) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_MSG("Null pointer error!\r\n"); r = R_ERROR; goto Error; }
+#define CPR(pointer) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_MSG_NA("Null pointer error!\r\n"); r = R_ERROR; goto Error; }
 #define CPRM(pointer, msg, ...) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_LINEOUT(msg, __VA_ARGS__); r = R_ERROR; goto Error; }
 #define CPRM_NA(pointer, msg) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_LINEOUT_NA(msg); r = R_ERROR; goto Error; }
 
 // Check NULL Result
 // Ensures that the pointer is not a NULL
-#define CNR(pointer) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_MSG("Null error!\r\n"); r = R_ERROR; goto Error; }
+#define CNR(pointer) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_MSG_NA("Null error!\r\n"); r = R_ERROR; goto Error; }
 #define CNRM(pointer, msg, ...) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_LINEOUT(msg, __VA_ARGS__); r = R_ERROR; goto Error; }
 #define CNRM_NA(pointer, msg) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_LINEOUT_NA(msg); r = R_ERROR; goto Error; }
 
