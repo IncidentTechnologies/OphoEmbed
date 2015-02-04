@@ -26,6 +26,13 @@ RESULT RemoveAMONNode(AMONNode* node);
 
 int GetNumberOfMapLinks(AMONNode* node, int id, int linkID, int depth);
 int GetNumberOfEastWestMapLinks(AMONMap *map, int id, int westLinkId, int eastLinkId);
+
+int GetNodeLinkDepth(AMONNode* node, int linkID, int depth);
+int GetDepthOfMapLink(AMONMap *map, int linkID);
+
+// Will traverse the given link to the depth provided and return the node
+AMONNode *GetMapNodeIDOnLinkDepth(AMONMap *map, int linkID, int depth);
+
 AMONNode *FindAMONNode(AMONMap *map, int id);
 AMONNode *FindAMONNodeParent(AMONMap *map, int id);	// This will acquire the AMON node parent
 

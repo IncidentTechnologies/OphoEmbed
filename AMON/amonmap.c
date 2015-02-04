@@ -73,16 +73,36 @@ int GetNumberOfMapLinks(AMONNode* node, int id, int linkID, int depth) {
 }
 
 int GetNumberOfEastWestMapLinks(AMONMap *map, int id, int westLinkId, int eastLinkId) {
-	AMONNode *node = NULL;
 	int links = 0;
 
 	// Search along only the provised west and east link ids
-	if((links = GetNumberOfMapLinks(map->m_root, id, eastLinkId, 1)) != 0)
+	if((links = GetNumberOfMapLinks(map->m_root, id, eastLinkId, 0)) != 0)
 		return links;
-	else if((links = GetNumberOfMapLinks(map->m_root, id, westLinkId, 1)) != 0)
+	else if((links = GetNumberOfMapLinks(map->m_root, id, westLinkId, 0)) != 0)
 		return links * -1;
 
 	return 0;
+}
+
+int GetNodeLinkDepth(AMONNode* node, int linkID, int depth) {
+	if(node->m_links[linkID] == NULL)
+		return depth;
+	else
+		return GetNodeLinkDepth(node->m_links[linkID], linkID, depth + 1);
+}
+
+int GetDepthOfMapLink(AMONMap *map, int linkID) {
+	return GetNodeLinkDepth(map->m_root, linkID, 0);
+}
+
+AMONNode *GetMapNodeIDOnLinkDepth(AMONMap *map, int linkID, int depth) {
+	AMONNode *node = map->m_root;
+	int i = 0;
+
+	for(i = 0; i < depth; i++)
+		node = node->m_links[linkID];
+
+	return node;
 }
 
 AMONNode *FindAMONNodeParent(AMONMap *map, int id) {

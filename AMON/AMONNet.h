@@ -97,6 +97,7 @@ short GetAMONInterval();
 int GetAMONIntervalSystick();
 
 int GetNumberOfEastWestLinks(int id);
+int GetDepthOfAMONMapLink(AMON_LINK link);
 
 // Command Mode
 typedef RESULT (*cbHandleAMONPayload)(AMON_LINK, short, unsigned char, unsigned char *, int);
