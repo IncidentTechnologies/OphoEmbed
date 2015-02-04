@@ -45,9 +45,9 @@ RESULT InitAmon(int ticksPerSecond) {
 //
 //	AddConsoleFunctionByArgs(g_pConsole, ResetAMONLink, "AMONResetLink", 2, 0);
 
-	AddConsoleFunctionByArgs(g_pConsole, TestAMONMap, "TestAMONMap", 1, 0);
-
-	AddConsoleFunctionByArgs(g_pConsole, TestAMONNumLinks, "TestAMONNumLinks", 2, 0);
+//	AddConsoleFunctionByArgs(g_pConsole, TestAMONMap, "TestAMONMap", 1, 0);
+//
+//	AddConsoleFunctionByArgs(g_pConsole, TestAMONNumLinks, "TestAMONNumLinks", 2, 0);
 
 //	SetLEDWithClearTimeout(1, 20, 20, 100, 50);
 Error:
@@ -382,6 +382,9 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 				g_amon.links[link].fLinkToMaster = 1;
 				g_amon.status = AMON_DEVICE_OK;
 				CRM(SendACK(link, AMON_MASTER_ID, AMON_ASSIGN_ID, 0x00), "HandleAMONPacket: Failed to send assign ID ack on link %d", link);
+
+				int delay;
+				for(delay = 0xFFFF; --delay;) {delay++;delay--;}
 
 				// Send device ID on link so neighbor has the link info
 				CRM(SendDeviceID(link), "AMONRx: Failed to Send Device ID on link %d on assign", link);
