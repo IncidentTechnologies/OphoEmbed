@@ -8,6 +8,7 @@ AMON_PHY_STATE g_AMONLinkPhys[NUM_LINKS];
 
 cbSendByteOnLink g_PHYSendByteCallbacks[NUM_LINKS];
 cbFlushLink g_PHYFlushCallbacks[NUM_LINKS];
+cbLinkPHYBusy g_PHYBusyCallbacks[NUM_LINKS];
 
 RESULT InitAMONPHY() {
 	RESULT r = R_OK;
@@ -37,6 +38,26 @@ RESULT UnregisterLinkSendByteCallback(AMON_LINK link) {
 
 	CBRM((g_PHYSendByteCallbacks[link] != NULL), "UnegisterLinkSendByteCallback: Failed to unregister send byte callback on link %d", link);
 	g_PHYSendByteCallbacks[link] = NULL;
+
+Error:
+	return r;
+}
+
+RESULT RegisterLinkBusyCallback(AMON_LINK link, cbLinkPHYBusy cbBusy){
+	RESULT r = R_OK;
+
+	CBRM((g_PHYBusyCallbacks[link] == NULL), "RegisterLinkBusyCallback: Failed to register busy callback on link %d", link);
+	g_PHYBusyCallbacks[link] = cbBusy;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterLinkBusyCallback(AMON_LINK link) {
+	RESULT r = R_OK;
+
+	CBRM((g_PHYBusyCallbacks[link] != NULL), "UnegisterLinkBusyCallback: Failed to unregister busy callback on link %d", link);
+	g_PHYBusyCallbacks[link] = NULL;
 
 Error:
 	return r;
@@ -206,18 +227,21 @@ RESULT SendByte(AMON_LINK link, unsigned char byte) {
 
 	CBRM((g_PHYSendByteCallbacks[link] != NULL), "SendByte: Failed to send byte on link %d, cb not present", link);
 
-	return g_PHYSendByteCallbacks[link](byte);
-
-	/*
-	switch(link) {
-		case AMON_NORTH: ROM_UARTCharPut(UART1_BASE, byte); break;
-		case AMON_SOUTH: ROM_UARTCharPut(UART3_BASE, byte); break;
-		case AMON_EAST: ROM_UARTCharPut(UART4_BASE, byte); break;
-		case AMON_WEST: ROM_UARTCharPut(UART2_BASE, byte); break;
-	}*/
+	CRM(g_PHYSendByteCallbacks[link](byte), "SendByte: Link %d send byte callback failed", link);
 
 Error:
 	return r;
+}
+
+unsigned char LinkBusy(AMON_LINK link) {
+	if((g_PHYSendByteCallbacks[link] == NULL)) {
+		DEBUG_LINEOUT("LinkBusy: Link busy callback for link %d is NULL", link);
+	}
+	else {
+		return g_PHYBusyCallbacks[link]();
+	}
+
+	return FALSE;
 }
 
 RESULT FlushPHY(AMON_LINK link) {
@@ -225,16 +249,7 @@ RESULT FlushPHY(AMON_LINK link) {
 
 	CBRM((g_PHYFlushCallbacks[link] != NULL), "FlushPHY: Flush callback on link %d not present", link);
 
-	return g_PHYFlushCallbacks[link]();
-
-	/*
-	switch(link) {
-		case AMON_NORTH: return FlushUART(UART1_BASE); break;
-		case AMON_SOUTH: return FlushUART(UART3_BASE); break;
-		case AMON_EAST: return FlushUART(UART4_BASE); break;
-		case AMON_WEST: return FlushUART(UART2_BASE); break;
-	}
-	*/
+	CRM(g_PHYFlushCallbacks[link](), "FlushPHY: Link %d flush phy callback failed", link);
 
 Error:
 	return r;

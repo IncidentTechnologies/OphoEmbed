@@ -43,11 +43,17 @@ extern AMON_PHY_STATE g_AMONLinkPhys[NUM_LINKS];
 typedef RESULT (*cbSendByteOnLink)(unsigned char*);
 extern cbSendByteOnLink g_PHYSendByteCallbacks[NUM_LINKS];
 
-typedef RESULT (*cbFlushLink)();
-extern cbFlushLink g_PHYFlushCallbacks[NUM_LINKS];
-
 RESULT RegisterLinkSendByteCallback(AMON_LINK link, cbSendByteOnLink cbSendByte);
 RESULT UnregisterLinkSendByteCallback(AMON_LINK link);
+
+typedef unsigned char (*cbLinkPHYBusy)();
+extern cbLinkPHYBusy g_PHYBusyCallbacks[NUM_LINKS];
+
+RESULT RegisterLinkBusyCallback(AMON_LINK link, cbLinkPHYBusy cbBusy);
+RESULT UnregisterLinkBusyCallback(AMON_LINK link);
+
+typedef RESULT (*cbFlushLink)();
+extern cbFlushLink g_PHYFlushCallbacks[NUM_LINKS];
 
 RESULT RegisterLinkFlushCallback(AMON_LINK link, cbFlushLink cbFlush);
 RESULT UnregisterLinkFlushCallback(AMON_LINK link);
@@ -59,6 +65,7 @@ RESULT AMONReceiveByte(AMON_LINK link, unsigned char byte);
 RESULT AMONHandlePHYByte(AMON_LINK link, unsigned char byte);
 
 // Byte Mode
+unsigned char LinkBusy(AMON_LINK link);
 RESULT FlushPHY(AMON_LINK link);
 RESULT SendByte(AMON_LINK link, unsigned char byte);
 RESULT BroadcastByte(unsigned char byte);

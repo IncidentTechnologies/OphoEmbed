@@ -9,8 +9,18 @@ int g_MasterCount = 0;
 
 AMONMap *g_AMONmap = NULL;
 
+// TODO: Fix this rudimentary approach
 int GetNumberOfEastWestLinks(int id) {
 	return GetNumberOfEastWestMapLinks(g_AMONmap, id, AMON_WEST, AMON_EAST);
+}
+
+int GetDepthOfAMONMapLink(AMON_LINK link) {
+	return GetDepthOfMapLink(g_AMONmap, link);
+}
+
+int GetAMONMapNodeIDOnLinkDepth(AMON_LINK link, int depth) {
+	AMONNode *node = GetMapNodeIDOnLinkDepth(g_AMONmap, link, depth);
+	return node->m_id;
 }
 
 RESULT InitAmon(int ticksPerSecond) {
@@ -205,7 +215,7 @@ RESULT UnsetAMONMaster() {
 }
 
 
-RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
+inline RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
 	RESULT r = R_OK;
 
 	CBRM_NA((link_input_c[link] < MAX_MSG_LENGTH), "AMONRx: Buffer full!");
@@ -217,8 +227,10 @@ RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
 	switch(g_LinkRxState[link]) {
 		case AMON_RX_READY: {
 			// Something went wrong
-			if(byte != AMON_VALUE)
+			if(byte != AMON_VALUE) {
+				DEBUG_LINEOUT("HandleAMONByte: Byte value received 0x%x, expected AMON_VALUE", byte);
 				CRM_NA(SendErrorResetLink(link, g_linkMessageType[link]), "AMONRx: Failed to send error and reset link");
+			}
 
 			g_LinkRxState[link] = AMON_RX_AMON_RECEIVED;
 		} break;
@@ -231,8 +243,11 @@ RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
 
 		case AMON_RX_LENGTH_RECEIVED: {
 			g_linkMessageType[link] = (AMON_MESSAGE_TYPE)byte;
-			if(g_linkMessageType[link] >= AMON_INVALID || g_linkMessageType[link] == AMON_NULL)
+
+			if(g_linkMessageType[link] >= AMON_INVALID || g_linkMessageType[link] == AMON_NULL) {
+				DEBUG_LINEOUT("HandleAMONByte: Message type invalid 0x%x", byte);
 				CRM_NA(SendErrorResetLink(link, g_linkMessageType[link]), "AMONRx: Failed to send error and reset link");
+			}
 
 			g_LinkRxState[link] = AMON_RX_TYPE_RECEIVED;
 		} break;
@@ -551,6 +566,7 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 		case AMON_ERROR: {
 			unsigned char errorType = pBuffer[3];
 			DEBUG_LINEOUT("HandleAMONPacket: Error: Received error on link %d for message type 0x%x", link, errorType);
+			PrintToOutputBinaryBuffer(g_pConsole, pBuffer, pBuffer_n, 10);
 		} break;
 
 		case AMON_SEND_BYTE_DEST_LINK: {
@@ -588,12 +604,16 @@ Error:
 }
 
 RESULT SendErrorResetLink(AMON_LINK link, AMON_MESSAGE_TYPE type) {
+	RESULT r = R_OK;
+
 	DEBUG_LINEOUT("Error: 0x%x, resetting link %d", type, link);
 
 	//SetLEDLinkClearTimeout(AMON_ALL, 50, 0, 0, 600);
-	ResetLink(link);
+	CRM(SendError(link, type), "SendErrorResetLink: Failed to send error %d on link %d", type, link);
+	CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
 
-	return SendError(link, type);
+Error:
+	return r;
 }
 
 // This will pass a buffer through to all established links other than the incoming link
@@ -622,8 +642,12 @@ RESULT SendAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n) {
 	PrintToOutputBinaryBuffer(g_pConsole, pBuffer, pBuffer_n, 10);
 #endif
 
-	for(i = 0; i < pBuffer_n; i++)
+	for(i = 0; i < pBuffer_n; i++) {
+		// Spin wait until link not busy
+		// TODO: Add timeout here
+		while(LinkBusy(link) == TRUE);
 		CRM(SendByte(link, pBuffer[i]), "SendAMONBuffer: Failed SendByte on %d link", link);
+	}
 
 Error:
 	return r;
