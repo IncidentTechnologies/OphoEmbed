@@ -10,6 +10,7 @@
 
 typedef struct {
 	AMON_MASTER_STATE MasterState;
+
 	unsigned fInitialized: 1;
 	unsigned fStart: 1;
 	AMON_DEVICE_STATUS status;
@@ -24,5 +25,7 @@ RESULT InitializeAMON();
 // Start / Stop the AMON device
 RESULT StartAMON();
 RESULT StopAMON();
+
+unsigned char IsAMONMaster();
 
 #endif // ! AMON_H_
