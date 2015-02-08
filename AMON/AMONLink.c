@@ -24,6 +24,9 @@ RESULT InitializeLink(AMON_LINK link) {
 	g_amon.links[link].fLinkToMaster = 0;
 	g_amon.links[link].LinkStatusCounter = 0;
 
+	g_amon.links[link].fLinkTxBusy = 0;
+	g_amon.links[link].fLinkRxBusy = 0;
+
 	// Reset the PHY
 	CRM(ResetLink(link), "InitilizeLink: Failed to reset link %d", link);
 
@@ -48,6 +51,10 @@ RESULT ResetLink(AMON_LINK link) {
 
 	g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
 	g_AMONLinkStates[link] = AMON_LINK_UNINITIALIZED;
+
+	// Unlock the link
+	UnlockAMONLinkRx(link);
+	UnlockAMONLinkTx(link);
 
 Error:
 	return R_OK;
