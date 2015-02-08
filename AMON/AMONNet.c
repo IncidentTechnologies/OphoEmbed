@@ -308,6 +308,7 @@ unsigned char CalculateChecksum(unsigned char *pBuffer, int pBuffer_n) {
 	return checksum;
 }
 
+// TODO: Switch this over to the AMONPacket paradigm
 RESULT HandleAMONPacket(AMON_LINK link) {
 	RESULT r = R_OK;
 	unsigned char checksum = CalculateChecksum(link_input[link], link_input_c[link]);
@@ -643,7 +644,6 @@ Error:
 }
 
 // This will pass a buffer through to all established links other than the incoming link
-// TODO: Make this in the queue
 RESULT PassThruAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n) {
 	RESULT r = R_OK;
 	int i = 0;
@@ -651,7 +651,18 @@ RESULT PassThruAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n)
 	// We're not the master, so send this back out on all links not including this link
 	for(i = 0; i < NUM_LINKS; i++) {
 		if(i != link && g_AMONLinkStates[i] == AMON_LINK_ESTABLISHED) {
-			CRM(SendAMONBuffer(i, pBuffer, pBuffer_n), "HandleAMONPacket: Failed to pass message on to link %d", i);
+
+			//CRM(SendAMONBuffer(i, pBuffer, pBuffer_n), "HandleAMONPacket: Failed to pass message on to link %d", i);
+
+			// This memory gets deallocated in the queue
+			AMONPacket *pAMONPacket = (AMONPacket *)calloc(pBuffer_n, sizeof(unsigned char));
+			CNRM_NA(pAMONPacket, "PassThruAMONBuffer: Failed to allocate AMON Packet");
+
+			// Copy over the packet
+			memcpy(pAMONPacket, pBuffer, pBuffer_n * sizeof(unsigned char));
+
+			CRM(PushAndTransmitAMONQueuePacket(i, (AMONPacket *)pAMONPacket),
+					"PassThruAMONBuffer: Failed to push and transmit AMON packet on link %d", link);
 		}
 	}
 
