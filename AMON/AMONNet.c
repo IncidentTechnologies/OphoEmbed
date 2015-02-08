@@ -643,6 +643,7 @@ Error:
 }
 
 // This will pass a buffer through to all established links other than the incoming link
+// TODO: Make this in the queue
 RESULT PassThruAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n) {
 	RESULT r = R_OK;
 	int i = 0;
@@ -711,11 +712,11 @@ Error:
 // TODO: Make this work haha
 RESULT SendMessagePayload(AMON_LINK link, short destID, unsigned char type, unsigned char *payloadBuffer, int payloadBuffer_n) {
 	RESULT r = R_OK;
-	unsigned char *pBuffer = NULL;
+	//unsigned char *pBuffer = NULL;
 
 	CBRM((payloadBuffer_n != 0), "SendMessagePayload: Cannot send message of %d bytes", payloadBuffer_n);
 
-	unsigned char linkID = (unsigned char)(g_amon.links[link].link_id);
+	/*unsigned char linkID = (unsigned char)(g_amon.links[link].link_id);
 	unsigned short originID = g_amon.id;
 
 	int pBuffer_n = 10 + payloadBuffer_n;
@@ -743,13 +744,24 @@ RESULT SendMessagePayload(AMON_LINK link, short destID, unsigned char type, unsi
 	PrintToOutputBinaryBuffer(g_pConsole, pBuffer, pBuffer_n, 10);
 #endif
 
-	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendMessagePayload: Failed to SendAMONBuffer %d bytes on link %d", pBuffer_n, link);
+	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendMessagePayload: Failed to SendAMONBuffer %d bytes on link %d", pBuffer_n, link);*/
+
+	AMONSendPacket *pAMONSendPacket = CreateAMONSendPacket(destID, type, payloadBuffer, payloadBuffer_n);
+	CNRM_NA(pAMONSendPacket, "SendMessagePayload: Failed to allocate Send Packet");
+
+#ifdef AMON_VERBOSE
+	DEBUG_LINEOUT("SendMessagePayload: Sending AMONSendPacket length %d to destID %d of type 0x%x", pAMONSendPacket->m_header.m_length, destID, type);
+	PrintToOutputBinaryBuffer(g_pConsole, pAMONSendPacket, pAMONSendPacket->m_header.m_length, 10);
+#endif
+
+	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONSendPacket),
+			"SendMessagePayload: Failed to push and transmit Send packet on link %d", link);
 
 Error:
-	if(pBuffer != NULL) {
+	/*if(pBuffer != NULL) {
 		free(pBuffer);
 		pBuffer = NULL;
-	}
+	}*/
 
 	return r;
 }
@@ -800,10 +812,10 @@ RESULT SendAssignID(AMON_LINK link, short destID, AMON_LINK destLink, short newI
 	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendAssignID: Failed to SendAMONBuffer %d bytes", pBuffer_n);*/
 
 	AMONAssignIDPacket *pAMONAssignIDPacket = CreateAMONAssignIDPacket(destLink, destID, newID);
-	CNRM_NA(pAMONAssignIDPacket, "SendAssignIDFromNetwork: Failed to allocate Assign ID Packet");
+	CNRM_NA(pAMONAssignIDPacket, "SendAssignID: Failed to allocate Assign ID Packet");
 
 	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONAssignIDPacket),
-			"SendAssignIDFromNetwork: Failed to push and transmit Assign ID packet on link %d", link);
+			"SendAssignID: Failed to push and transmit Assign ID packet on link %d", link);
 
 Error:
 	return r;
@@ -830,7 +842,7 @@ RESULT SendEstablishLink(AMON_LINK link) {
 	CNRM_NA(pAMONEstablishLinkPacket, "SendEstablishLink: Failed to allocate Establish Link Packet");
 
 	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONEstablishLinkPacket),
-			"SendEstablishLinkFromNetwork: Failed to push and transmit Establish Link packet on link %d", link);
+			"SendEstablishLink: Failed to push and transmit Establish Link packet on link %d", link);
 
 Error:
 	return r;
@@ -857,7 +869,7 @@ RESULT SendEstablishLinkAck(AMON_LINK link) {
 	CNRM_NA(pAMONEstablishLinkAckPacket, "SendEstablishLinkAck: Failed to allocate Establish Link Ack Packet");
 
 	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONEstablishLinkAckPacket),
-			"SendEstablishLinkFromNetwork: Failed to push and transmit Establish Link Ack packet on link %d", link);
+			"SendEstablishLinkAck: Failed to push and transmit Establish Link Ack packet on link %d", link);
 
 Error:
 	return r;
@@ -877,11 +889,11 @@ RESULT SendError(AMON_LINK link, AMON_MESSAGE_TYPE type) {
 
 	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendError: Failed to SendAMONBuffer %d bytes", pBuffer_n);*/
 
-	AMONErrorPacket *pAMONErrorPacket = CreateAMONErrorPacket(link, type);
+	AMONErrorPacket *pAMONErrorPacket = CreateAMONErrorPacket(type);
 	CNRM_NA(pAMONErrorPacket, "SendError: Failed to allocate Error Packet");
 
 	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONErrorPacket),
-		"SendEstablishLinkFromNetwork: Failed to push and transmit Error packet on link %d", link);
+		"SendError: Failed to push and transmit Error packet on link %d", link);
 
 Error:
 	return r;
@@ -893,7 +905,7 @@ RESULT SendDeviceID(AMON_LINK link) {
 	unsigned char deviceStatus = g_amon.status;
 	unsigned short deviceID = g_amon.id;
 
-	unsigned char pBuffer[] = {
+	/*unsigned char pBuffer[] = {
 		AMON_VALUE,				// AMON Value
 		0x07,					// length
 		AMON_SEND_ID,			// Message Type
@@ -903,7 +915,13 @@ RESULT SendDeviceID(AMON_LINK link) {
 	};
 	int pBuffer_n = sizeof(pBuffer) / sizeof(pBuffer[0]);
 
-	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendDeviceID: Failed to SendAMONBuffer %d bytes", pBuffer_n);
+	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendDeviceID: Failed to SendAMONBuffer %d bytes", pBuffer_n);*/
+
+	AMONSendDeviceIDPacket *pAMONSendDeviceIDPacket = CreateAMONSendDeviceIDPacket(deviceStatus, deviceID);
+	CNRM_NA(pAMONSendDeviceIDPacket, "SendDeviceID: Failed to allocate Send Device ID Packet");
+
+	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONSendDeviceIDPacket),
+		"SendDeviceID: Failed to push and transmit Send Device ID packet on link %d", link);
 
 Error:
 	return r;
@@ -915,7 +933,7 @@ RESULT SendGetDeviceID(AMON_LINK link) {
 	unsigned char deviceStatus = g_amon.status;
 	unsigned short deviceID = g_amon.id;
 
-	unsigned char pBuffer[] = {
+	/*unsigned char pBuffer[] = {
 		AMON_VALUE,				// AMON Value
 		0x07,					// length
 		AMON_GET_ID,			// Message Type
@@ -925,7 +943,13 @@ RESULT SendGetDeviceID(AMON_LINK link) {
 	};
 	int pBuffer_n = sizeof(pBuffer) / sizeof(pBuffer[0]);
 
-	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendGetDeviceID: Failed to SendAMONBuffer %d bytes", pBuffer_n);
+	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendGetDeviceID: Failed to SendAMONBuffer %d bytes", pBuffer_n);*/
+
+	AMONGetDeviceIDPacket *pAMONGetDeviceIDPacket = CreateAMONGetDeviceIDPacket(deviceStatus, deviceID);
+	CNRM_NA(pAMONGetDeviceIDPacket, "SendGetDeviceID: Failed to allocate Get Device ID Packet");
+
+	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONGetDeviceIDPacket),
+		"SendGetDeviceID: Failed to push and transmit Get Device ID packet on link %d", link);
 
 Error:
 	return r;
@@ -934,7 +958,7 @@ Error:
 RESULT SendResetLink(AMON_LINK link) {
 	RESULT r = R_OK;
 
-	unsigned char pBuffer[] = {
+	/*unsigned char pBuffer[] = {
 		AMON_VALUE,				// AMON Value
 		0x04,					// length
 		AMON_RESET_LINK,		// Message Type
@@ -942,7 +966,13 @@ RESULT SendResetLink(AMON_LINK link) {
 	};
 	int pBuffer_n = sizeof(pBuffer) / sizeof(pBuffer[0]);
 
-	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendResetLink: Failed to SendAMONBuffer %d bytes", pBuffer_n);
+	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendResetLink: Failed to SendAMONBuffer %d bytes", pBuffer_n);*/
+
+	AMONResetLinkPacket *pAMONResetLinkPacket = CreateAMONResetLinkPacket();
+	CNRM_NA(pAMONResetLinkPacket, "SendResetLink: Failed to allocate Reset Link Packet");
+
+	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONResetLinkPacket),
+		"SendResetLink: Failed to push and transmit Reset Link packet on link %d", link);
 
 Error:
 	return r;
@@ -951,7 +981,7 @@ Error:
 RESULT SendResetLinkACK(AMON_LINK link) {
 	RESULT r = R_OK;
 
-	unsigned char pBuffer[] = {
+	/*unsigned char pBuffer[] = {
 		AMON_VALUE,				// AMON Value
 		0x04,					// length
 		AMON_RESET_LINK_ACK,	// Message Type
@@ -959,7 +989,13 @@ RESULT SendResetLinkACK(AMON_LINK link) {
 	};
 	int pBuffer_n = sizeof(pBuffer) / sizeof(pBuffer[0]);
 
-	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendResetLinkACK: Failed to SendAMONBuffer %d bytes", pBuffer_n);
+	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendResetLinkACK: Failed to SendAMONBuffer %d bytes", pBuffer_n);*/
+
+	AMONResetLinkAckPacket *pAMONResetLinkAckPacket = CreateAMONResetLinkAckPacket();
+	CNRM_NA(pAMONResetLinkAckPacket, "SendResetLinkACK: Failed to allocate Reset Link Ack Packet");
+
+	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONResetLinkAckPacket),
+		"SendResetLinkACK: Failed to push and transmit Reset Link Ack packet on link %d", link);
 
 Error:
 	return r;
@@ -1022,7 +1058,7 @@ Error:
 RESULT SendACK(AMON_LINK link, short destID, AMON_ACK_TYPE type, unsigned char status) {
 	RESULT r = R_OK;
 
-	unsigned char pBuffer[] = {
+	/*unsigned char pBuffer[] = {
 		AMON_VALUE,									// AMON Value
 		0x0A,										// length
 		AMON_ACK,									// Message Type
@@ -1034,7 +1070,13 @@ RESULT SendACK(AMON_LINK link, short destID, AMON_ACK_TYPE type, unsigned char s
 	};
 	int pBuffer_n = sizeof(pBuffer) / sizeof(pBuffer[0]);
 
-	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendGetDeviceID: Failed to SendAMONBuffer %d bytes", pBuffer_n);
+	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendGetDeviceID: Failed to SendAMONBuffer %d bytes", pBuffer_n);*/
+
+	AMONAckPacket *pAMONAckPacket = CreateAMONAckPacket(destID, type, status);
+	CNRM_NA(pAMONAckPacket, "SendACK: Failed to allocate Ack Packet");
+
+	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONAckPacket),
+		"SendACK: Failed to push and transmit Ack packet on link %d", link);
 
 Error:
 	return r;
@@ -1043,7 +1085,7 @@ Error:
 RESULT SendByteDestLink(AMON_LINK link, short destID, AMON_LINK destLink, unsigned char byte) {
 	RESULT r = R_OK;
 
-	unsigned char pBuffer[] = {
+	/*unsigned char pBuffer[] = {
 		AMON_VALUE,									// AMON Value
 		0x0A,										// length
 		AMON_SEND_BYTE_DEST_LINK,									// Message Type
@@ -1055,7 +1097,13 @@ RESULT SendByteDestLink(AMON_LINK link, short destID, AMON_LINK destLink, unsign
 	};
 	int pBuffer_n = sizeof(pBuffer) / sizeof(pBuffer[0]);
 
-	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendByteDestLink: Failed to SendAMONBuffer %d bytes", pBuffer_n);
+	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendByteDestLink: Failed to SendAMONBuffer %d bytes", pBuffer_n);*/
+
+	AMONSendByteDestLinkPacket *pAMONSendByteDestLinkPacket = CreateAMONSendByteDestLinkPacket(destID, destLink, byte);
+	CNRM_NA(pAMONSendByteDestLinkPacket, "SendByteDestLink: Failed to allocate Send Byte Dest Link Packet");
+
+	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONSendByteDestLinkPacket),
+		"SendByteDestLink: Failed to push and transmit Send Byte Dest Link packet on link %d", link);
 
 Error:
 	return r;

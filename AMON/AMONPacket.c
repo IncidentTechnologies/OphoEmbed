@@ -115,6 +115,107 @@ AMONErrorPacket *CreateAMONErrorPacket(unsigned short type) {
 	return pAMONErrorPacket;
 }
 
+AMONSendDeviceIDPacket *CreateAMONSendDeviceIDPacket(unsigned char status, unsigned short deviceID) {
+	AMONSendDeviceIDPacket *pAMONSendDeviceIDPacket = (AMONSendDeviceIDPacket*)calloc(1, sizeof(AMONSendDeviceIDPacket));
+
+	pAMONSendDeviceIDPacket->m_header.m_AMONID = AMON_VALUE;
+
+	pAMONSendDeviceIDPacket->m_header.m_length = 7;	// Alignment screws this up
+
+	pAMONSendDeviceIDPacket->m_header.m_type = AMON_SEND_ID;
+	pAMONSendDeviceIDPacket->m_deviceStatus = status;
+	pAMONSendDeviceIDPacket->m_deviceID = deviceID;
+
+	return pAMONSendDeviceIDPacket;
+}
+
+AMONGetDeviceIDPacket *CreateAMONGetDeviceIDPacket(unsigned char originStatus, unsigned short originDeviceID) {
+	AMONGetDeviceIDPacket *pAMONGetDeviceIDPacket = (AMONGetDeviceIDPacket*)calloc(1, sizeof(AMONGetDeviceIDPacket));
+
+	pAMONGetDeviceIDPacket->m_header.m_AMONID = AMON_VALUE;
+
+	pAMONGetDeviceIDPacket->m_header.m_length = 7;	// Alignment screws this up
+
+	pAMONGetDeviceIDPacket->m_header.m_type = AMON_GET_ID;
+	pAMONGetDeviceIDPacket->m_originDeviceStatus = originStatus;
+	pAMONGetDeviceIDPacket->m_originDeviceID = originDeviceID;
+
+	return pAMONGetDeviceIDPacket;
+}
+
+AMONResetLinkPacket *CreateAMONResetLinkPacket() {
+	AMONResetLinkPacket *pAMONResetLinkPacket = (AMONResetLinkPacket*)calloc(1, sizeof(AMONResetLinkPacket));
+
+	pAMONResetLinkPacket->m_header.m_AMONID = AMON_VALUE;
+	pAMONResetLinkPacket->m_header.m_length = 4;	// Alignment screws this up
+	pAMONResetLinkPacket->m_header.m_type = AMON_RESET_LINK;
+
+	return pAMONResetLinkPacket;
+}
+
+AMONResetLinkAckPacket *CreateAMONResetLinkAckPacket() {
+	AMONResetLinkAckPacket *pAMONResetLinkAckPacket = (AMONResetLinkAckPacket*)calloc(1, sizeof(AMONResetLinkAckPacket));
+
+	pAMONResetLinkAckPacket->m_header.m_AMONID = AMON_VALUE;
+	pAMONResetLinkAckPacket->m_header.m_length = 4;	// Alignment screws this up
+	pAMONResetLinkAckPacket->m_header.m_type = AMON_RESET_LINK_ACK;
+
+	return pAMONResetLinkAckPacket;
+}
+
+AMONAckPacket *CreateAMONAckPacket(unsigned char destID, unsigned char ackType, unsigned char ackStatus) {
+	AMONAckPacket *pAMONAckPacket = (AMONAckPacket*)calloc(1, sizeof(AMONAckPacket));
+
+	pAMONAckPacket->m_header.m_AMONID = AMON_VALUE;
+	pAMONAckPacket->m_header.m_length = 10;	// Alignment screws this up
+	pAMONAckPacket->m_header.m_type = AMON_ACK;
+
+	pAMONAckPacket->m_destID = destID;
+	pAMONAckPacket->m_originID = g_amon.id;
+	pAMONAckPacket->m_ackType = ackType;
+	pAMONAckPacket->m_ackStatus = ackStatus;
+
+	return pAMONAckPacket;
+}
+
+AMONSendByteDestLinkPacket *CreateAMONSendByteDestLinkPacket(unsigned short destID, unsigned char destLink, unsigned char byte) {
+	AMONSendByteDestLinkPacket *pAMONSendByteDestLinkPacket = (AMONSendByteDestLinkPacket*)calloc(1, sizeof(AMONSendByteDestLinkPacket));
+
+	pAMONSendByteDestLinkPacket->m_header.m_AMONID = AMON_VALUE;
+	pAMONSendByteDestLinkPacket->m_header.m_length = 10;	// Alignment screws this up
+	pAMONSendByteDestLinkPacket->m_header.m_type = AMON_SEND_BYTE_DEST_LINK;
+
+	pAMONSendByteDestLinkPacket->m_destID = destID;
+	pAMONSendByteDestLinkPacket->m_originID = g_amon.id;
+	pAMONSendByteDestLinkPacket->m_destLinkID = destLink;
+	pAMONSendByteDestLinkPacket->m_byte = byte;
+
+	return pAMONSendByteDestLinkPacket;
+}
+
+AMONSendPacket *CreateAMONSendPacket(unsigned short destID, unsigned char type, unsigned char *payloadBuffer, int payloadBuffer_n) {
+	int structSize = sizeof(AMONSendPacket) + sizeof(unsigned char) * (payloadBuffer_n + 1);
+	AMONSendPacket *pAMONSendPacket = (AMONSendPacket *)malloc(structSize);
+	memset(pAMONSendPacket, 0, structSize);
+
+	pAMONSendPacket->m_header.m_AMONID = AMON_VALUE;
+	pAMONSendPacket->m_header.m_length = structSize;	// Alignment screws this up
+	pAMONSendPacket->m_header.m_type = AMON_SEND;
+
+	pAMONSendPacket->m_destID = destID;
+	pAMONSendPacket->m_originID = g_amon.id;
+	pAMONSendPacket->m_sendMessageType = type;
+	pAMONSendPacket->m_payloadLength = payloadBuffer_n;
+
+	// Copy over the payload
+	memcpy((void*)(pAMONSendPacket + 9), (void*)(payloadBuffer), sizeof(unsigned char) * payloadBuffer_n);
+
+	// pAMONSendPacket[9 + payloadBuffer_n] = 0x00;				// Check sum (calculated later)
+	// set checksum to zero
+	memcpy((void*)(pAMONSendPacket + 9 + payloadBuffer_n), 0x00, sizeof(unsigned char));
+
+	return pAMONSendPacket;
+}
 
 
 

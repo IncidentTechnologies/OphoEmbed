@@ -86,6 +86,57 @@ typedef struct {
 	unsigned char m_checksum;
 } AMONErrorPacket;
 
+typedef struct {
+	AMONPacket m_header;
+	unsigned char m_deviceStatus;
+	unsigned short m_deviceID;
+	unsigned char m_checksum;
+} AMONSendDeviceIDPacket;
+
+typedef struct {
+	AMONPacket m_header;
+	unsigned char m_originDeviceStatus;
+	unsigned short m_originDeviceID;
+	unsigned char m_checksum;
+} AMONGetDeviceIDPacket;
+
+typedef struct {
+	AMONPacket m_header;
+	unsigned char m_checksum;
+} AMONResetLinkPacket;
+
+typedef struct {
+	AMONPacket m_header;
+	unsigned char m_checksum;
+} AMONResetLinkAckPacket;
+
+typedef struct {
+	AMONPacket m_header;
+	unsigned short m_originID;
+	unsigned short m_destID;
+	unsigned char m_ackType;
+	unsigned char m_ackStatus;
+	unsigned char m_checksum;
+} AMONAckPacket;
+
+typedef struct {
+	AMONPacket m_header;
+	unsigned short m_originID;
+	unsigned short m_destID;
+	unsigned char m_destLinkID;
+	unsigned char m_byte;
+	unsigned char m_checksum;
+} AMONSendByteDestLinkPacket;
+
+typedef struct {
+	AMONPacket m_header;
+	unsigned short m_originID;
+	unsigned short m_destID;
+	unsigned char m_sendMessageType;
+	unsigned char m_payloadLength;
+	//unsigned char m_checksum;	- checksum
+} AMONSendPacket;
+
 RESULT SendAMONPacket(AMON_LINK link, AMONPacket *d_pAMONPacket);
 
 AMONPingPacket *CreatePingPacket(unsigned char destID);
@@ -95,5 +146,15 @@ AMONAssignIDPacket *CreateAMONAssignIDPacket(AMON_LINK destLink, unsigned short 
 AMONEstablishLinkPacket *CreateAMONEstablishLinkPacket(AMON_LINK link, unsigned short originID);
 AMONEstablishLinkAckPacket *CreateAMONEstablishLinkAckPacket(AMON_LINK link, unsigned short senderID);
 AMONErrorPacket *CreateAMONErrorPacket(unsigned short type);
+AMONSendDeviceIDPacket *CreateAMONSendDeviceIDPacket(unsigned char status, unsigned short deviceID);
+AMONGetDeviceIDPacket *CreateAMONGetDeviceIDPacket(unsigned char originStatus, unsigned short originDeviceID);
+AMONResetLinkPacket *CreateAMONResetLinkPacket();
+AMONResetLinkAckPacket *CreateAMONResetLinkAckPacket();
+AMONAckPacket *CreateAMONAckPacket(unsigned char destID, unsigned char ackType, unsigned char ackStatus);
+AMONSendByteDestLinkPacket *CreateAMONSendByteDestLinkPacket(unsigned short destID, unsigned char destLink, unsigned char byte);
+
+
+AMONSendPacket *CreateAMONSendPacket(unsigned short destID, unsigned char type, unsigned char *payloadBuffer, int payloadBuffer_n);
+
 
 #endif // ! AMON_PACKET_H_
