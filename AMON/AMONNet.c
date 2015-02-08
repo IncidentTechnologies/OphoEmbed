@@ -278,6 +278,9 @@ inline RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
 #ifdef AMON_HALF_DUPLEX
 				CBRM_NA((g_AMONLinkPhyPacketCount[link] != 0), "HandleAMONByte: Phy packet counter should not be zero");
 				g_AMONLinkPhyPacketCount[link]--;
+				#ifdef AMON_VERBOSE
+					DEBUG_LINEOUT("Packet received %d packets remain on link %d", g_AMONLinkPhyPacketCount[link], link);
+				#endif
 #endif
 			}
 			else {
@@ -316,10 +319,10 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 	int pBuffer_n = link_input_c[link];
 	int i = 0;
 
-//#ifdef AMON_VERBOSE
+#ifdef AMON_VERBOSE
 	DEBUG_LINEOUT("HandleAMONPacket: Received AMON packet of %d bytes", pBuffer_n);
 	PrintToOutputBinaryBuffer(g_pConsole, pBuffer, pBuffer_n, 10);
-//#endif
+#endif
 
 	CBRM((checksum == pBuffer[pBuffer_n - 1]), "HandleAMONPacket: Checksum mismatch 0x%x 0x%x", checksum, pBuffer[pBuffer_n - 1]);
 
@@ -384,7 +387,7 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 
 		case AMON_REQUEST_ID: {
 			unsigned char linkID = pBuffer[3];
-			int addressDeviceID = AMONToShort(pBuffer[4], pBuffer[5]);
+			unsigned short addressDeviceID = AMONToShort(pBuffer[4], pBuffer[5]);
 
 			DEBUG_LINEOUT("Received ID request on link %d from device connected to %d on link %d", link, addressDeviceID, linkID);
 
@@ -512,7 +515,7 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 		case AMON_SEND_ID: {
 
 			// Is the link already established?
-			if(g_AMONLinkStates[i] == AMON_LINK_ESTABLISHED) {
+			if(g_AMONLinkStates[link] == AMON_LINK_ESTABLISHED) {
 				int rxID = AMONToShort(pBuffer[4], pBuffer[5]);
 				DEBUG_LINEOUT("Rx: Neighbor ID %d received on link %d", rxID, link);
 				g_amon.links[link].id = rxID;

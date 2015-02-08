@@ -45,7 +45,7 @@ AMONEchoPacket *CreateAMONEchoPacket(unsigned char destID) {
 	return pAMONEchoPacket;
 }
 
-AMONRequestIDPacket *CreateAMONRequestIDPacket(unsigned char linkID, unsigned short linkDeviceID) {
+AMONRequestIDPacket *CreateAMONRequestIDPacket(AMON_LINK linkID, unsigned short linkDeviceID) {
 	AMONRequestIDPacket *pAMONRequestIDPacket = (AMONRequestIDPacket*)calloc(1, sizeof(AMONRequestIDPacket));
 
 	pAMONRequestIDPacket->m_header.m_AMONID = AMON_VALUE;
@@ -53,7 +53,7 @@ AMONRequestIDPacket *CreateAMONRequestIDPacket(unsigned char linkID, unsigned sh
 	pAMONRequestIDPacket->m_header.m_length = 7;	// Alignment screws this up
 
 	pAMONRequestIDPacket->m_header.m_type = AMON_REQUEST_ID;
-	pAMONRequestIDPacket->m_linkID = linkID;
+	pAMONRequestIDPacket->m_linkID = (unsigned char)(linkID);
 	pAMONRequestIDPacket->m_linkDeviceID = linkDeviceID;
 
 	return pAMONRequestIDPacket;
@@ -67,7 +67,7 @@ AMONAssignIDPacket *CreateAMONAssignIDPacket(AMON_LINK destLink, unsigned short 
 	pAMONAssignIDPacket->m_header.m_length = 9;	// Alignment screws this up
 
 	pAMONAssignIDPacket->m_header.m_type = AMON_ASSIGN_ID;
-	pAMONAssignIDPacket->m_linkID = (unsigned char)destLink;
+	pAMONAssignIDPacket->m_linkID = (unsigned char)(destLink);
 	pAMONAssignIDPacket->m_linkDeviceID = destID;
 	pAMONAssignIDPacket->m_newID = newID;
 
@@ -82,7 +82,7 @@ AMONEstablishLinkPacket *CreateAMONEstablishLinkPacket(AMON_LINK link, unsigned 
 	pAMONEstablishLinkPacket->m_header.m_length = 7;	// Alignment screws this up
 
 	pAMONEstablishLinkPacket->m_header.m_type = AMON_ESTABLISH_LINK;
-	pAMONEstablishLinkPacket->m_linkID = (unsigned char)link;
+	pAMONEstablishLinkPacket->m_linkID = (unsigned char)(link);
 	pAMONEstablishLinkPacket->m_originID = originID;
 
 	return pAMONEstablishLinkPacket;
@@ -96,7 +96,7 @@ AMONEstablishLinkAckPacket *CreateAMONEstablishLinkAckPacket(AMON_LINK link, uns
 	pAMONEstablishLinkAckPacket->m_header.m_length = 7;	// Alignment screws this up
 
 	pAMONEstablishLinkAckPacket->m_header.m_type = AMON_ESTABLISH_LINK_ACK;
-	pAMONEstablishLinkAckPacket->m_linkID = (unsigned char)link;
+	pAMONEstablishLinkAckPacket->m_linkID = (unsigned char)(link);
 	pAMONEstablishLinkAckPacket->m_senderID = senderID;
 
 	return pAMONEstablishLinkAckPacket;

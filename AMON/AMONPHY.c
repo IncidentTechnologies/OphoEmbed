@@ -116,11 +116,15 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 
 	switch(g_AMONLinkPhys[link]) {
 		case AMON_PHY_READY: {
-			if(byte & AMON_REQUEST_TRANSMIT != 0) {
+			if((byte & AMON_REQUEST_TRANSMIT) == AMON_REQUEST_TRANSMIT) {
 				unsigned char numPackets = (unsigned char)(byte & 0x0F);
 				g_AMONLinkPhyPacketCount[link] = numPackets;
 				g_AMONLinkPhys[link] = AMON_PHY_ACCEPT_TRANSMIT;
-				DEBUG_LINEOUT("Transmit request of %d packets received on link %d", numPackets, link);
+
+				#ifdef AMON_VERBOSE
+					DEBUG_LINEOUT("Transmit request of %d packets received on link %d", numPackets, link);
+				#endif
+
 				CRM(SendByte(link, AMON_ACCEPT_TRANSMIT), "AMONHandleHalfDuplexPHYByte: Failed to send accept transmit byte on link %d", link);
 			}
 			else {
@@ -142,11 +146,15 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 					// Check to see if we have pending packets in the queue
 					// otherwise, return transmit complete ACK
 					if(NumPacketsInQueue(link) != 0) {
-						DEBUG_LINEOUT("Transmit complete received on link %d, pending %d packets", link, NumPacketsInQueue(link));
+						#ifdef AMON_VERBOSE
+							DEBUG_LINEOUT("Transmit complete received on link %d, pending %d packets", link, NumPacketsInQueue(link));
+						#endif
 						CRM(SendRequestTransmit(link, NumPacketsInQueue(link)), "AMONHandleHalfDuplexPHYByte: Failed to send request transmit on link %d", link);
 					}
 					else {
-						DEBUG_LINEOUT("Transmit complete received on link %d", link);
+						#ifdef AMON_VERBOSE
+							DEBUG_LINEOUT("Transmit complete received on link %d", link);
+						#endif
 						CRM(SendByte(link, AMON_TRANSMIT_COMPLETE_ACK), "AMONHandleHalfDuplexPHYByte: Failed to send transmit complete ack byte on link %d", link);
 					}
 				}
@@ -165,6 +173,10 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 				CRM(SendAMONQueue(link), "AMONHandleHalfDuplexPHYByte: Failed to send AMON Queue on link %d", link);
 
 				// Queue send is complete
+				#ifdef AMON_VERBOSE
+					DEBUG_LINEOUT("Queue send complete on link %d", link);
+				#endif
+
 				g_AMONLinkPhys[link] = AMON_PHY_TRANSMIT_COMPLETE;
 				CRM(SendByte(link, AMON_TRANSMIT_COMPLETE), "AMONHandleHalfDuplexPHYByte: Failed to send transmit complete byte on link %d", link);
 			}
@@ -184,17 +196,23 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 		case AMON_PHY_TRANSMIT_COMPLETE: {
 			if(byte == AMON_TRANSMIT_COMPLETE_ACK) {
 				// Transmission has completed with ACK, link goes back to ready
+				#ifdef AMON_VERBOSE
+					DEBUG_LINEOUT("Transmit complete ACK received on link %d", link);
+				#endif
 				g_AMONLinkPhys[link] = AMON_PHY_READY;
 			}
-			else if(byte & AMON_REQUEST_TRANSMIT != 0) {
+			else if((byte & AMON_REQUEST_TRANSMIT) == AMON_REQUEST_TRANSMIT) {
 				// They're trying to transmit right after
 				unsigned char numPackets = (unsigned char)(byte & 0x0F);
 				g_AMONLinkPhyPacketCount[link] = numPackets;
 				g_AMONLinkPhys[link] = AMON_PHY_ACCEPT_TRANSMIT;
+				#ifdef AMON_VERBOSE
+					DEBUG_LINEOUT("Transmit request response of %d packets received on link %d", numPackets, link);
+				#endif
 				CRM(SendByte(link, AMON_ACCEPT_TRANSMIT), "AMONHandleHalfDuplexPHYByte: Failed to send accept transmit byte on link %d", link);
 			}
 			else {
-				DEBUG_LINEOUT("Byte 0x%x received on link %d is not accept transmit, resetting the link", byte, link);
+				DEBUG_LINEOUT("Byte 0x%x received on link %d is not transmit complete ACK or request response 0x%x, resetting the link", byte, (byte & AMON_REQUEST_TRANSMIT), link);
 				CRM(AMONErrorLink(link), "AMONHandlePHYByte: Failed to send error on phy link %d", link);
 				CRM(ResetLink(link), "AMONHandlePHYByte: Failed to reset link %d", link);
 			}
@@ -301,7 +319,7 @@ RESULT AMONHandlePHYByte(AMON_LINK link, unsigned char byte) {
 			g_AMONLinkPhys[link] = AMON_PHY_READY;
 
 			// PHY Link established, launch into AMON handshake
-			//CRM(SendGetDeviceID(link), "AMONRx: Failed to Send Get Device ID on link %d", link);
+			CRM(SendGetDeviceID(link), "AMONRx: Failed to Send Get Device ID on link %d", link);
 
 			g_AMONLinkStates[link] = AMON_LINK_ID_REQUESTED;
 		} break;
@@ -368,11 +386,12 @@ RESULT SendRequestTransmit(AMON_LINK link, unsigned char numPackets) {
 	// up on completion
 	if(g_AMONLinkPhys[link] != AMON_PHY_READY)
 		return R_OK;
+	else
+		g_AMONLinkPhys[link] = AMON_PHY_REQUEST_TRANSMIT;
 
 	CBRM((g_PHYSendByteCallbacks[link] != NULL), "SendRequestTransmit: Failed to send byte on link %d, cb not present", link);
 	CRM(g_PHYSendByteCallbacks[link](byte), "SendRequestTransmit: Link %d send byte callback failed", link);
 
-	g_AMONLinkPhys[link] = AMON_PHY_REQUEST_TRANSMIT;
 
 Error:
 	return r;

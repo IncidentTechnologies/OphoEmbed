@@ -30,34 +30,43 @@ typedef enum {
 	AMON_ACK_INVALID
 } AMON_ACK_TYPE;
 
+#pragma pack(push, 1)
 typedef struct {
 	unsigned char m_AMONID;
 	unsigned char m_length;
 	//AMON_MESSAGE_TYPE m_type;
 	unsigned char m_type;
 } AMONPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned short m_originID;
 	unsigned short m_destID;
 	unsigned char m_checksum;
 } AMONPingPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned short m_originID;
 	unsigned short m_destID;
 	unsigned char m_checksum;
 } AMONEchoPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned char m_linkID;
 	unsigned short m_linkDeviceID;
 	unsigned char m_checksum;
 } AMONRequestIDPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned char m_linkID;
@@ -65,51 +74,67 @@ typedef struct {
 	unsigned short m_newID;
 	unsigned char m_checksum;
 } AMONAssignIDPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned short m_originID;
 	unsigned char m_linkID;
 	unsigned char m_checksum;
 } AMONEstablishLinkPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned short m_senderID;
 	unsigned char m_linkID;
 	unsigned char m_checksum;
 } AMONEstablishLinkAckPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned char m_messageType;
 	unsigned char m_checksum;
 } AMONErrorPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned char m_deviceStatus;
 	unsigned short m_deviceID;
 	unsigned char m_checksum;
 } AMONSendDeviceIDPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned char m_originDeviceStatus;
 	unsigned short m_originDeviceID;
 	unsigned char m_checksum;
 } AMONGetDeviceIDPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned char m_checksum;
 } AMONResetLinkPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned char m_checksum;
 } AMONResetLinkAckPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned short m_originID;
@@ -118,7 +143,9 @@ typedef struct {
 	unsigned char m_ackStatus;
 	unsigned char m_checksum;
 } AMONAckPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned short m_originID;
@@ -127,7 +154,9 @@ typedef struct {
 	unsigned char m_byte;
 	unsigned char m_checksum;
 } AMONSendByteDestLinkPacket;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct {
 	AMONPacket m_header;
 	unsigned short m_originID;
@@ -136,12 +165,13 @@ typedef struct {
 	unsigned char m_payloadLength;
 	//unsigned char m_checksum;	- checksum
 } AMONSendPacket;
+#pragma pack(pop)
 
 RESULT SendAMONPacket(AMON_LINK link, AMONPacket *d_pAMONPacket);
 
 AMONPingPacket *CreatePingPacket(unsigned char destID);
 AMONEchoPacket *CreateAMONEchoPacket(unsigned char destID);
-AMONRequestIDPacket *CreateAMONRequestIDPacket(unsigned char linkID, unsigned short linkDeviceID);
+AMONRequestIDPacket *CreateAMONRequestIDPacket(AMON_LINK linkID, unsigned short linkDeviceID);
 AMONAssignIDPacket *CreateAMONAssignIDPacket(AMON_LINK destLink, unsigned short destID, unsigned short newID);
 AMONEstablishLinkPacket *CreateAMONEstablishLinkPacket(AMON_LINK link, unsigned short originID);
 AMONEstablishLinkAckPacket *CreateAMONEstablishLinkAckPacket(AMON_LINK link, unsigned short senderID);
