@@ -150,6 +150,7 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 					#endif
 
 					// Now we parse through the packets in the queue
+					CRM(HandleAMONIncomingQueue(link), "Failed to handle received packets link %d", link);
 
 					// Check to see if we have pending packets in the queue otherwise, return transmit complete ACK
 					if(NumPacketsInPendingQueue(link) != 0) {

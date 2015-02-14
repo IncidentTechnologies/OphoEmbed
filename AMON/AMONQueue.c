@@ -161,7 +161,17 @@ Error:
 	return r;
 }
 
+RESULT HandleAMONIncomingQueue(AMON_LINK link) {
+	RESULT r = R_OK;
 
+	while(g_pAMONIncomingQueue[link]->m_count > 0) {
+		AMONPacket *pAMONPacket = PopAMONIncomingQueuePacket(link);
+		CRM(HandleAMONPacket(link, pAMONPacket), "HandleAMONIncomingQueue: Failed to handle incoming queue packet link %d", link);
+	}
+
+Error:
+	return r;
+}
 
 
 

@@ -16,6 +16,7 @@ RESULT PushAMONPendingQueuePacket(AMON_LINK link, AMONPacket *pAMONPacket);
 RESULT PushAMONIncomingQueuePacket(AMON_LINK link, AMONPacket *pAMONPacket);
 
 AMONPacket *PopAMONIncomingQueuePacket(AMON_LINK link);
+RESULT HandleAMONIncomingQueue(AMON_LINK link);
 
 RESULT SendAMONQueue(AMON_LINK link);
 
