@@ -511,6 +511,7 @@ Error:
 
 RESULT HandleAMONSend(AMON_LINK link, AMONSendPacket *pAMONSendPacket) {
 	RESULT r = R_OK;
+	int i = 0;
 
 	#ifdef AMON_VERBOSE
 		DEBUG_LINEOUT("Received AMON_SEND (message) on link %d from device %d to device %d type %d",
@@ -522,15 +523,24 @@ RESULT HandleAMONSend(AMON_LINK link, AMONSendPacket *pAMONSendPacket) {
 	if(g_amon.id == pAMONSendPacket->m_destID ) {
 		// Make a copy of the data so it doesn't get clobbered
 		unsigned char *pPayloadBuffer = (unsigned char*)calloc(sizeof(unsigned char), pAMONSendPacket->m_payloadLength);
-		memcpy((void*)(pPayloadBuffer), (void*)(pAMONSendPacket + 9), sizeof(unsigned char) * pAMONSendPacket->m_payloadLength);
+
+		// TODO: wtf isn't this working
+		//memcpy(pPayloadBuffer, (unsigned char*)(pAMONSendPacket + 9), sizeof(unsigned char) * pAMONSendPacket->m_payloadLength);
+		for(i = 0; i < pAMONSendPacket->m_payloadLength; i++) {
+			pPayloadBuffer[i] = ((unsigned char *)(pAMONSendPacket))[9 + i];
+		}
 
 		// Note: The handler needs to delete the memory after it's been used
 		// TODO: Create an incoming message queue?
 
-		/*
-		CRM(g_HandleAMONPayloadCallback(link, originDeviceID, type, pPayloadBuffer, payload_n),
-			"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", originDeviceID, link);
-		*/
+		///*
+
+		//CRM(g_HandleAMONPayloadCallback(link, originDeviceID, type, pPayloadBuffer, payload_n),
+		//					"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", originDeviceID, link);
+
+		CRM(g_HandleAMONPayloadCallback(link, pAMONSendPacket->m_originID, pAMONSendPacket->m_sendMessageType, pPayloadBuffer, pAMONSendPacket->m_payloadLength),
+			"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", pAMONSendPacket->m_originID, link);
+		//*/
 	}
 	else {
 		CRM(PassThruAMONBuffer(link, (unsigned char*)pAMONSendPacket, pAMONSendPacket->m_header.m_length),
