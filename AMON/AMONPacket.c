@@ -208,11 +208,12 @@ AMONSendPacket *CreateAMONSendPacket(unsigned short destID, unsigned char type, 
 	pAMONSendPacket->m_payloadLength = payloadBuffer_n;
 
 	// Copy over the payload
-	memcpy((void*)(pAMONSendPacket + 9), (void*)(payloadBuffer), sizeof(unsigned char) * payloadBuffer_n);
+	memcpy((void*)(pAMONSendPacket) + 9, (void*)(payloadBuffer), sizeof(unsigned char) * payloadBuffer_n);
 
 	// pAMONSendPacket[9 + payloadBuffer_n] = 0x00;				// Check sum (calculated later)
 	// set checksum to zero
-	memcpy((void*)(pAMONSendPacket + 9 + payloadBuffer_n), 0x00, sizeof(unsigned char));
+	unsigned char tempChecksum = 0x00;
+	memcpy((void*)(pAMONSendPacket) + 9 + payloadBuffer_n, &tempChecksum, sizeof(unsigned char));
 
 	return pAMONSendPacket;
 }

@@ -124,6 +124,20 @@ RESULT OnAMONInterval() {
 	RESULT r = R_OK;
 	int i = 0;
 
+	/*
+	for(i = 0; i < NUM_LINKS; i++) {
+		if(NumPacketsInPendingQueue(i) != 0 && g_AMONLinkPhys[i] == AMON_PHY_READY) {
+			#ifdef AMON_VERBOSE
+				DEBUG_LINEOUT("Transmit complete received on link %d, pending %d packets", i, NumPacketsInQueue(i));
+			#endif
+			// Transfer the pending queue to the queue
+			CRM(PushPendingQueue(i), "OnAMONInterval: Failed to push pending queue linke %d", i);
+
+			// Send the packets in the queue
+			CRM(SendRequestTransmit(i, NumPacketsInQueue(i)), "OnAMONInterval: Failed to send request transmit on link %d", i);
+		}
+	}*/
+
 	if(g_amon.fStart == 0)
 		return R_OFF;
 
@@ -272,12 +286,21 @@ inline RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
 				// Message has been completely received!
 				// TODO: Move this to casting the packet to AMONPacket rather than using the buffer
 				UnlockAMONLinkRx(link);	// don't fail if this condition isn't met
-				CRM(HandleAMONPacket(link), "AMONRx: Failed to handle packet on link %d", link);
+
+				//CRM(HandleAMONPacket(link), "AMONRx: Failed to handle packet on link %d", link);
+
+				// Push the packet into the queue
+				AMONPacket *pAMONPacket = (AMONPacket*)malloc(sizeof(unsigned char) * link_input_c[link]);
+				memcpy(pAMONPacket, link_input[link], link_input_c[link]);
+				CRM(PushAMONIncomingQueuePacket(link, pAMONPacket),
+						"HandleAMONByte: Failed to copy and push new packet to incoming queue link %d", link);
+
 				g_LinkRxState[link] = AMON_RX_READY;	// Reset the link protocol state
 
 #ifdef AMON_HALF_DUPLEX
 				CBRM_NA((g_AMONLinkPhyPacketCount[link] != 0), "HandleAMONByte: Phy packet counter should not be zero");
 				g_AMONLinkPhyPacketCount[link]--;
+
 				#ifdef AMON_VERBOSE
 					DEBUG_LINEOUT("Packet received %d packets remain on link %d", g_AMONLinkPhyPacketCount[link], link);
 				#endif
@@ -320,7 +343,7 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 	int i = 0;
 
 #ifdef AMON_VERBOSE
-	DEBUG_LINEOUT("HandleAMONPacket: Received AMON packet of %d bytes", pBuffer_n);
+	DEBUG_LINEOUT("rx: AMON packet %d bytes", pBuffer_n);
 	PrintToOutputBinaryBuffer(g_pConsole, pBuffer, pBuffer_n, 10);
 #endif
 
@@ -479,8 +502,11 @@ RESULT HandleAMONPacket(AMON_LINK link) {
 				memcpy((void*)(pPayloadBuffer), (void*)(pBuffer + 9), sizeof(unsigned char) * payload_n);
 
 				// Note: The handler needs to delete the memory after it's been used
+				// TODO: Create an incoming message queue?
+				/*
 				CRM(g_HandleAMONPayloadCallback(link, originDeviceID, type, pPayloadBuffer, payload_n),
-						"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", originDeviceID, link);
+					"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", originDeviceID, link);
+				*/
 			}
 			else {
 				CRM(PassThruAMONBuffer(link, pBuffer, pBuffer_n), "HandleAMONPacket: Failed to pass through message from link %d", link);
@@ -681,7 +707,6 @@ RESULT SendAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n) {
 	//while(AMONLinkRxBusy(link));
 
 	LockAMONLinkTx(link);	// don't fail if this condition isn't met
-
 	unsigned char checksum = CalculateChecksum(pBuffer, pBuffer_n);
 
 #ifdef AMON_VERBOSE
@@ -691,9 +716,11 @@ RESULT SendAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n) {
 
 	for(i = 0; i < pBuffer_n; i++) {
 		// Spin wait until link not busy
-		// TODO: Add timeout here
 		while(LinkBusy(link) == TRUE);
-		CRM(SendByte(link, pBuffer[i]), "SendAMONBuffer: Failed SendByte on %d link", link);
+		CRM(SendByte(link, pBuffer[i]),
+				"SendAMONBuffer: Failed SendByte on %d link", link);
+
+		DelayPHY();
 	}
 
 Error:
