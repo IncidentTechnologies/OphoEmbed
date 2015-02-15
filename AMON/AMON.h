@@ -26,6 +26,16 @@ RESULT InitializeAMON();
 RESULT StartAMON();
 RESULT StopAMON();
 
+unsigned char AMONLinkBusy(AMON_LINK link);
+unsigned char AMONLinkRxBusy(AMON_LINK link);
+unsigned char AMONLinkTxBusy(AMON_LINK link);
+
+RESULT LockAMONLinkRx(AMON_LINK link);
+RESULT UnlockAMONLinkRx(AMON_LINK link);
+
+RESULT LockAMONLinkTx(AMON_LINK link);
+RESULT UnlockAMONLinkTx(AMON_LINK link);
+
 unsigned char IsAMONMaster();
 
 #endif // ! AMON_H_

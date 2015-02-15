@@ -24,6 +24,9 @@ RESULT InitializeLink(AMON_LINK link) {
 	g_amon.links[link].fLinkToMaster = 0;
 	g_amon.links[link].LinkStatusCounter = 0;
 
+	g_amon.links[link].fLinkTxBusy = 0;
+	g_amon.links[link].fLinkRxBusy = 0;
+
 	// Reset the PHY
 	CRM(ResetLink(link), "InitilizeLink: Failed to reset link %d", link);
 
@@ -48,6 +51,10 @@ RESULT ResetLink(AMON_LINK link) {
 
 	g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
 	g_AMONLinkStates[link] = AMON_LINK_UNINITIALIZED;
+
+	// Unlock the link
+	UnlockAMONLinkRx(link);
+	UnlockAMONLinkTx(link);
 
 Error:
 	return R_OK;
@@ -128,10 +135,12 @@ const char* GetLinkStateString(AMON_LINK_STATE state) {
 RESULT PrintAMONLinkInfo(AMON_LINK link) {
 	RESULT r = R_OK;
 
-	DEBUG_LINEOUT("Link %d status %s", link, GetLinkStateString(g_AMONLinkStates[link]));
+	DEBUG_LINEOUT("Link %d status %s phy stat %s", link, GetLinkStateString(g_AMONLinkStates[link]), GetLinkPhyStateString(g_AMONLinkPhys[link]));
 
-	if(g_AMONLinkStates[link] == AMON_LINK_ESTABLISHED)
+	if(g_AMONLinkStates[link] == AMON_LINK_ESTABLISHED) {
 		DEBUG_LINEOUT("Link %d established to device id %d with link id %d", link, g_amon.links[link].id, g_amon.links[link].link_id);
+		DEBUG_LINEOUT("Link %d message counter %d with length %d packet count %d", link, link_input_c[link], g_linkMessageLength[link], g_AMONLinkPhyPacketCount[link]);
+	}
 
 Error:
 	return r;

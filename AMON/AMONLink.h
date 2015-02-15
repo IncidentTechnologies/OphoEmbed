@@ -4,7 +4,7 @@
 // The AMON Link
 
 #include "..\Common\RESULT.h"
-#include "AMON.h"
+//#include "AMON.h"
 
 #define NUM_LINKS 4
 #define LINK_STATUS_COUNTER_THRESHOLD 5
@@ -58,6 +58,9 @@ typedef struct {
 	unsigned char LinkStatusCounter;
 
 	unsigned fLinkToMaster: 1;
+
+	unsigned fLinkRxBusy: 1;
+	unsigned fLinkTxBusy: 1;
 } AMON_LINK_INFO;
 
 #define MAX_MSG_LENGTH 256

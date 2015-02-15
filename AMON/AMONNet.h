@@ -11,6 +11,8 @@
 #include "AMONPHY.h"	// The AMON PHY layer
 #include "AMONLink.h"	// The AMON Link
 
+#include "AMONPacket.h"
+
 #define AMON_VALUE 0x8E
 #define AMONShort(usValue)       (usValue & 0xff), (usValue >> 8)
 #define AMONToShort(lsb, msb) 	 ((msb & 0xFF) << 8) + (lsb & 0xFF)
@@ -21,34 +23,7 @@ extern int g_SysTicksPerSecond;
 
 extern AMONMap *g_AMONmap;
 
-typedef enum {
-	AMON_NULL					= 0x00,
-	AMON_PING 					= 0x01,
-	AMON_ECHO					= 0x02,
-	AMON_REQUEST_ID				= 0x03,
-	AMON_ASSIGN_ID				= 0x04,
-	AMON_ACK					= 0x05,
-	AMON_BROADCAST				= 0x06,
-	AMON_SEND					= 0x07,
-	AMON_GET_ID					= 0x08,
-	AMON_SEND_ID				= 0x09,
-	AMON_ESTABLISH_LINK			= 0x0A,
-	AMON_ESTABLISH_LINK_ACK		= 0x0B,
-	AMON_ERROR					= 0x0C,
-	AMON_SEND_BYTE_DEST_LINK	= 0x0D,
-	AMON_RESET_LINK				= 0x0E,
-	AMON_RESERVED_0				= 0x0F,
-	AMON_RESET_LINK_ACK			= 0x10,
-	AMON_INVALID				= 0xFF
-} AMON_MESSAGE_TYPE;
-
 extern AMON_MESSAGE_TYPE g_linkMessageType[NUM_LINKS];
-
-typedef enum {
-	AMON_ACK_ASSIGN_ID 		= 0x01,
-	AMON_ACK_SEND			= 0x02,
-	AMON_ACK_INVALID
-} AMON_ACK_TYPE;
 
 typedef struct {
 	unsigned char amon;
@@ -88,7 +63,25 @@ RESULT HandleAMONByte(AMON_LINK link, unsigned char byte);		// Handles the byte 
 RESULT SendAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n);
 RESULT PassThruAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n);
 
-RESULT HandleAMONPacket(AMON_LINK link);
+RESULT HandleAMONPacket_old(AMON_LINK link);
+RESULT HandleAMONPacket(AMON_LINK link, AMONPacket *d_pAMONPacket);
+
+// Packet handlers
+RESULT HandleAMONPing(AMON_LINK link, AMONPingPacket *pAMONPingPacket);
+RESULT HandleAMONEcho(AMON_LINK link, AMONEchoPacket *pAMONEchoPacket);
+RESULT HandleAMONResetLink(AMON_LINK link, AMONResetLinkPacket *pAMONResetLinkPacket);
+RESULT HandleAMONResetLinkAck(AMON_LINK link, AMONResetLinkAckPacket *pAMONResetLinkAckPacket);
+RESULT HandleAMONRequestID(AMON_LINK link, AMONRequestIDPacket *pAMONRequestIDPacket);
+RESULT HandleAMONAssignID(AMON_LINK link, AMONAssignIDPacket *pAMONAssignIDPacket);
+RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *pAMONAckPacket);
+//RESULT HandleAMONBroadcast(AMON_LINK link, AMONBroadcastPacket *pAMONBroadcastPacket);
+RESULT HandleAMONSend(AMON_LINK link, AMONSendPacket *pAMONSendPacket);
+RESULT HandleAMONGetDeviceID(AMON_LINK link, AMONGetDeviceIDPacket *pAMONGetDeviceIDPacket);
+RESULT HandleAMONSendDeviceID(AMON_LINK link, AMONSendDeviceIDPacket *pAMONSendDeviceIDPacket);
+RESULT HandleAMONEstablishLink(AMON_LINK link, AMONEstablishLinkPacket *pAMONEstablishLinkPacket);
+RESULT HandleAMONEstablishLinkAck(AMON_LINK link, AMONEstablishLinkAckPacket *pAMONEstablishLinkAckPacket);
+RESULT HandleAMONError(AMON_LINK link, AMONErrorPacket *pAMONErrorPacket);
+RESULT HandleAMONSendByteDestLink(AMON_LINK link, AMONSendByteDestLinkPacket *pAMONSendByteDestLinkPacket);
 
 // AMON OnInterval
 RESULT OnAMONInterval();
@@ -132,6 +125,7 @@ RESULT SendByteModeCommandDestLink(Console *pc, char *pszCmd, char *pszDestID, c
 RESULT SetAMONMasterConsole(Console *pc, unsigned char *pszfMaster);
 RESULT PrintAMONMasterMap(Console *pc);
 RESULT SendAMONMessage(Console *pc, char *pszCmd, char *pszDestID);
+RESULT SendAMONNULLPing(Console *pc, char *pszLink);
 RESULT ConsoleCheckLinkStatus(Console *pc, char *pszLink);
 RESULT ConsoleSetAMONInterval(Console *pc, char *pszMsTime);
 RESULT PrintAMONInfo(Console *pc);
