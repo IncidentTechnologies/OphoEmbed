@@ -1204,7 +1204,7 @@ RESULT SendAMONBuffer(AMON_LINK link, unsigned char *pBuffer, int pBuffer_n) {
 		CRM(SendByte(link, pBuffer[i]),
 				"SendAMONBuffer: Failed SendByte on %d link", link);
 
-		DelayPHY();
+		//DelayPHY();
 	}
 
 Error:
