@@ -27,7 +27,8 @@
 	#define OUT
 #endif
 
-#define CONSOLE
+//#define CONSOLE
+#define DEBUG
 
 // Debug Console
 #ifdef DEBUG

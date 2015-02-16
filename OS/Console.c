@@ -709,6 +709,8 @@ RESULT AddConsoleFunctionByArgs(Console *pc, void *fun, char *pszCommand, int ar
     va_list ap;
     va_start(ap, nDefaultArgs);
 
+    CNRM_NA((pc), "AddConsoleFunctionByArgs: Console has not been initialized");
+
     ConsoleFunction cf = {0, fun, pszCommand, NULL, 0, arguments};
 
     if(nDefaultArgs > 0 ) {
