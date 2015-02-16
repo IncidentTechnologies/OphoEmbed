@@ -27,8 +27,6 @@
 	#define OUT
 #endif
 
-//#define CONSOLE
-
 // Debug Console
 #ifdef DEBUG
 	#define DEBUG_MSG(x, ...) UART0printf(x, __VA_ARGS__);
