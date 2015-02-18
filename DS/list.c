@@ -109,6 +109,12 @@ void *PopItem(list *list) {
 
 	list->m_count--;
 
+	// Free the node
+	if(popNode != NULL) {
+		free(popNode);
+		popNode = NULL;
+	}
+
 	return pItem;
 }
 
@@ -127,6 +133,12 @@ void *PopFrontItem(list *list) {
 	popNode = NULL;
 
 	list->m_count--;
+
+	// Free the node
+	if(popNode != NULL) {
+		free(popNode);
+		popNode = NULL;
+	}
 
 	return pItem;
 }

@@ -155,12 +155,12 @@ RESULT OnAMONInterval() {
 			//SetLEDLinkClearTimeout(i, r, g, b, 50);
 			CRM(SendByte(i, AMON_BYTE_PING), "OnAMONInterval: Failed to send ping on link %d", i);
 		}
-		else {
+		/*else {
 			// If link established we want to check the status
 			// unless it's sending traffic
 			if(AMONLinkBusy(i) == 0)
 				CRM(CheckLinkStatus(i), "OnAMONInterval: Failed to check link %d status", i);
-		}
+		}*/
 	}
 
 Error:
@@ -295,6 +295,8 @@ inline RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
 
 				// Push the packet into the queue
 				AMONPacket *pAMONPacket = (AMONPacket*)malloc(sizeof(unsigned char) * link_input_c[link]);
+				CNRM_NA(pAMONPacket, "HandleAMONByte: Failed to allocate AMON Packet");
+
 				memcpy(pAMONPacket, link_input[link], link_input_c[link]);
 				CRM(PushAMONIncomingQueuePacket(link, pAMONPacket),
 						"HandleAMONByte: Failed to copy and push new packet to incoming queue link %d", link);
@@ -325,10 +327,20 @@ inline RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
 			DEBUG_LINEOUT("Error: AMON link %d in invalid state, resetting", link);
 			CRM_NA(SendErrorResetLink(link, g_linkMessageType[link]), "AMONRx: Failed to send error and reset link");
 		} break;
-			}
+	}	// !switch(g_LinkRxState[link]) {
+
+	return r;
 
 Error:
-		return r;
+	// Clear up the static buffer
+	link_input_c[link] = 0;
+	g_LinkRxState[link] = AMON_RX_READY;
+	g_linkMessageLength[link] = 0;
+	g_linkMessageType[link] = AMON_NULL;
+
+	g_LinkRxState[link] = AMON_RX_READY;	// Reset the link protocol state
+
+	return r;
 }
 
 unsigned char CalculateChecksum(unsigned char *pBuffer, int pBuffer_n) {
@@ -344,53 +356,62 @@ unsigned char CalculateChecksum(unsigned char *pBuffer, int pBuffer_n) {
 	return checksum;
 }
 
-RESULT HandleAMONPing(AMON_LINK link, AMONPingPacket *pAMONPingPacket) {
+RESULT HandleAMONPing(AMON_LINK link, AMONPingPacket *d_pAMONPingPacket) {
 	RESULT r = R_OK;
 
 	//#ifdef AMON_VERBOSE
 		DEBUG_LINEOUT("Received PING on link %d from device %d to device %d",
-				link, pAMONPingPacket->m_originID, pAMONPingPacket->m_destID);
+				link, d_pAMONPingPacket->m_originID, d_pAMONPingPacket->m_destID);
 	//#endif
 
-	if(g_amon.id == pAMONPingPacket->m_destID ) {
-		CRM(SendEchoNetwork(link, pAMONPingPacket->m_originID),
-				"HandleAMONPacket: Failed to echo ID to device %d on link %d", pAMONPingPacket->m_originID, link);
+	if(g_amon.id == d_pAMONPingPacket->m_destID ) {
+		CRM(SendEchoNetwork(link, d_pAMONPingPacket->m_originID),
+				"HandleAMONPacket: Failed to echo ID to device %d on link %d", d_pAMONPingPacket->m_originID, link);
 	}
 	else {
-		CRM(PassThruAMONBuffer(link, (unsigned char*)pAMONPingPacket, pAMONPingPacket->m_header.m_length),
+		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONPingPacket, d_pAMONPingPacket->m_header.m_length),
 				"HandleAMONPacket: Failed to pass through message from link %d", link);
 	}
 
 Error:
+	if(d_pAMONPingPacket != NULL) {
+		free(d_pAMONPingPacket);
+		d_pAMONPingPacket = NULL;
+	}
+
 	return r;
 }
 
-RESULT HandleAMONEcho(AMON_LINK link, AMONEchoPacket *pAMONEchoPacket) {
+RESULT HandleAMONEcho(AMON_LINK link, AMONEchoPacket *d_pAMONEchoPacket) {
 	RESULT r = R_OK;
 
 	//#ifdef AMON_VERBOSE
-		DEBUG_LINEOUT("Received ECHO on link %d from device %d to device %d", link, pAMONEchoPacket->m_originID, pAMONEchoPacket->m_destID);
+		DEBUG_LINEOUT("Received ECHO on link %d from device %d to device %d", link, d_pAMONEchoPacket->m_originID, d_pAMONEchoPacket->m_destID);
 	//#endif
 
-	if(g_amon.id == pAMONEchoPacket->m_destID ) {
+	if(g_amon.id == d_pAMONEchoPacket->m_destID ) {
 
 		#ifdef AMON_VERBOSE
-			DEBUG_LINEOUT("Received ECHO response to prior ping on link %d from %d to address %d", link, pAMONEchoPacket->m_originID, pAMONEchoPacket->m_destID);
+			DEBUG_LINEOUT("Received ECHO response to prior ping on link %d from %d to address %d", link, d_pAMONEchoPacket->m_originID, d_pAMONEchoPacket->m_destID);
 		#endif
 
 		if(g_amon.links[link].fPendingLinkStatus != 0)
 			g_amon.links[link].LinkStatusCounter = 0;
 	}
 	else {
-		CRM(PassThruAMONBuffer(link, (unsigned char*)pAMONEchoPacket, pAMONEchoPacket->m_header.m_length),
+		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONEchoPacket, d_pAMONEchoPacket->m_header.m_length),
 				"HandleAMONPacket: Failed to pass through message from link %d", link);
 	}
 
 Error:
+	if(d_pAMONEchoPacket != NULL) {
+		free(d_pAMONEchoPacket);
+		d_pAMONEchoPacket = NULL;
+	}
 	return r;
 }
 
-RESULT HandleAMONResetLink(AMON_LINK link, AMONResetLinkPacket *pAMONResetLinkPacket) {
+RESULT HandleAMONResetLink(AMON_LINK link, AMONResetLinkPacket *d_pAMONResetLinkPacket) {
 	RESULT r = R_OK;
 
 	DEBUG_LINEOUT("HandleAMONPacket: Reset link message on link %d, sending ACK", link);
@@ -400,10 +421,14 @@ RESULT HandleAMONResetLink(AMON_LINK link, AMONResetLinkPacket *pAMONResetLinkPa
 	CRM(DisconnectLink(link), "HandleAMONPacket: Failed to disconnect link %d on reset link", link);
 
 Error:
+	if(d_pAMONResetLinkPacket != NULL) {
+		free(d_pAMONResetLinkPacket);
+		d_pAMONResetLinkPacket = NULL;
+	}
 	return r;
 }
 
-RESULT HandleAMONResetLinkAck(AMON_LINK link, AMONResetLinkAckPacket *pAMONResetLinkAckPacket) {
+RESULT HandleAMONResetLinkAck(AMON_LINK link, AMONResetLinkAckPacket *d_pAMONResetLinkAckPacket) {
 	RESULT r = R_OK;
 
 	DEBUG_LINEOUT("HandleAMONPacket: Reset link message on link %d, sending ACK", link);
@@ -411,49 +436,57 @@ RESULT HandleAMONResetLinkAck(AMON_LINK link, AMONResetLinkAckPacket *pAMONReset
 	CRM(DisconnectLink(link), "HandleAMONPacket: Failed to disconnect link %d on reset link ACK", link);
 
 Error:
-		return r;
+	if(d_pAMONResetLinkAckPacket != NULL) {
+		free(d_pAMONResetLinkAckPacket);
+		d_pAMONResetLinkAckPacket = NULL;
+	}
+	return r;
 }
 
-RESULT HandleAMONRequestID(AMON_LINK link, AMONRequestIDPacket *pAMONRequestIDPacket) {
+RESULT HandleAMONRequestID(AMON_LINK link, AMONRequestIDPacket *d_pAMONRequestIDPacket) {
 	RESULT r = R_OK;
 	int i = 0;
 
 	DEBUG_LINEOUT("Received ID request on link %d from device connected to %d on link %d",
-			link, pAMONRequestIDPacket->m_linkDeviceID, pAMONRequestIDPacket->m_linkID);
+			link, d_pAMONRequestIDPacket->m_linkDeviceID, d_pAMONRequestIDPacket->m_linkID);
 
 	if(g_amon.id == AMON_MASTER_ID && g_amon.status == AMON_DEVICE_OK && g_amon.MasterState != AMON_MASTER_FALSE) {
 		// We are the master, so dispatch a new ID
 		int newID;
-		CRM(RegisterNewDevice(pAMONRequestIDPacket->m_linkDeviceID, pAMONRequestIDPacket->m_linkID, &newID),
-				"HandleAMONPacket: Failed to register new device on %d link %d", pAMONRequestIDPacket->m_linkDeviceID, pAMONRequestIDPacket->m_linkID);
+		CRM(RegisterNewDevice(d_pAMONRequestIDPacket->m_linkDeviceID, d_pAMONRequestIDPacket->m_linkID, &newID),
+				"HandleAMONPacket: Failed to register new device on %d link %d", d_pAMONRequestIDPacket->m_linkDeviceID, d_pAMONRequestIDPacket->m_linkID);
 
 		// Send assign device out on all established links	// TODO: Is this th right behavior? We know what link the request came in on
 		for(i = 0; i < NUM_LINKS; i++) {
 			if(g_AMONLinkStates[i] == AMON_LINK_ESTABLISHED) {
-				CRM(SendAssignID(i, pAMONRequestIDPacket->m_linkDeviceID, pAMONRequestIDPacket->m_linkID, newID),
+				CRM(SendAssignID(i, d_pAMONRequestIDPacket->m_linkDeviceID, d_pAMONRequestIDPacket->m_linkID, newID),
 						"HandleAMONPacket: Failed to assign ID %d to dev con to %d link %d on link %d",
-							newID, pAMONRequestIDPacket->m_linkDeviceID, pAMONRequestIDPacket->m_linkID, i);
+							newID, d_pAMONRequestIDPacket->m_linkDeviceID, d_pAMONRequestIDPacket->m_linkID, i);
 			}
 		}
 	}
 	else {
-		CRM(PassThruAMONBuffer(link, (unsigned char*)pAMONRequestIDPacket, pAMONRequestIDPacket->m_header.m_length),
+		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONRequestIDPacket, d_pAMONRequestIDPacket->m_header.m_length),
 				"HandleAMONPacket: Failed to pass through message from link %d", link);
 	}
 
 Error:
+	if(d_pAMONRequestIDPacket != NULL) {
+		free(d_pAMONRequestIDPacket);
+		d_pAMONRequestIDPacket = NULL;
+	}
 	return r;
 }
 
-RESULT HandleAMONAssignID(AMON_LINK link, AMONAssignIDPacket *pAMONAssignIDPacket) {
+RESULT HandleAMONAssignID(AMON_LINK link, AMONAssignIDPacket *d_pAMONAssignIDPacket) {
 	RESULT r = R_OK;
 
 	DEBUG_LINEOUT("Received ID ASSIGN on link %d fom device connected to %d on link %d with ID %d",
-			link, pAMONAssignIDPacket->m_linkDeviceID, pAMONAssignIDPacket->m_linkID, pAMONAssignIDPacket->m_newID);
+			link, d_pAMONAssignIDPacket->m_linkDeviceID, d_pAMONAssignIDPacket->m_linkID, d_pAMONAssignIDPacket->m_newID);
 
-	if(g_amon.links[link].id == pAMONAssignIDPacket->m_linkDeviceID && g_amon.links[link].link_id == pAMONAssignIDPacket->m_linkID) {
+	if(g_amon.links[link].id == d_pAMONAssignIDPacket->m_linkDeviceID && g_amon.links[link].link_id == d_pAMONAssignIDPacket->m_linkID) {
 		// We just got an id assigned
-		g_amon.id = pAMONAssignIDPacket->m_newID;
+		g_amon.id = d_pAMONAssignIDPacket->m_newID;
 		g_amon.links[link].fLinkToMaster = 1;
 		g_amon.status = AMON_DEVICE_OK;
 		CRM(SendACK(link, AMON_MASTER_ID, AMON_ASSIGN_ID, 0x00),
@@ -463,15 +496,19 @@ RESULT HandleAMONAssignID(AMON_LINK link, AMONAssignIDPacket *pAMONAssignIDPacke
 		CRM(SendDeviceID(link), "AMONRx: Failed to Send Device ID on link %d on assign", link);
 	}
 	else {
-		CRM(PassThruAMONBuffer(link, (unsigned char*)pAMONAssignIDPacket, pAMONAssignIDPacket->m_header.m_length),
+		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONAssignIDPacket, d_pAMONAssignIDPacket->m_header.m_length),
 				"HandleAMONPacket: Failed to pass through message from link %d", link);
 	}
 
 Error:
+	if(d_pAMONAssignIDPacket != NULL) {
+		free(d_pAMONAssignIDPacket);
+		d_pAMONAssignIDPacket = NULL;
+	}
 	return r;
 }
 
-RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *pAMONAckPacket) {
+RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *d_pAMONAckPacket) {
 	RESULT r = R_OK;
 
 	/*int originID = AMONToShort(pBuffer[3], pBuffer[4]);
@@ -479,11 +516,11 @@ RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *pAMONAckPacket) {
 	AMON_ACK_TYPE type = (AMON_ACK_TYPE)pBuffer[7];
 	unsigned char status = (unsigned char)pBuffer[8];*/
 
-	if(g_amon.id == pAMONAckPacket->m_destID) {
+	if(g_amon.id == d_pAMONAckPacket->m_destID) {
 		DEBUG_LINEOUT("Received ACK on link %d from device %d type 0x%x status 0x%x",
-				link, pAMONAckPacket->m_originID, pAMONAckPacket->m_ackType, pAMONAckPacket->m_ackStatus);
+				link, d_pAMONAckPacket->m_originID, d_pAMONAckPacket->m_ackType, d_pAMONAckPacket->m_ackStatus);
 
-		switch(pAMONAckPacket->m_ackType) {
+		switch(d_pAMONAckPacket->m_ackType) {
 			case AMON_ACK_ASSIGN_ID: {
 				// TODO: Handle ACK?
 			} break;
@@ -494,11 +531,16 @@ RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *pAMONAckPacket) {
 		}
 	}
 	else {
-		CRM(PassThruAMONBuffer(link, (unsigned char*)pAMONAckPacket, pAMONAckPacket->m_header.m_length),
+		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONAckPacket, d_pAMONAckPacket->m_header.m_length),
 				"HandleAMONPacket: Failed to pass through message from link %d", link);
 	}
 
 Error:
+	if(d_pAMONAckPacket != NULL) {
+		free(d_pAMONAckPacket);
+		d_pAMONAckPacket = NULL;
+	}
+
 	return r;
 }
 
@@ -513,25 +555,25 @@ Error:
 }
 */
 
-RESULT HandleAMONSend(AMON_LINK link, AMONSendPacket *pAMONSendPacket) {
+RESULT HandleAMONSend(AMON_LINK link, AMONSendPacket *d_pAMONSendPacket) {
 	RESULT r = R_OK;
 	int i = 0;
 
 	#ifdef AMON_VERBOSE
 		DEBUG_LINEOUT("Received AMON_SEND (message) on link %d from device %d to device %d type %d",
-				link, pAMONSendPacket->m_originID, pAMONSendPacket->m_destID, pAMONSendPacket->m_sendMessageType);
-		PrintToOutputBinaryBuffer(g_pConsole, pAMONSendPacket, pAMONSendPacket->m_header->m_length, 10);
+				link, d_pAMONSendPacket->m_originID, d_pAMONSendPacket->m_destID, d_pAMONSendPacket->m_sendMessageType);
+		PrintToOutputBinaryBuffer(g_pConsole, d_pAMONSendPacket, d_pAMONSendPacket->m_header->m_length, 10);
 	#endif
 
 	// Check to see if we're the destination, otherwise pass it on
-	if(g_amon.id == pAMONSendPacket->m_destID ) {
+	if(g_amon.id == d_pAMONSendPacket->m_destID ) {
 		// Make a copy of the data so it doesn't get clobbered
-		unsigned char *pPayloadBuffer = (unsigned char*)calloc(sizeof(unsigned char), pAMONSendPacket->m_payloadLength);
+		unsigned char *pPayloadBuffer = (unsigned char*)calloc(sizeof(unsigned char), d_pAMONSendPacket->m_payloadLength);
 
 		// TODO: wtf isn't this working
-		//memcpy(pPayloadBuffer, (unsigned char*)(pAMONSendPacket + 9), sizeof(unsigned char) * pAMONSendPacket->m_payloadLength);
-		for(i = 0; i < pAMONSendPacket->m_payloadLength; i++) {
-			pPayloadBuffer[i] = ((unsigned char *)(pAMONSendPacket))[9 + i];
+		//memcpy(pPayloadBuffer, (unsigned char*)(d_pAMONSendPacket + 9), sizeof(unsigned char) * d_pAMONSendPacket->m_payloadLength);
+		for(i = 0; i < d_pAMONSendPacket->m_payloadLength; i++) {
+			pPayloadBuffer[i] = ((unsigned char *)(d_pAMONSendPacket))[9 + i];
 		}
 
 		// Note: The handler needs to delete the memory after it's been used
@@ -542,26 +584,31 @@ RESULT HandleAMONSend(AMON_LINK link, AMONSendPacket *pAMONSendPacket) {
 		//CRM(g_HandleAMONPayloadCallback(link, originDeviceID, type, pPayloadBuffer, payload_n),
 		//					"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", originDeviceID, link);
 
-		CRM(g_HandleAMONPayloadCallback(link, pAMONSendPacket->m_originID, pAMONSendPacket->m_sendMessageType, pPayloadBuffer, pAMONSendPacket->m_payloadLength),
-			"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", pAMONSendPacket->m_originID, link);
+		CRM(g_HandleAMONPayloadCallback(link, d_pAMONSendPacket->m_originID, d_pAMONSendPacket->m_sendMessageType, pPayloadBuffer, d_pAMONSendPacket->m_payloadLength),
+			"HandleAMONPacket: Failed to receive amon msg from device %d on link %d", d_pAMONSendPacket->m_originID, link);
 		//*/
 	}
 	else {
-		CRM(PassThruAMONBuffer(link, (unsigned char*)pAMONSendPacket, pAMONSendPacket->m_header.m_length),
+		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONSendPacket, d_pAMONSendPacket->m_header.m_length),
 				"HandleAMONPacket: Failed to pass through message from link %d", link);
 	}
 Error:
+	if(d_pAMONSendPacket != NULL) {
+		free(d_pAMONSendPacket);
+		d_pAMONSendPacket = NULL;
+	}
+
 	return r;
 }
 
-RESULT HandleAMONGetDeviceID(AMON_LINK link, AMONGetDeviceIDPacket *pAMONGetDeviceIDPacket) {
+RESULT HandleAMONGetDeviceID(AMON_LINK link, AMONGetDeviceIDPacket *d_pAMONGetDeviceIDPacket) {
 	RESULT r = R_OK;
 
 	// Other device is requesting our ID
-	g_amon.links[link].Status = pAMONGetDeviceIDPacket->m_originDeviceStatus;		// get the device status
+	g_amon.links[link].Status = d_pAMONGetDeviceIDPacket->m_originDeviceStatus;		// get the device status
 
 	if(g_amon.links[link].Status == AMON_DEVICE_OK) {
-		g_amon.links[link].id = pAMONGetDeviceIDPacket->m_originDeviceID;
+		g_amon.links[link].id = d_pAMONGetDeviceIDPacket->m_originDeviceID;
 		g_AMONLinkStates[link] = AMON_LINK_ESTABLISHING_LINK;
 
 		DEBUG_LINEOUT("Rx: AMON_GET_ID with id %d status 0x%x from OK device",
@@ -584,24 +631,29 @@ RESULT HandleAMONGetDeviceID(AMON_LINK link, AMONGetDeviceIDPacket *pAMONGetDevi
 	}
 
 Error:
+	if(d_pAMONGetDeviceIDPacket != NULL) {
+		free(d_pAMONGetDeviceIDPacket);
+		d_pAMONGetDeviceIDPacket = NULL;
+	}
+
 	return r;
 }
 
-RESULT HandleAMONSendDeviceID(AMON_LINK link, AMONSendDeviceIDPacket *pAMONSendDeviceIDPacket) {
+RESULT HandleAMONSendDeviceID(AMON_LINK link, AMONSendDeviceIDPacket *d_pAMONSendDeviceIDPacket) {
 	RESULT r = R_OK;
 
 	// Is the link already established?
 	if(g_AMONLinkStates[link] == AMON_LINK_ESTABLISHED) {
-		int rxID = pAMONSendDeviceIDPacket->m_deviceID;
+		int rxID = d_pAMONSendDeviceIDPacket->m_deviceID;
 		DEBUG_LINEOUT("Rx: Neighbor ID %d received on link %d", rxID, link);
 		g_amon.links[link].id = rxID;
 	}
 	else {
 		// ID has been received from other device during link establish
-		g_amon.links[link].Status = pAMONSendDeviceIDPacket->m_deviceStatus;		// get the device status
+		g_amon.links[link].Status = d_pAMONSendDeviceIDPacket->m_deviceStatus;		// get the device status
 
 		if(g_amon.links[link].Status == AMON_DEVICE_OK) {
-			g_amon.links[link].id = pAMONSendDeviceIDPacket->m_deviceID;
+			g_amon.links[link].id = d_pAMONSendDeviceIDPacket->m_deviceID;
 			g_AMONLinkStates[link] = AMON_LINK_ESTABLISHING_LINK;
 
 			DEBUG_LINEOUT("Rx: AMON_SEND_ID with id %d status 0x%x from OK device",
@@ -627,21 +679,26 @@ RESULT HandleAMONSendDeviceID(AMON_LINK link, AMONSendDeviceIDPacket *pAMONSendD
 	}
 
 Error:
+	if(d_pAMONSendDeviceIDPacket != NULL) {
+		free(d_pAMONSendDeviceIDPacket);
+		d_pAMONSendDeviceIDPacket = NULL;
+	}
+
 	return r;
 }
 
-RESULT HandleAMONEstablishLink(AMON_LINK link, AMONEstablishLinkPacket *pAMONEstablishLinkPacket) {
+RESULT HandleAMONEstablishLink(AMON_LINK link, AMONEstablishLinkPacket *d_pAMONEstablishLinkPacket) {
 	RESULT r = R_OK;
 
 	// Lets check that the ID matches our own
 	// link established should only be received when we already have an ID and they don't
-	int rxID = (int)(pAMONEstablishLinkPacket->m_originID);
+	int rxID = (int)(d_pAMONEstablishLinkPacket->m_originID);
 	CBRM((rxID == g_amon.id), "Failed to establish link, incoming id %d not self id %d", rxID, g_amon.id);
 
 	DEBUG_LINEOUT("Rx: AMON_ESTABLISH_LINK with id %d on link %d", rxID, link);
 
 	// Establish link receipt lets us set the device's link
-	unsigned char rxLinkID = (unsigned char)(pAMONEstablishLinkPacket->m_linkID);
+	unsigned char rxLinkID = (unsigned char)(d_pAMONEstablishLinkPacket->m_linkID);
 	g_amon.links[link].link_id = rxLinkID;
 
 	// Send Establish Link Message ACK
@@ -650,21 +707,26 @@ RESULT HandleAMONEstablishLink(AMON_LINK link, AMONEstablishLinkPacket *pAMONEst
 	g_AMONLinkStates[link] = AMON_LINK_ESTABLISHED;
 
 Error:
+	if(d_pAMONEstablishLinkPacket != NULL) {
+		free(d_pAMONEstablishLinkPacket);
+		d_pAMONEstablishLinkPacket = NULL;
+	}
+
 	return r;
 }
 
-RESULT HandleAMONEstablishLinkAck(AMON_LINK link, AMONEstablishLinkAckPacket *pAMONEstablishLinkAckPacket) {
+RESULT HandleAMONEstablishLinkAck(AMON_LINK link, AMONEstablishLinkAckPacket *d_pAMONEstablishLinkAckPacket) {
 	RESULT r = R_OK;
 
 	// Lets check that the ID matches the link ID
 	// link established should only be received when we already have an ID and they don't
-	int rxID = pAMONEstablishLinkAckPacket->m_senderID;
+	int rxID = d_pAMONEstablishLinkAckPacket->m_senderID;
 	CBRM((rxID == g_amon.links[link].id), "Failed to establish link, incoming id %d not correct id expected: %d", rxID, g_amon.links[link].id);
 
 	DEBUG_LINEOUT("Rx: AMON_ESTABLISH_LINK_ACK with id %d on link %d", rxID, link);
 
 	// Get the link info of the other device
-	g_amon.links[link].link_id = (int)(pAMONEstablishLinkAckPacket->m_linkID);
+	g_amon.links[link].link_id = (int)(d_pAMONEstablishLinkAckPacket->m_linkID);
 
 	// Link is now established
 	g_AMONLinkStates[link] = AMON_LINK_ESTABLISHED;
@@ -675,40 +737,55 @@ RESULT HandleAMONEstablishLinkAck(AMON_LINK link, AMONEstablishLinkAckPacket *pA
 	CRM_NA(SendRequestIDFromNetwork(link), "AMONRx: Failed to send request ID from network");
 
 Error:
+	if(d_pAMONEstablishLinkAckPacket != NULL) {
+		free(d_pAMONEstablishLinkAckPacket);
+		d_pAMONEstablishLinkAckPacket = NULL;
+	}
+
 	return r;
 }
 
-RESULT HandleAMONError(AMON_LINK link, AMONErrorPacket *pAMONErrorPacket) {
+RESULT HandleAMONError(AMON_LINK link, AMONErrorPacket *d_pAMONErrorPacket) {
 	RESULT r = R_OK;
 
 	// Reset the link - master might try to reconnect
 	CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
 
-	DEBUG_LINEOUT("HandleAMONPacket: Error: Received error on link %d for message type 0x%x", link, pAMONErrorPacket->m_messageType);
+	DEBUG_LINEOUT("HandleAMONPacket: Error: Received error on link %d for message type 0x%x", link, d_pAMONErrorPacket->m_messageType);
 
 	#ifdef AMON_VERBOSE
 		PrintToOutputBinaryBuffer(g_pConsole, pBuffer, pBuffer_n, 10);
 	#endif
 
 Error:
+	if(d_pAMONErrorPacket != NULL) {
+		free(d_pAMONErrorPacket);
+		d_pAMONErrorPacket = NULL;
+	}
+
 	return r;
 }
 
-RESULT HandleAMONSendByteDestLink(AMON_LINK link, AMONSendByteDestLinkPacket *pAMONSendByteDestLinkPacket) {
+RESULT HandleAMONSendByteDestLink(AMON_LINK link, AMONSendByteDestLinkPacket *d_pAMONSendByteDestLinkPacket) {
 	RESULT r = R_OK;
 //			SetLEDLinkClearTimeout(destLink, 50, 50, 50, 100);
 
-	if(g_amon.id == pAMONSendByteDestLinkPacket->m_destID) {
-		DEBUG_LINEOUT("Received SEND BYTE ON DEST LINK on link %d from device %d byte 0x%x", link, pAMONSendByteDestLinkPacket->m_originID, pAMONSendByteDestLinkPacket->m_byte);
+	if(g_amon.id == d_pAMONSendByteDestLinkPacket->m_destID) {
+		DEBUG_LINEOUT("Received SEND BYTE ON DEST LINK on link %d from device %d byte 0x%x", link, d_pAMONSendByteDestLinkPacket->m_originID, d_pAMONSendByteDestLinkPacket->m_byte);
 //				SetLEDLinkClearTimeout(destLink, 50, 0, 50, 100);
-		CRM_NA(SendByte(pAMONSendByteDestLinkPacket->m_destLinkID, pAMONSendByteDestLinkPacket->m_byte), "HandleAMONPacket: Failed to send byte");
+		CRM_NA(SendByte(d_pAMONSendByteDestLinkPacket->m_destLinkID, d_pAMONSendByteDestLinkPacket->m_byte), "HandleAMONPacket: Failed to send byte");
 	}
 	else {
-		CRM(PassThruAMONBuffer(link, (unsigned char*)pAMONSendByteDestLinkPacket, pAMONSendByteDestLinkPacket->m_header.m_length),
+		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONSendByteDestLinkPacket, d_pAMONSendByteDestLinkPacket->m_header.m_length),
 				"HandleAMONPacket: Failed to pass through message from link %d", link);
 	}
 
 Error:
+	if(d_pAMONSendByteDestLinkPacket != NULL) {
+		free(d_pAMONSendByteDestLinkPacket);
+		d_pAMONSendByteDestLinkPacket = NULL;
+	}
+
 	return r;
 }
 

@@ -67,21 +67,21 @@ RESULT HandleAMONPacket_old(AMON_LINK link);
 RESULT HandleAMONPacket(AMON_LINK link, AMONPacket *d_pAMONPacket);
 
 // Packet handlers
-RESULT HandleAMONPing(AMON_LINK link, AMONPingPacket *pAMONPingPacket);
-RESULT HandleAMONEcho(AMON_LINK link, AMONEchoPacket *pAMONEchoPacket);
-RESULT HandleAMONResetLink(AMON_LINK link, AMONResetLinkPacket *pAMONResetLinkPacket);
-RESULT HandleAMONResetLinkAck(AMON_LINK link, AMONResetLinkAckPacket *pAMONResetLinkAckPacket);
-RESULT HandleAMONRequestID(AMON_LINK link, AMONRequestIDPacket *pAMONRequestIDPacket);
-RESULT HandleAMONAssignID(AMON_LINK link, AMONAssignIDPacket *pAMONAssignIDPacket);
-RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *pAMONAckPacket);
-//RESULT HandleAMONBroadcast(AMON_LINK link, AMONBroadcastPacket *pAMONBroadcastPacket);
-RESULT HandleAMONSend(AMON_LINK link, AMONSendPacket *pAMONSendPacket);
-RESULT HandleAMONGetDeviceID(AMON_LINK link, AMONGetDeviceIDPacket *pAMONGetDeviceIDPacket);
-RESULT HandleAMONSendDeviceID(AMON_LINK link, AMONSendDeviceIDPacket *pAMONSendDeviceIDPacket);
-RESULT HandleAMONEstablishLink(AMON_LINK link, AMONEstablishLinkPacket *pAMONEstablishLinkPacket);
-RESULT HandleAMONEstablishLinkAck(AMON_LINK link, AMONEstablishLinkAckPacket *pAMONEstablishLinkAckPacket);
-RESULT HandleAMONError(AMON_LINK link, AMONErrorPacket *pAMONErrorPacket);
-RESULT HandleAMONSendByteDestLink(AMON_LINK link, AMONSendByteDestLinkPacket *pAMONSendByteDestLinkPacket);
+RESULT HandleAMONPing(AMON_LINK link, AMONPingPacket *d_pAMONPingPacket);
+RESULT HandleAMONEcho(AMON_LINK link, AMONEchoPacket *d_pAMONEchoPacket);
+RESULT HandleAMONResetLink(AMON_LINK link, AMONResetLinkPacket *d_pAMONResetLinkPacket);
+RESULT HandleAMONResetLinkAck(AMON_LINK link, AMONResetLinkAckPacket *d_pAMONResetLinkAckPacket);
+RESULT HandleAMONRequestID(AMON_LINK link, AMONRequestIDPacket *d_pAMONRequestIDPacket);
+RESULT HandleAMONAssignID(AMON_LINK link, AMONAssignIDPacket *d_pAMONAssignIDPacket);
+RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *d_pAMONAckPacket);
+//RESULT HandleAMONBroadcast(AMON_LINK link, AMONBroadcastPacket *d_pAMONBroadcastPacket);
+RESULT HandleAMONSend(AMON_LINK link, AMONSendPacket *d_pAMONSendPacket);
+RESULT HandleAMONGetDeviceID(AMON_LINK link, AMONGetDeviceIDPacket *d_pAMONGetDeviceIDPacket);
+RESULT HandleAMONSendDeviceID(AMON_LINK link, AMONSendDeviceIDPacket *d_pAMONSendDeviceIDPacket);
+RESULT HandleAMONEstablishLink(AMON_LINK link, AMONEstablishLinkPacket *d_pAMONEstablishLinkPacket);
+RESULT HandleAMONEstablishLinkAck(AMON_LINK link, AMONEstablishLinkAckPacket *d_pAMONEstablishLinkAckPacket);
+RESULT HandleAMONError(AMON_LINK link, AMONErrorPacket *d_pAMONErrorPacket);
+RESULT HandleAMONSendByteDestLink(AMON_LINK link, AMONSendByteDestLinkPacket *d_pAMONSendByteDestLinkPacket);
 
 // AMON OnInterval
 RESULT OnAMONInterval();

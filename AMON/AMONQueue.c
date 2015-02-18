@@ -113,7 +113,14 @@ RESULT SendAMONQueue(AMON_LINK link) {
 		AMONPacket *pAMONPacket = (AMONPacket*)PopFrontItem(g_pAMONQueue[link]);
 
 		// Note that SendAMONPacket will deallocate the packet memory after it's been sent
-		CRM(SendAMONPacket(link, pAMONPacket), "SendAMONQueue: Failed to SendAMONPacket length %d", pAMONPacket->m_length);
+		if((r = SendAMONPacket(link, pAMONPacket)) != R_OK) {
+			if(pAMONPacket != NULL) {
+				free(pAMONPacket);
+				pAMONPacket = NULL;
+			}
+
+			CRM(R_FAIL, "SendAMONQueue: Failed to SendAMONPacket length %d", pAMONPacket->m_length);
+		}
 
 		g_AMONLinkPhyPacketCount[link]--;
 	}
@@ -166,7 +173,9 @@ RESULT HandleAMONIncomingQueue(AMON_LINK link) {
 
 	while(g_pAMONIncomingQueue[link]->m_count > 0) {
 		AMONPacket *pAMONPacket = PopAMONIncomingQueuePacket(link);
-		CRM(HandleAMONPacket(link, pAMONPacket), "HandleAMONIncomingQueue: Failed to handle incoming queue packet link %d", link);
+
+		if(HandleAMONPacket(link, pAMONPacket) != R_OK)
+			DEBUG_LINEOUT("HandleAMONIncomingQueue: Failed to handle incoming queue packet link %d", link);
 	}
 
 Error:
