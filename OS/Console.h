@@ -51,7 +51,7 @@ typedef struct CONSOLE_FUNCTION {
     char *pszHelpText;
 } ConsoleFunction;
 
-typedef struct CONSOLE {
+typedef struct {
 	char m_InputBuffer[MAX_COMMAND];
 	int m_InputBuffer_n;
 
