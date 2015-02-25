@@ -354,6 +354,10 @@ Error:
 RESULT AMONHandlePHYByte(AMON_LINK link, unsigned char byte) {
 	RESULT r = R_OK;
 
+	// TODO: Fix it for dock to use only one port in a more robust way
+	if(link != AMON_EAST)
+		return R_OK;
+
 	// This establishes the PHY link
 	switch(byte) {
 		case AMON_BYTE_LINK_REQUEST: {
@@ -485,7 +489,9 @@ RESULT SendRequestTransmit(AMON_LINK link, unsigned char fResponse) {
 	g_AMONLinkPhyPacketCount[link] = NumPacketsInQueue(link);
 	unsigned char byte = AMON_REQUEST_TRANSMIT + (g_AMONLinkPhyPacketCount[link] & 0x0F);
 
+#ifdef AMON_VERBOSE
 	DEBUG_LINEOUT("Sending request transmit 0x%x packets on link %d", byte, link);
+#endif
 
 	CBRM((g_PHYSendByteCallbacks[link] != NULL), "SendRequestTransmit: Failed to send byte on link %d, cb not present", link);
 	CRM(g_PHYSendByteCallbacks[link](byte), "SendRequestTransmit: Link %d send byte callback failed", link);

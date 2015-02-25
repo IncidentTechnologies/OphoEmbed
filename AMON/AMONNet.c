@@ -143,7 +143,7 @@ RESULT OnAMONInterval() {
 
 	//SetLEDWithClearTimeout(1, 20, 20, 20, 50);
 	for(i = 0; i < NUM_LINKS; i++) {
-		if(g_AMONLinkStates[i] != AMON_LINK_ESTABLISHED) {
+		if(g_AMONLinkStates[i] != AMON_LINK_ESTABLISHED && i == AMON_EAST) {
 			unsigned char r = (i == 0 || i == 3) ? 50 : 0;
 			unsigned char g = (i == 1 || i == 3) ? 50 : 0;
 			unsigned char b = (i == 2 || i == 3) ? 50 : 0;
