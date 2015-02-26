@@ -1,24 +1,25 @@
 #include "amonmap.h"
 #include "..\DS\list.h"
 
-AMONNode *CreateAMONNode(int numLinks, int ID) {
+AMONNode *CreateAMONNode(int numLinks, int ID, void *pContext) {
 	AMONNode *newNode = (AMONNode*)calloc(1, sizeof(AMONNode));
 	newNode->m_id = ID;
 	newNode->m_links = (AMONNode**)calloc(numLinks, sizeof(AMONNode*));
 	newNode->m_links_n = numLinks;
+	newNode->m_pContext = pContext;
 	return newNode;
 }
 
-AMONMap *CreateAMONMap(int numLinks, int rootID) {
+AMONMap *CreateAMONMap(int numLinks, int rootID, void *pContext) {
 	AMONMap *newMap = (AMONMap*)calloc(1, sizeof(AMONMap));
 	newMap->m_links = numLinks;
-	newMap->m_root = CreateAMONNode(numLinks, rootID);
+	newMap->m_root = CreateAMONNode(numLinks, rootID, pContext);
 	newMap->m_count = 0;
 	newMap->m_mapID = rootID + 1;
 	return newMap;
 }
 
-RESULT AddAMONNode(AMONMap* map, int destID, int linkID, int ID) {
+RESULT AddAMONNode(AMONMap* map, int destID, int linkID, int ID, void *pContext) {
 	RESULT r = R_OK;
 
 	CBRM((linkID < map->m_links), "AddAMONNode: Can't link on %d, max links %d", linkID, map->m_links - 1);
@@ -29,7 +30,7 @@ RESULT AddAMONNode(AMONMap* map, int destID, int linkID, int ID) {
 	CBRM((destNode->m_links[linkID] == NULL), "AddAMONNode: Failed to add node, link %d not unassigned", linkID);
 
 	// If all tests passed, we can add the link
-	destNode->m_links[linkID] = CreateAMONNode(map->m_links, ID);
+	destNode->m_links[linkID] = CreateAMONNode(map->m_links, ID, pContext);
 	map->m_count++;
 	map->m_mapID++;
 
@@ -169,8 +170,15 @@ RESULT RemoveAMONNode(AMONNode* node) {
 	for(i = 0; i < node->m_links_n; i++)
 		RemoveAMONNode(node->m_links[i]);
 
-	free(node);
-	node = NULL;
+	if(node != NULL) {
+		if(node->m_pContext != NULL) {
+			free(node->m_pContext);
+			node->m_pContext = NULL;
+		}
+
+		free(node);
+		node = NULL;
+	}
 
 Error:
 	return r;
@@ -232,19 +240,21 @@ RESULT TestCreateAMONMap(Console *pc, char *pszLinks_n) {
 	RESULT r = R_OK;
 
 	int links_n = atoi(pszLinks_n);
-	g_amonmap = CreateAMONMap(links_n, 0);
+	g_amonmap = CreateAMONMap(links_n, 0, NULL);
 
 Error:
 	return r;
 }
 
+// Test function
 RESULT TestAddAMONNode(Console *pc, char *pszDestID, char *pszLinkID) {
 	RESULT r = R_OK;
 
 	int destID = atoi(pszDestID);
 	int linkID = atoi(pszLinkID);
 
-	CRM(AddAMONNode(g_amonmap, destID, linkID, g_amonmap->m_mapID), "TestAddAMONNode: Failed to add node to node %d at link %d", destID, linkID);
+	CRM(AddAMONNode(g_amonmap, destID, linkID, g_amonmap->m_mapID, NULL),
+			"TestAddAMONNode: Failed to add node to node %d at link %d", destID, linkID);
 
 Error:
 	return r;

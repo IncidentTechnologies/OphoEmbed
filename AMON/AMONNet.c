@@ -9,6 +9,70 @@ int g_MasterCount = 0;
 
 AMONMap *g_AMONmap = NULL;
 
+
+cbAMONDeviceRegistered g_AMONDeviceRegisteredCallback = NULL;
+RESULT RegisterAMONDeviceRegisteredCallback(cbAMONDeviceRegistered AMONDeviceRegisteredCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_AMONDeviceRegisteredCallback == NULL), "RegisterAMONDeviceRegisteredCallback: AMON Device Registered Callback already registered");
+	g_AMONDeviceRegisteredCallback = AMONDeviceRegisteredCB;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterAMONDeviceRegisteredCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_AMONDeviceRegisteredCallback != NULL), "UnregisterAMONDeviceRegisteredCallback: AMON Device Registered Callback not registered");
+	g_AMONDeviceRegisteredCallback = NULL;
+
+Error:
+	return r;
+}
+
+cbAMONDeviceUnregistered g_AMONDeviceUnregisteredCallback = NULL;
+RESULT RegisterAMONDeviceUnregisteredCallback(cbAMONDeviceUnregistered AMONDeviceUnregisteredCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_AMONDeviceUnregisteredCallback == NULL), "RegisterAMONDeviceUnregisteredCallback: AMON Device Unregistered Callback already registered");
+	g_AMONDeviceUnregisteredCallback = AMONDeviceUnregisteredCB;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterAMONDeviceUnregisteredCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_AMONDeviceUnregisteredCallback != NULL), "UnregisterAMONDeviceUnregisteredCallback: AMON Device Unregistered Callback not registered");
+	g_AMONDeviceUnregisteredCallback = NULL;
+
+Error:
+	return r;
+}
+
+cbGetAMONDevice g_GetAMONDeviceCallback = NULL;
+RESULT RegisterGetAMONDeviceCallback(cbGetAMONDevice GetAMONDeviceCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_GetAMONDeviceCallback == NULL), "RegisterGetAMONDeviceCallback: Get AMON Device Callback already registered");
+	g_GetAMONDeviceCallback = GetAMONDeviceCB;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterGetAMONDeviceCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_GetAMONDeviceCallback != NULL), "UnegisterGetAMONDeviceCallback: Get AMON Device Callback not registered");
+	g_GetAMONDeviceCallback = NULL;
+
+Error:
+	return r;
+}
+
 // TODO: Fix this rudimentary approach
 int GetNumberOfEastWestLinks(int id) {
 	return GetNumberOfEastWestMapLinks(g_AMONmap, id, AMON_WEST, AMON_EAST);
@@ -177,7 +241,10 @@ RESULT SetAMONMasterState(AMON_MASTER_STATE state) {
 		g_amon.id = 0;
 
 		// Initialize AMON Map
-		g_AMONmap = CreateAMONMap(NUM_LINKS, AMON_MASTER_ID);
+		if(g_GetAMONDeviceCallback != NULL)
+			g_AMONmap = CreateAMONMap(NUM_LINKS, AMON_MASTER_ID, g_GetAMONDeviceCallback());
+		else
+			g_AMONmap = CreateAMONMap(NUM_LINKS, AMON_MASTER_ID, g_GetAMONDeviceCallback());
 	}
 	else {
 		g_amon.status = AMON_DEVICE_UNASSIGNED;
@@ -218,11 +285,12 @@ RESULT RegisterNewID(int *newId) {
 */
 
 // Add a new device
-RESULT RegisterNewDevice(int destID, int linkID, int *newID) {
+RESULT RegisterNewDevice(int destID, int linkID, int *newID, void *pContext) {
 	RESULT r = R_OK;
 
 	*newID = g_AMONmap->m_mapID;
-	CRM(AddAMONNode(g_AMONmap, destID, linkID, g_AMONmap->m_mapID), "RegisterNewDevice: Failed to add node to node %d at link %d", destID, linkID);
+	CRM(AddAMONNode(g_AMONmap, destID, linkID, g_AMONmap->m_mapID, pContext),
+			"RegisterNewDevice: Failed to add node to node %d at link %d", destID, linkID);
 
 Error:
 	return r;
@@ -449,7 +517,9 @@ RESULT HandleAMONRequestID(AMON_LINK link, AMONRequestIDPacket *d_pAMONRequestID
 	if(g_amon.id == AMON_MASTER_ID && g_amon.status == AMON_DEVICE_OK && g_amon.MasterState != AMON_MASTER_FALSE) {
 		// We are the master, so dispatch a new ID
 		int newID;
-		CRM(RegisterNewDevice(d_pAMONRequestIDPacket->m_linkDeviceID, d_pAMONRequestIDPacket->m_linkID, &newID),
+
+		// TODO: new device connected CB
+		CRM(RegisterNewDevice(d_pAMONRequestIDPacket->m_linkDeviceID, d_pAMONRequestIDPacket->m_linkID, &newID, NULL),
 				"HandleAMONPacket: Failed to register new device on %d link %d", d_pAMONRequestIDPacket->m_linkDeviceID, d_pAMONRequestIDPacket->m_linkID);
 
 		// Send assign device out on all established links	// TODO: Is this th right behavior? We know what link the request came in on
@@ -481,10 +551,12 @@ RESULT HandleAMONAssignID(AMON_LINK link, AMONAssignIDPacket *d_pAMONAssignIDPac
 			link, d_pAMONAssignIDPacket->m_linkDeviceID, d_pAMONAssignIDPacket->m_linkID, d_pAMONAssignIDPacket->m_newID);
 
 	if(g_amon.links[link].id == d_pAMONAssignIDPacket->m_linkDeviceID && g_amon.links[link].link_id == d_pAMONAssignIDPacket->m_linkID) {
+
 		// We just got an id assigned
 		g_amon.id = d_pAMONAssignIDPacket->m_newID;
 		g_amon.links[link].fLinkToMaster = 1;
 		g_amon.status = AMON_DEVICE_OK;
+
 		CRM(SendACK(link, AMON_MASTER_ID, AMON_ASSIGN_ID, 0x00),
 				"HandleAMONPacket: Failed to send assign ID ack on link %d", link);
 
@@ -518,7 +590,9 @@ RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *d_pAMONAckPacket) {
 
 		switch(d_pAMONAckPacket->m_ackType) {
 			case AMON_ACK_ASSIGN_ID: {
-				// TODO: Handle ACK?
+				// Device has confirmed registration, fire the callback
+				if(g_AMONDeviceRegisteredCallback != NULL)
+					g_AMONDeviceRegisteredCallback(d_pAMONAckPacket->m_originID);
 			} break;
 
 			case AMON_ACK_SEND: {
@@ -638,6 +712,9 @@ Error:
 RESULT HandleAMONSendDeviceID(AMON_LINK link, AMONSendDeviceIDPacket *d_pAMONSendDeviceIDPacket) {
 	RESULT r = R_OK;
 
+	// Get the device status
+	g_amon.links[link].Status = d_pAMONSendDeviceIDPacket->m_deviceStatus;
+
 	// Is the link already established?
 	if(g_AMONLinkStates[link] == AMON_LINK_ESTABLISHED) {
 		int rxID = d_pAMONSendDeviceIDPacket->m_deviceID;
@@ -645,9 +722,8 @@ RESULT HandleAMONSendDeviceID(AMON_LINK link, AMONSendDeviceIDPacket *d_pAMONSen
 		g_amon.links[link].id = rxID;
 	}
 	else {
-		// ID has been received from other device during link establish
-		g_amon.links[link].Status = d_pAMONSendDeviceIDPacket->m_deviceStatus;		// get the device status
 
+		// ID has been received from other device during link establish
 		if(g_amon.links[link].Status == AMON_DEVICE_OK) {
 			g_amon.links[link].id = d_pAMONSendDeviceIDPacket->m_deviceID;
 			g_AMONLinkStates[link] = AMON_LINK_ESTABLISHING_LINK;
@@ -978,7 +1054,8 @@ RESULT HandleAMONPacket_old(AMON_LINK link) {
 			if(g_amon.id == AMON_MASTER_ID && g_amon.status == AMON_DEVICE_OK && g_amon.MasterState != AMON_MASTER_FALSE) {
 				// We are the master, so dispatch a new ID
 				int newID;
-				CRM(RegisterNewDevice(addressDeviceID, linkID, &newID), "HandleAMONPacket: Failed to register new device on %d link %d", addressDeviceID, linkID);
+				CRM(RegisterNewDevice(addressDeviceID, linkID, &newID, NULL),
+						"HandleAMONPacket: Failed to register new device on %d link %d", addressDeviceID, linkID);
 
 				// Send assign device out on all established links	// TODO: Is this th right behavior? We know what link the request came in on
 				for(i = 0; i < NUM_LINKS; i++) {
@@ -1077,8 +1154,11 @@ RESULT HandleAMONPacket_old(AMON_LINK link) {
 		case AMON_GET_ID: {
 			// Other device is requesting our ID
 			g_amon.links[link].Status = pBuffer[3];		// get the device status
+			unsigned short originDeviceID = AMONToShort(pBuffer[4], pBuffer[5]);
+
+			// If we already have a non zero id then send the establish link
 			if(g_amon.links[link].Status == AMON_DEVICE_OK) {
-				g_amon.links[link].id = AMONToShort(pBuffer[4], pBuffer[5]);
+				g_amon.links[link].id = originDeviceID;
 				g_AMONLinkStates[link] = AMON_LINK_ESTABLISHING_LINK;
 
 				DEBUG_LINEOUT("Rx: AMON_GET_ID with id %d status 0x%x from OK device", g_amon.links[link].id, g_amon.links[link].Status);
@@ -1110,8 +1190,10 @@ RESULT HandleAMONPacket_old(AMON_LINK link) {
 			else {
 				// ID has been received from other device during link establish
 				g_amon.links[link].Status = pBuffer[3];		// get the device status
+				unsigned short originDeviceID = AMONToShort(pBuffer[4], pBuffer[5]);
+
 				if(g_amon.links[link].Status == AMON_DEVICE_OK) {
-					g_amon.links[link].id = AMONToShort(pBuffer[4], pBuffer[5]);
+					g_amon.links[link].id = originDeviceID;
 					g_AMONLinkStates[link] = AMON_LINK_ESTABLISHING_LINK;
 
 					DEBUG_LINEOUT("Rx: AMON_SEND_ID with id %d status 0x%x from OK device", g_amon.links[link].id, g_amon.links[link].Status);
@@ -1939,10 +2021,16 @@ RESULT SetAMONMasterConsole(Console *pc, unsigned char *pszfMaster) {
 	for(i = 0; i < strlen(pszfMaster); i++)
 		pszfMaster[i] = tolower(pszfMaster[i]);
 
-	if(strcmp(pszfMaster, "true") == 0)
-		return SetAMONMaster();
-	else
+	if(strcmp(pszfMaster, "true") == 0) {
+		//return SetAMONMaster();
+		if(g_GetAMONDeviceCallback != NULL)
+			SetAMONMaster(g_GetAMONDeviceCallback());
+		else
+			SetAMONMaster(NULL);
+	}
+	else {
 		return UnsetAMONMaster();
+	}
 
 Error:
 	return r;

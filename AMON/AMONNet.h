@@ -49,9 +49,9 @@ extern AMON_RX_STATE g_LinkRxState[NUM_LINKS];
 //RESULT ResetMasterCount();
 //RESULT RegisterNewID(int *newId);
 
-RESULT InitAmon();
+RESULT InitAmon(int ticksPerSecond);
 
-RESULT RegisterNewDevice(int destID, int linkID, int *newID);
+RESULT RegisterNewDevice(int destID, int linkID, int *newID, void *pContext);
 
 RESULT SetAMONMaster();
 RESULT SetAMONMasterState(AMON_MASTER_STATE state);
@@ -92,9 +92,24 @@ int GetAMONIntervalSystick();
 int GetNumberOfEastWestLinks(int id);
 int GetDepthOfAMONMapLink(AMON_LINK link);
 
+// Device Registration / Unregistration
+typedef RESULT (*cbAMONDeviceRegistered)(short);
+extern cbAMONDeviceRegistered g_AMONDeviceRegisteredCallback;
+RESULT RegisterAMONDeviceRegisteredCallback(cbAMONDeviceRegistered AMONDeviceRegisteredCB);
+RESULT UnregisterAMONDeviceRegisteredCallback();
+
+typedef RESULT (*cbAMONDeviceUnregistered)(short, short, AMON_LINK);
+extern cbAMONDeviceUnregistered g_AMONDeviceUnregisteredCallback;
+RESULT RegisterAMONDeviceUnregisteredCallback(cbAMONDeviceUnregistered AMONDeviceUnregisteredCB);
+RESULT UnregisterAMONDeviceUnregisteredCallback();
+
+typedef void* (*cbGetAMONDevice)();
+extern cbGetAMONDevice g_GetAMONDeviceCallback;
+RESULT RegisterGetAMONDeviceCallback(cbGetAMONDevice GetAMONDeviceCB);
+RESULT UnregisterGetAMONDeviceCallback();
+
 // Command Mode
 typedef RESULT (*cbHandleAMONPayload)(AMON_LINK, short, unsigned char, unsigned char *, int);
-
 extern cbHandleAMONPayload g_HandleAMONPayloadCallback;
 RESULT RegisterHandleAMONPayloadCallback(cbHandleAMONPayload handleAMONPayloadCB);
 RESULT UnregisterHandleAMONPayloadCallback();

@@ -8,6 +8,7 @@ typedef struct AMON_NODE{
 	int m_id;
 	struct AMON_NODE **m_links;
 	int m_links_n;
+	void *m_pContext;
 } AMONNode;
 
 typedef struct {
@@ -17,10 +18,10 @@ typedef struct {
 	int m_count;
 } AMONMap;
 
-AMONMap *CreateAMONMap(int numLinks, int rootID);
-AMONNode * CreateAMONNode(int numLinks, int ID);
+AMONMap *CreateAMONMap(int numLinks, int rootID, void *pContext);
+AMONNode * CreateAMONNode(int numLinks, int ID, void *pContext);
 
-RESULT AddAMONNode(AMONMap* map, int destID, int linkID, int ID);
+RESULT AddAMONNode(AMONMap* map, int destID, int linkID, int ID, void *pContext);
 RESULT RemoveAMONNodeByID(AMONMap* map, int ID);
 RESULT RemoveAMONNode(AMONNode* node);
 
