@@ -64,7 +64,12 @@ AMONNode *FindAMONNode(AMONMap *map, int id) {
 }
 
 int GetNumberOfMapLinks(AMONNode* node, int id, int linkID, int depth) {
-	if(node->m_links[linkID]->m_id == id)
+//	if(node->m_links[linkID]->m_id == id)
+	//this is the HACK
+	if(node->m_links[0]->m_id == id ||
+			node->m_links[1]->m_id == id ||
+			node->m_links[2]->m_id == id ||
+			node->m_links[3]->m_id == id)
 		return depth;
 	else if(node->m_links[linkID] == NULL)
 		return 0;
