@@ -1,6 +1,7 @@
 #include "AMONNet.h"
 
 AMON_RX_STATE g_LinkRxState[NUM_LINKS];
+unsigned char g_fLinkActivitySinceInterval[NUM_LINKS];
 
 // The message on a given link
 AMON_MESSAGE_TYPE g_linkMessageType[NUM_LINKS];
@@ -87,6 +88,11 @@ int GetAMONMapNodeIDOnLinkDepth(AMON_LINK link, int depth) {
 	return node->m_id;
 }
 
+inline RESULT ReportLinkActivity(AMON_LINK link) {
+	g_fLinkActivitySinceInterval[link] = TRUE;
+	return R_OK;
+}
+
 RESULT InitAmon(int ticksPerSecond) {
 	RESULT r = R_OK;
 	int i = 0;
@@ -102,8 +108,11 @@ RESULT InitAmon(int ticksPerSecond) {
 	g_SysTicksPerSecond = ticksPerSecond;
 
 	// Initialize the links
-	for(i = 0; i < NUM_LINKS; i++)
+	for(i = 0; i < NUM_LINKS; i++) {
 		CRM(InitializeLink(i), "InitAmon: Failed to initialize link %d", i);
+
+		g_fLinkActivitySinceInterval[i] = FALSE;
+	}
 
 	// Console Functions
 	AddConsoleFunctionByArgs(g_pConsole, SendByteModeCommand, "AMONSendByte", 3, 0);
@@ -218,9 +227,13 @@ RESULT OnAMONInterval() {
 		/*else {
 			// If link established we want to check the status
 			// unless it's sending traffic
-			if(AMONLinkBusy(i) == 0)
+			if(AMONLinkBusy(i) == 0 && g_fLinkActivitySinceInterval[i] == FALSE) {
 				CRM(CheckLinkStatus(i), "OnAMONInterval: Failed to check link %d status", i);
-		}*/
+			}
+			else {
+				g_fLinkActivitySinceInterval[i] == FALSE;
+			}
+		}*/  // TODO: fix the disconnect-reconnect
 	}
 
 Error:
@@ -557,11 +570,16 @@ RESULT HandleAMONAssignID(AMON_LINK link, AMONAssignIDPacket *d_pAMONAssignIDPac
 		g_amon.links[link].fLinkToMaster = 1;
 		g_amon.status = AMON_DEVICE_OK;
 
-		CRM(SendACK(link, AMON_MASTER_ID, AMON_ASSIGN_ID, 0x00),
+		CRM(SendACK(link, AMON_MASTER_ID, AMON_ACK_ASSIGN_ID, 0x00),
 				"HandleAMONPacket: Failed to send assign ID ack on link %d", link);
 
 		// Send device ID on link so neighbor has the link info
 		CRM(SendDeviceID(link), "AMONRx: Failed to Send Device ID on link %d on assign", link);
+
+		// ID assigned, link establisehd - fire call back
+		if(g_AMONLinkEstablishedCallback != NULL) {
+			CRM(g_AMONLinkEstablishedCallback(link), "HandleAMONAssignID: Failed AMON link %d established CB", link);
+		}
 	}
 	else {
 		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONAssignIDPacket, d_pAMONAssignIDPacket->m_header.m_length),
@@ -591,8 +609,9 @@ RESULT HandleAMONAck(AMON_LINK link, AMONAckPacket *d_pAMONAckPacket) {
 		switch(d_pAMONAckPacket->m_ackType) {
 			case AMON_ACK_ASSIGN_ID: {
 				// Device has confirmed registration, fire the callback
-				if(g_AMONDeviceRegisteredCallback != NULL)
-					g_AMONDeviceRegisteredCallback(d_pAMONAckPacket->m_originID);
+				if(g_AMONDeviceRegisteredCallback != NULL) {
+					CRM(g_AMONDeviceRegisteredCallback(d_pAMONAckPacket->m_originID), "HandleAMONAck: Failed device registered CB id %d", d_pAMONAckPacket->m_originID);
+				}
 			} break;
 
 			case AMON_ACK_SEND: {
@@ -778,6 +797,11 @@ RESULT HandleAMONEstablishLink(AMON_LINK link, AMONEstablishLinkPacket *d_pAMONE
 
 	g_AMONLinkStates[link] = AMON_LINK_ESTABLISHED;
 
+	// Link has been established
+	if(g_AMONLinkEstablishedCallback != NULL) {
+		CRM(g_AMONLinkEstablishedCallback(link), "HandleAMONEstablishLink: Failed AMON Link %d establish CB", link);
+	}
+
 Error:
 	if(d_pAMONEstablishLinkPacket != NULL) {
 		free(d_pAMONEstablishLinkPacket);
@@ -872,6 +896,8 @@ RESULT HandleAMONPacket(AMON_LINK link, AMONPacket *d_pAMONPacket) {
 #endif
 
 	CBRM((checksum == packetChecksum), "HandleAMONPacket: Checksum mismatch 0x%x 0x%x", checksum, packetChecksum);
+
+	ReportLinkActivity(link);
 
 	switch(d_pAMONPacket->m_type) {
 		case AMON_NULL: {
@@ -1378,9 +1404,11 @@ RESULT SendMessageType(AMON_MESSAGE_TYPE type, short destID, ...) {
 	switch(type) {
 
 		case AMON_PING: {
-			for(i = 0; i < NUM_LINKS; i++)
-				if(g_AMONLinkStates[i] == AMON_LINK_ESTABLISHED)
+			for(i = 0; i < NUM_LINKS; i++) {
+				if(g_AMONLinkStates[i] == AMON_LINK_ESTABLISHED) {
 					CRM(SendPingNetwork(i, destID), "SendMessage: Failed to ping device %d on link %d", destID, i);
+				}
+			}
 		} break;
 
 		default: {
@@ -1394,59 +1422,48 @@ Error:
 
 
 // TODO: Make this work haha
-RESULT SendMessagePayload(AMON_LINK link, short destID, unsigned char type, unsigned char *payloadBuffer, int payloadBuffer_n) {
+RESULT SendMessagePayloadLink(AMON_LINK link, short destID, unsigned char type, unsigned char *payloadBuffer, int payloadBuffer_n) {
 	RESULT r = R_OK;
-	//unsigned char *pBuffer = NULL;
 
-	CBRM((payloadBuffer_n != 0), "SendMessagePayload: Cannot send message of %d bytes", payloadBuffer_n);
-
-	/*unsigned char linkID = (unsigned char)(g_amon.links[link].link_id);
-	unsigned short originID = g_amon.id;
-
-	int pBuffer_n = 10 + payloadBuffer_n;
-	pBuffer = (unsigned char *)calloc(sizeof(unsigned char), pBuffer_n);
-	CNRM_NA(pBuffer, "SendMessagePayload: Failed to initialize buffer to send");
-
-	// TODO: uhhh - fill out the buffer doofus
-	pBuffer[0] = AMON_VALUE;							// AMON Value
-	pBuffer[1] = pBuffer_n;								// length
-	pBuffer[2] = AMON_SEND;								// Message Type
-	pBuffer[3] = (unsigned char)(originID & 0xff);		// origin ID - lower byte
-	pBuffer[4] = (unsigned char)(originID >> 8);		// origin ID - upper byte
-	pBuffer[5] = (unsigned char)(destID & 0xff);		// dest ID - lower byte
-	pBuffer[6] = (unsigned char)(destID >> 8);			// dest ID - upper byte
-	pBuffer[7] = (unsigned char)(type);					// Send message type
-	pBuffer[8] = (unsigned char)(payloadBuffer_n);		// payload buffer length
-
-	// Copy over the payload
-	memcpy((void*)(pBuffer + 9), (void*)(payloadBuffer), sizeof(unsigned char) * payloadBuffer_n);
-
-	pBuffer[9 + payloadBuffer_n] = 0x00;				// Check sum (calculated later)
-
-#ifdef AMON_VERBOSE
-	DEBUG_LINEOUT("SendMessagePayload: Sending payload buffer length %d to destID %d of type 0x%x", pBuffer_n, destID, type);
-	PrintToOutputBinaryBuffer(g_pConsole, pBuffer, pBuffer_n, 10);
-#endif
-
-	CRM(SendAMONBuffer(link, pBuffer, pBuffer_n), "SendMessagePayload: Failed to SendAMONBuffer %d bytes on link %d", pBuffer_n, link);*/
+	CBRM((payloadBuffer_n != 0), "SendMessagePayloadLink: Cannot send message of %d bytes", payloadBuffer_n);
 
 	AMONSendPacket *pAMONSendPacket = CreateAMONSendPacket(destID, type, payloadBuffer, payloadBuffer_n);
-	CNRM_NA(pAMONSendPacket, "SendMessagePayload: Failed to allocate Send Packet");
+	CNRM_NA(pAMONSendPacket, "SendMessagePayloadLink: Failed to allocate Send Packet");
+
+#ifdef AMON_VERBOSE
+	DEBUG_LINEOUT("SendMessagePayloadLink: Sending AMONSendPacket length %d to destID %d of type 0x%x", pAMONSendPacket->m_header.m_length, destID, type);
+	PrintToOutputBinaryBuffer(g_pConsole, pAMONSendPacket, pAMONSendPacket->m_header.m_length, 10);
+#endif
+
+	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONSendPacket),
+			"SendMessagePayloadLink: Failed to push and transmit Send packet on link %d", link);
+
+Error:
+	return r;
+}
+
+RESULT SendMessagePayload(short destID, unsigned char type, unsigned char *payloadBuffer, int payloadBuffer_n) {
+	RESULT r = R_OK;
+	int i = 0;
+
+	CBRM((payloadBuffer_n != 0), "SendMessagePayloadLink: Cannot send message of %d bytes", payloadBuffer_n);
+
+	AMONSendPacket *pAMONSendPacket = CreateAMONSendPacket(destID, type, payloadBuffer, payloadBuffer_n);
+	CNRM_NA(pAMONSendPacket, "SendMessagePayloadLink: Failed to allocate Send Packet");
 
 #ifdef AMON_VERBOSE
 	DEBUG_LINEOUT("SendMessagePayload: Sending AMONSendPacket length %d to destID %d of type 0x%x", pAMONSendPacket->m_header.m_length, destID, type);
 	PrintToOutputBinaryBuffer(g_pConsole, pAMONSendPacket, pAMONSendPacket->m_header.m_length, 10);
 #endif
 
-	CRM(PushAndTransmitAMONQueuePacket(link, (AMONPacket *)pAMONSendPacket),
-			"SendMessagePayload: Failed to push and transmit Send packet on link %d", link);
+	for(i = 0; i < NUM_LINKS; i++) {
+		if(g_AMONLinkStates[i] == AMON_LINK_ESTABLISHED) {
+			CRM(PushAndTransmitAMONQueuePacket(i, (AMONPacket *)pAMONSendPacket),
+					"SendMessagePayload: Failed to push and transmit Send packet on link %d", i);
+		}
+	}
 
 Error:
-	/*if(pBuffer != NULL) {
-		free(pBuffer);
-		pBuffer = NULL;
-	}*/
-
 	return r;
 }
 
@@ -1946,7 +1963,7 @@ RESULT ResetAMONLink(Console *pc, char *pszLink) {
 	// Make sure link is established
 	CBRM((g_AMONLinkPhys[link] == AMON_PHY_READY), "ResetAMONLink: Failed to reset link %d", link);
 
-	CRM(SendResetLink(link);, "ResetAMONLink: Failed to reset link %d", link);
+	CRM(SendResetLink(link), "ResetAMONLink: Failed to reset link %d", link);
 
 Error:
 	return r;

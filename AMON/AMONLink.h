@@ -7,7 +7,7 @@
 //#include "AMON.h"
 
 #define NUM_LINKS 4
-#define LINK_STATUS_COUNTER_THRESHOLD 5
+#define LINK_STATUS_COUNTER_THRESHOLD 1
 
 typedef enum {
 	AMON_ALL	= -1,
@@ -68,6 +68,15 @@ typedef struct {
 extern unsigned char link_input[NUM_LINKS][MAX_MSG_LENGTH];
 extern int link_input_c[NUM_LINKS];
 extern int g_linkMessageLength[NUM_LINKS];
+
+typedef RESULT (*cbAMONLink)(AMON_LINK);
+extern cbAMONLink g_AMONLinkEstablishedCallback;
+RESULT RegisterAMONLinkEstablishedCallback(cbAMONLink AMONLinkEstablishedCB);
+RESULT UnegisterAMONLinkEstablishedCallback();
+
+extern cbAMONLink g_AMONLinkDisconnectCallback;
+RESULT RegisterAMONLinkDisconnectCallback(cbAMONLink AMONLinkDisconnectCB);
+RESULT UnegisterAMONLinkDisconnectCallback();
 
 // Link
 RESULT CheckLinkStatus(AMON_LINK link);

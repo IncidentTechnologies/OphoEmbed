@@ -34,6 +34,48 @@ Error:
 	return r;
 }
 
+cbAMONLink g_AMONLinkEstablishedCallback = NULL;
+RESULT RegisterAMONLinkEstablishedCallback(cbAMONLink AMONLinkEstablishedCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_AMONLinkEstablishedCallback == NULL), "RegisterAMONLinkEstablishedCallback: AMON Link Established callback already registered");
+	g_AMONLinkEstablishedCallback = AMONLinkEstablishedCB;
+
+Error:
+	return r;
+}
+
+RESULT UnegisterAMONLinkEstablishedCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_AMONLinkEstablishedCallback != NULL), "UnregisterAMONLinkEstablishedCallback: AMON Link Established callback not registered");
+	g_AMONLinkEstablishedCallback = NULL;
+
+Error:
+	return r;
+}
+
+cbAMONLink g_AMONLinkDisconnectCallback = NULL;
+RESULT RegisterAMONLinkDisconnectCallback(cbAMONLink AMONLinkDisconnectCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_AMONLinkDisconnectCallback == NULL), "RegisterAMONLinkDisconnectCallback: AMON Link Disconnect callback already registered");
+	g_AMONLinkDisconnectCallback = AMONLinkDisconnectCB;
+
+Error:
+	return r;
+}
+
+RESULT UnegisterAMONLinkDisconnectCallback()  {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_AMONLinkDisconnectCallback != NULL), "UnregisterAMONLinkDisconnectCallback: AMON Link Disconnect callback not registered");
+	g_AMONLinkDisconnectCallback = NULL;
+
+Error:
+	return r;
+}
+
 RESULT ResetLink(AMON_LINK link) {
 	RESULT r = R_OK;
 
@@ -76,6 +118,9 @@ RESULT DisconnectLink(AMON_LINK link) {
 	if(g_amon.MasterState != AMON_MASTER_FALSE) {
 		CRM(RemoveAMONNodeByID(g_AMONmap, id), "DisconnectLink: Failed to remove node %d from AMON map", id);
 	}
+
+	if(g_AMONLinkDisconnectCallback != NULL)
+		g_AMONLinkDisconnectCallback(link);
 
 Error:
 	return r;
