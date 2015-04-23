@@ -107,6 +107,8 @@ RESULT InitAmon(int ticksPerSecond) {
 
 	g_SysTicksPerSecond = ticksPerSecond;
 
+	SetAMONInterval(1, g_SysTicksPerSecond);
+
 	// Initialize the links
 	for(i = 0; i < NUM_LINKS; i++) {
 		CRM(InitializeLink(i), "InitAmon: Failed to initialize link %d", i);
@@ -192,10 +194,14 @@ Error:
 	return r;
 }
 
+unsigned int g_uiAMONInterval_c = 0;
+
 // AMON OnInterval - called every interval
 RESULT OnAMONInterval() {
 	RESULT r = R_OK;
 	int i = 0;
+
+	g_uiAMONInterval_c++;
 
 	/*
 	for(i = 0; i < NUM_LINKS; i++) {
@@ -214,26 +220,35 @@ RESULT OnAMONInterval() {
 	if(g_amon.fStart == 0)
 		return R_OFF;
 
-	//SetLEDWithClearTimeout(1, 20, 20, 20, 50);
 	for(i = 0; i < NUM_LINKS; i++) {
-		if(g_AMONLinkStates[i] != AMON_LINK_ESTABLISHED) {
-			unsigned char r = (i == 0 || i == 3) ? 50 : 0;
-			unsigned char g = (i == 1 || i == 3) ? 50 : 0;
-			unsigned char b = (i == 2 || i == 3) ? 50 : 0;
-
-			//SetLEDLinkClearTimeout(i, r, g, b, 50);
-			CRM(SendByte(i, AMON_BYTE_PING), "OnAMONInterval: Failed to send ping on link %d", i);
+		//every cycle for timeouts
+		if(g_AMONLinkPhys[i] == AMON_PHY_INITIATE_REQUEST) {
+			if(g_AMONLinkPhyTimeout[i] && --(g_AMONLinkPhyTimeout[i]) == 0) {
+//				DEBUG_LINEOUT("OnAMONInterval: timeout on link %d during AMON_INITIATE_REQUEST, resending", i);
+				CRM(SendInitiateRequest(i),	"OnAMONInterval: Failed to Send Initiate Request on link %d", i);
+			}
 		}
-		/*else {
-			// If link established we want to check the status
-			// unless it's sending traffic
-			if(AMONLinkBusy(i) == 0 && g_fLinkActivitySinceInterval[i] == FALSE) {
-				CRM(CheckLinkStatus(i), "OnAMONInterval: Failed to check link %d status", i);
-			}
-			else {
-				g_fLinkActivitySinceInterval[i] == FALSE;
-			}
-		}*/  // TODO: fix the disconnect-reconnect
+
+		//establish link and link check cycles
+		if((g_uiAMONInterval_c % 1000) == 0) {
+			if(g_AMONLinkStates[i] != AMON_LINK_ESTABLISHED) {
+				unsigned char r = (i == 0 || i == 3) ? 50 : 0;
+				unsigned char g = (i == 1 || i == 3) ? 50 : 0;
+				unsigned char b = (i == 2 || i == 3) ? 50 : 0;
+
+
+				CRM(SendByte(i, AMON_BYTE_PING), "OnAMONInterval: Failed to send ping on link %d", i);
+			}		/*else {
+							// If link established we want to check the status
+							// unless it's sending traffic
+							if(AMONLinkBusy(i) == 0 && g_fLinkActivitySinceInterval[i] == FALSE) {
+								CRM(CheckLinkStatus(i), "OnAMONInterval: Failed to check link %d status", i);
+							}
+							else {
+								g_fLinkActivitySinceInterval[i] == FALSE;
+							}
+			}*/
+		}  // TODO: fix the disconnect-reconnect
 	}
 
 Error:

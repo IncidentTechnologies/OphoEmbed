@@ -6,6 +6,7 @@
 
 AMON_PHY_STATE g_AMONLinkPhys[NUM_LINKS];
 unsigned char g_AMONLinkPhyPacketCount[NUM_LINKS];
+unsigned char g_AMONLinkPhyTimeout[NUM_LINKS];
 
 cbSendByteOnLink g_PHYSendByteCallbacks[NUM_LINKS];
 cbFlushLink g_PHYFlushCallbacks[NUM_LINKS];
@@ -25,6 +26,7 @@ RESULT InitAMONPHY() {
 		g_PHYBusyCallbacks[i] = NULL;
 
 		g_AMONLinkPhyPacketCount[i] = 0;
+		g_AMONLinkPhyTimeout[i] = 0;
 	}
 
 Error:
@@ -121,12 +123,16 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 				g_AMONLinkPhys[link] = AMON_PHY_PACKET_PENDING;
 
 				CRM(SendByte(link, AMON_INITIATE_REQUEST_ACK), "AMONHandleHalfDuplexPHYByte: Failed to send initiate request ack on link %d", link);
-			} else {
+			} else if(byte == AMON_BYTE_ERROR) {
+				DEBUG_LINEOUT("AMON_BYTE_ERROR received on link %d, resetting the link", link);
+				CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d", link);
+				CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+			} /*else {
 				DEBUG_LINEOUT("Byte 0x%x received on link %d is not initiate request, ignoring", byte, link);
 //				DEBUG_LINEOUT("Byte 0x%x received on link %d is not initiate request, resetting the link", byte, link);
 //				CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d", link);
 //				CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
-			}
+			}*/
 		} break;
 
 		case AMON_PHY_PACKET_PENDING: {
@@ -205,6 +211,7 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 		// initiating a request
 		case AMON_PHY_INITIATE_REQUEST: {
 			if(byte == AMON_INITIATE_REQUEST_ACK) {
+				g_AMONLinkPhyTimeout[link] = 0;
 				 // Send the packets in the queue
 				g_AMONLinkPhys[link] = AMON_PHY_REQUEST_TRANSMIT;
 				g_AMONLinkPhyPacketCount[link] = NumPacketsInQueue(link);
@@ -216,6 +223,7 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 				// our data will go into a pending state - if we win, wait for a initiate ack
 				if(byte == AMON_INITIATE_REQUEST) {
 					if(g_amon.links[link].id > g_amon.id) {
+						g_AMONLinkPhyTimeout[link] = 0;
 						g_AMONLinkPhys[link] = AMON_PHY_PACKET_PENDING;
 
 						#ifdef AMON_VERBOSE
@@ -223,18 +231,20 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 						#endif
 
 						// Need to delay a moment
-						CRM_NA(DelayPHY(), "Failed to delay");
-						CRM_NA(DelayPHY(), "Failed to delay");
+//						CRM_NA(DelayPHY(), "Failed to delay");
+//						CRM_NA(DelayPHY(), "Failed to delay");
 
 						CRM(SendByte(link, AMON_INITIATE_REQUEST_ACK), "AMONHandleHalfDuplexPHYByte: Failed to send ack initiate byte on link %d", link);
+					} else {
+						g_AMONLinkPhyTimeout[link] = AMON_PHY_DEFAULT_TIMEOUT;
 					}
-				}
+				} /*
 				else {
 					DEBUG_LINEOUT("Byte 0x%x received on link %d in state %d is not initiate ack or initiate request, ignoring", byte, link, g_AMONLinkPhys[link]);
 //					DEBUG_LINEOUT("Byte 0x%x received on link %d in state %d is not initiate ack or initiate request, reset link", byte, link, g_AMONLinkPhys[link]);
 //					CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d state %d", link, g_AMONLinkPhys[link]);
 //					CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d state %d", link, g_AMONLinkPhys[link]);
-				}
+				}*/
 			}
 		} break;
 
@@ -263,15 +273,15 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 					DEBUG_LINEOUT("Sending transmit complete on link %d for %d packets", link, numPacketsToSend);
 				#endif
 
-				CRM_NA(DelayPHY(), "Failed to delay PHY");
-				CRM_NA(DelayPHY(), "Failed to delay PHY");
+//				CRM_NA(DelayPHY(), "Failed to delay PHY");
+//				CRM_NA(DelayPHY(), "Failed to delay PHY");
 
 				unsigned char temp = NumPacketsInPendingQueue(link) == 0 ? AMON_TRANSMIT_COMPLETE : AMON_TRANSMIT_COMPLETE_WITH_PENDING;
 				CRM(SendByte(link, temp), "AMONHandleHalfDuplexPHYByte: Failed to send transmit complete byte on link %d state %d", link, g_AMONLinkPhys[link]);
 				g_AMONLinkPhys[link] = AMON_PHY_TRANSMIT_COMPLETE;
 			}
 			else {
-				DEBUG_LINEOUT("Byte 0x%x received on link %d in state %d is not accept transmit or request transmit, reset link", byte, link, g_AMONLinkPhys[link]);
+				DEBUG_LINEOUT("Byte 0x%x received on link %d in state %d is not accept transmit, reset link", byte, link, g_AMONLinkPhys[link]);
 				CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d state %d", link, g_AMONLinkPhys[link]);
 				CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d state %d", link, g_AMONLinkPhys[link]);
 			}
@@ -491,7 +501,7 @@ RESULT SendInitiateRequest(AMON_LINK link) {
 
 	// If the link is not ready, we quit this - the packets are queued and will get picked
 	// up on completion
-	if(g_AMONLinkPhys[link] == AMON_PHY_READY)
+	if(g_AMONLinkPhys[link] == AMON_PHY_READY || g_AMONLinkPhys[link] == AMON_PHY_INITIATE_REQUEST)
 		g_AMONLinkPhys[link] = AMON_PHY_INITIATE_REQUEST;
 	else
 		return R_OK;
@@ -504,6 +514,8 @@ RESULT SendInitiateRequest(AMON_LINK link) {
 
 	CBRM((g_PHYSendByteCallbacks[link] != NULL), "SendInitiateRequest: Failed to send byte on link %d, cb not present", link);
 	CRM(g_PHYSendByteCallbacks[link](byte), "SendInitiateRequest: Link %d send byte callback failed", link);
+
+	g_AMONLinkPhyTimeout[link] = g_amon.links[link].id > g_amon.id ? AMON_PHY_DEFAULT_TIMEOUT + 1 : AMON_PHY_DEFAULT_TIMEOUT;
 
 Error:
 	return r;

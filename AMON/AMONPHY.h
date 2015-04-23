@@ -11,6 +11,8 @@
 	#define AMON_FULL_DUPLEX
 #endif
 
+#define AMON_PHY_DEFAULT_TIMEOUT 2
+
 // Byte Mode Messages
 typedef enum {
 	AMON_BYTE_LINK_REQUEST 		= 0x11,
@@ -64,6 +66,8 @@ extern AMON_PHY_STATE g_AMONLinkPhys[NUM_LINKS];
 
 // Half Duplex
 extern unsigned char g_AMONLinkPhyPacketCount[NUM_LINKS];
+
+extern unsigned char g_AMONLinkPhyTimeout[NUM_LINKS];
 
 // TODO: Register
 typedef RESULT (*cbSendByteOnLink)(unsigned char*);
