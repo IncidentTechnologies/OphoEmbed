@@ -153,8 +153,8 @@ RESULT PushAndTransmitAMONQueuePacket(AMON_LINK link, AMONPacket *pAMONPacket) {
 		CRM(PushAMONQueuePacket(link, pAMONPacket), "PushAndTransmitAMONQueuePacket: Failed to push AMON Queue packet link %d", link);
 
 		// This will send the request transmit byte - then the PHY will actually send the AMON Queue
-		CRM(SendRequestTransmit(link, FALSE),
-				"PushAndTransmitAMONQueuePacket: Failed to Send Request Transmit on link %d", link);
+		CRM(SendInitiateRequest(link),
+				"PushAndTransmitAMONQueuePacket: Failed to Send Initiate Request on link %d", link);
 	}
 	else {
 		CNRM(g_pAMONPendingQueue[link], "PushAndTransmitAMONQueuePacket: AMON Pending Queue %d not initialized", link);

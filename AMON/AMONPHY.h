@@ -24,12 +24,15 @@ typedef enum {
 	AMON_BYTE_ERROR				= 0x77,
 	AMON_CHECK_LINK				= 0x80,
 	AMON_LINK_ALIVE				= 0x81,
-	AMON_INK_DEAD				= 0x82,
+	AMON_LINK_DEAD				= 0x82,
 	AMON_LINK_ERROR				= 0x83,
+	AMON_INITIATE_REQUEST		= 0xA0,
+	AMON_INITIATE_REQUEST_ACK	= 0xA1,
 	AMON_REQUEST_TRANSMIT		= 0xD0,		// This message is amorphous as it includes the entire 0xD0 - 0xDF range
 	AMON_ACCEPT_TRANSMIT		= 0xF0,
 	AMON_TRANSMIT_COMPLETE		= 0xF1,
-	AMON_TRANSMIT_COMPLETE_ACK	= 0xF2,
+	AMON_TRANSMIT_COMPLETE_WITH_PENDING	= 0xF2,
+	AMON_TRANSMIT_COMPLETE_ACK	= 0xF3,
 	AMON_BYTE_INVALID
 } AMON_BYTE_MODE_MESSAGE;
 
@@ -46,6 +49,8 @@ typedef enum {
 
 	// Half Duplex Functionality
 	//AMON_PHY_READY,						// In half-duplex the link sits in a ready state
+	AMON_PHY_INITIATE_REQUEST,				// Initiate a request for link control
+	AMON_PHY_PACKET_PENDING,				// Ready to receive Request Transmit byte
 	AMON_PHY_REQUEST_TRANSMIT,				// We've requested a transmission (sender)
 	AMON_PHY_ACCEPT_TRANSMIT,				// We've accepted a transmission, waiting for the packet traffic (routed to link layer) (receiver)
 	AMON_PHY_TRANSMIT_ACTIVE,				// We're currently transmitting, control handed off to the link layer (sender)
@@ -96,7 +101,7 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte);
 unsigned char LinkBusy(AMON_LINK link);
 RESULT FlushPHY(AMON_LINK link);
 RESULT SendByte(AMON_LINK link, unsigned char byte);
-RESULT SendRequestTransmit(AMON_LINK link, unsigned char fResponse);
+RESULT SendInitiateRequest(AMON_LINK link);
 RESULT BroadcastByte(unsigned char byte);
 RESULT SendPing(AMON_LINK link);
 RESULT SendEcho(AMON_LINK link);
