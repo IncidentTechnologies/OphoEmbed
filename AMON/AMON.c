@@ -2,7 +2,12 @@
 #include "../OS/Console.h"
 #include "../Common/EHM.h"
 
-AMON g_amon;
+AMON g_amon = {
+	.id = -1,
+	.status = AMON_DEVICE_UNASSIGNED,
+	.MasterState = AMON_MASTER_FALSE,
+	.fStart = 0
+};
 
 RESULT InitializeAMON() {
 	RESULT r = R_OK;

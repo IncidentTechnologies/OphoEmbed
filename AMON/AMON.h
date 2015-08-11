@@ -9,12 +9,11 @@
 #define AMON_MASTER_ID 0
 
 typedef struct {
+	int id;
 	AMON_MASTER_STATE MasterState;
-
 	unsigned fInitialized: 1;
 	unsigned fStart: 1;
 	AMON_DEVICE_STATUS status;
-	int id;
 	AMON_LINK_INFO links[NUM_LINKS];
 } AMON;
 
