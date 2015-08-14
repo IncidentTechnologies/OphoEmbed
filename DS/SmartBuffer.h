@@ -1,15 +1,15 @@
 #ifndef SMART_BUFFER_H_
 #define SMART_BUFFER_H_
 
-#define SMART_BUFFER_BLOCK_SIZE 512
+#define SMART_BUFFER_BLOCK_SIZE 256
 
 #include "../Common/RESULT.h"
 #include "../Common/EHM.h"
 
 typedef struct SMART_BUFFER {
 	char *m_pBuffer;
-	    int m_pBuffer_n;
-	    int m_pBuffer_bn;
+	int m_pBuffer_n;
+	int m_pBuffer_bn;
 } SmartBuffer;
 
 

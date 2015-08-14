@@ -1,19 +1,143 @@
 #include "Console.h"
 
-Console *g_pConsole;
+Console *m_pConsole = NULL;
+
+Console *GetConsole() {
+	return m_pConsole;
+}
+
+RESULT InitializeConsole(cbUpdateConsoleInput UpdateConsoleInputCB, cbUpdateConsoleOutput UpdateConsoleOutputCB) {
+	RESULT r = R_OK;
+
+	CNRM_NA(UpdateConsoleInputCB, "Must set a console update input CB");
+	CRM_NA(RegisterUpdateConsoleInputCallback(UpdateConsoleInputCB), "InitializeConsole: Failed to register Input update callback");
+
+	CNRM_NA(UpdateConsoleOutputCB, "Must set a console update output CB");
+	CRM_NA(RegisterUpdateConsoleOutputCallback(UpdateConsoleOutputCB), "InitializeConsole: Failed to register output update callback");
+
+	m_pConsole = CreateConsole();
+	CNRM_NA(m_pConsole, "InitializeConsole: Failed to allocate console");
+
+	DEBUG_LINEOUT_NA("Console initialized");
+
+Error:
+	return r;
+}
+
+cbSystemReset m_SystemResetCallback = NULL;
+RESULT RegisterSystemResetCallback(cbSystemReset SystemResetCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_SystemResetCallback == NULL), "RegisterSystemResetCallback: Console system reset callback already registered");
+	m_SystemResetCallback = SystemResetCB;
+
+Error:
+	return r;
+}
+
+RESULT UnegisterSystemResetCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_SystemResetCallback != NULL), "UnegisterSystemResetCallback: Console system reset callback not registered");
+	m_SystemResetCallback = NULL;
+
+Error:
+	return r;
+}
+
+cbUpdateConsoleInput m_UpdateConsoleInputCallback = NULL;
+RESULT RegisterUpdateConsoleInputCallback(cbUpdateConsoleInput UpdateConsoleInputCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_UpdateConsoleInputCallback == NULL), "RegisterUpdateConsoleInputCallback: Console update input Callback already registered");
+	m_UpdateConsoleInputCallback = UpdateConsoleInputCB;
+
+Error:
+	return r;
+}
+
+RESULT UnegisterUpdateConsoleInputCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_UpdateConsoleInputCallback != NULL), "UnregisterUpdateConsoleInputCallback: Console Update Input Callback not registered");
+	m_UpdateConsoleInputCallback = NULL;
+
+Error:
+	return r;
+}
+
+cbUpdateConsoleOutput m_UpdateConsoleOutputCallback = NULL;
+RESULT RegisterUpdateConsoleOutputCallback(cbUpdateConsoleOutput UpdateConsoleOutputCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_UpdateConsoleOutputCallback == NULL), "RegisterUpdateConsoleOutputCallback: Console update Output Callback already registered");
+	m_UpdateConsoleOutputCallback = UpdateConsoleOutputCB;
+
+Error:
+	return r;
+}
+
+RESULT UnegisterUpdateConsoleOutputCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_UpdateConsoleOutputCallback != NULL), "UnregisterUpdateConsoleOutputCallback: Console Update Output Callback not registered");
+	m_UpdateConsoleOutputCallback = NULL;
+
+Error:
+	return r;
+}
+
+cbSystemPrintBuffer m_SystemPrintBufferCallback = NULL;
+RESULT RegisterSystemPrintBufferCallback(cbSystemPrintBuffer SystemPrintBufferCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_SystemPrintBufferCallback == NULL), "RegisterSystemPrintBufferCallback: Console system print buffer callback already registered");
+	m_SystemPrintBufferCallback = SystemPrintBufferCB;
+
+Error:
+	return r;
+}
+
+RESULT UnegisterSystemPrintBufferCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_SystemPrintBufferCallback != NULL), "UnregisterSystemPrintBufferCallback: Console system print buffer callback not registered");
+	m_SystemPrintBufferCallback = NULL;
+
+Error:
+	return r;
+}
 
 CONSOLE_STATE g_ConsoleState = CONSOLE_STATE_NORMAL;
 
 // Reserved Functions
 // *************************************
 RESULT Exit(Console *pc) {
-    exit(0);
-    return R_OK;
+
+	exit(0);
+
+	return R_OK;
+}
+
+RESULT Reset(Console *pc) {
+	RESULT r = R_OK;
+
+	if(m_SystemResetCallback != NULL) {
+		CRM_NA(m_SystemResetCallback(), "reset: Failed to call system reset callback");
+	}
+	else {
+		CR(PrintToOutput(pc, "No system reset registered"));
+	}
+
+Error:
+	return R_OK;
 }
 
 RESULT History(Console *pc) {
 	RESULT r = R_OK;
+
 	CR(DumpOutputHistory(pc));
+
 Error:
 	return R_OK;
 }
@@ -592,6 +716,24 @@ Error:
 
 RESULT CheckForOutput(Console *pc) {
     return (GetBufferLength(pc->m_pOutputBuffer) > 0) ? R_YES : R_NO;
+}
+
+
+// This function will call the provided print callback
+// and eliminates the need to copy memory
+RESULT DispatchOutputBlocking(Console *pc) {
+	RESULT r = R_OK;
+
+	CBRM_NA((m_SystemPrintBufferCallback != NULL), "System Print Buffer callback is not registered");
+
+	// This must finish off the data since it gets reset shortly after
+	m_SystemPrintBufferCallback(pc->m_pOutputBuffer->m_pBuffer, pc->m_pOutputBuffer->m_pBuffer_n);
+
+Error:
+	// Reset the output buffer
+	ResetBuffer(pc->m_pOutputBuffer);
+
+	return r;
 }
 
 RESULT DispatchOutput(Console *pc, char **ppn_output, int *pn_output_n) {

@@ -116,27 +116,29 @@ RESULT InitAmon(int ticksPerSecond) {
 		g_fLinkActivitySinceInterval[i] = FALSE;
 	}
 
+#ifdef CONSOLE
 	// Console Functions
-	AddConsoleFunctionByArgs(g_pConsole, SendByteModeCommand, "AMONSendByte", 3, 0);
-	AddConsoleFunctionByArgs(g_pConsole, SetAMONMasterConsole, "SetAMONMaster", 2, 0);
-	AddConsoleFunctionByArgs(g_pConsole, PrintAMONMasterMap, "PrintAMONMasterMap", 1, 0);
-	AddConsoleFunctionByArgs(g_pConsole, SendByteModeCommandDestLink, "AMONSendByteDestLink", 4, 0);
+	AddConsoleFunctionByArgs(GetConsole(), SendByteModeCommand, "AMONSendByte", 3, 0);
+	AddConsoleFunctionByArgs(GetConsole(), SetAMONMasterConsole, "SetAMONMaster", 2, 0);
+	AddConsoleFunctionByArgs(GetConsole(), PrintAMONMasterMap, "PrintAMONMasterMap", 1, 0);
+	AddConsoleFunctionByArgs(GetConsole(), SendByteModeCommandDestLink, "AMONSendByteDestLink", 4, 0);
 
 	// TODO: Add variable params / min params
-	AddConsoleFunctionByArgs(g_pConsole, SendAMONMessage, "AMONMessage", 3, 0);
-	AddConsoleFunctionByArgs(g_pConsole, SendAMONNULLPing, "AMONSendNULLPing", 2, 0);
+	AddConsoleFunctionByArgs(GetConsole(), SendAMONMessage, "AMONMessage", 3, 0);
+	AddConsoleFunctionByArgs(GetConsole(), SendAMONNULLPing, "AMONSendNULLPing", 2, 0);
 
-	AddConsoleFunctionByArgs(g_pConsole, StartAMON, "StartAMON", 1, 0);
-	AddConsoleFunctionByArgs(g_pConsole, PrintAMONInfo, "PrintAMONInfo", 1, 0);
+	AddConsoleFunctionByArgs(GetConsole(), StartAMON, "StartAMON", 1, 0);
+	AddConsoleFunctionByArgs(GetConsole(), PrintAMONInfo, "PrintAMONInfo", 1, 0);
 
-	AddConsoleFunctionByArgs(g_pConsole, ConsoleCheckLinkStatus, "AMONCheckLinkStatus", 2, 0);
-	AddConsoleFunctionByArgs(g_pConsole, ConsoleSetAMONInterval, "AMONSetInterval", 2, 0);
+	AddConsoleFunctionByArgs(GetConsole(), ConsoleCheckLinkStatus, "AMONCheckLinkStatus", 2, 0);
+	AddConsoleFunctionByArgs(GetConsole(), ConsoleSetAMONInterval, "AMONSetInterval", 2, 0);
 
-	AddConsoleFunctionByArgs(g_pConsole, ResetAMONLink, "AMONResetLink", 2, 0);
+	AddConsoleFunctionByArgs(GetConsole(), ResetAMONLink, "AMONResetLink", 2, 0);
 
-	AddConsoleFunctionByArgs(g_pConsole, TestAMONMap, "TestAMONMap", 1, 0);
+	AddConsoleFunctionByArgs(GetConsole(), TestAMONMap, "TestAMONMap", 1, 0);
 
-	AddConsoleFunctionByArgs(g_pConsole, TestAMONNumLinks, "TestAMONNumLinks", 2, 0);
+	AddConsoleFunctionByArgs(GetConsole(), TestAMONNumLinks, "TestAMONNumLinks", 2, 0);
+#endif
 
 //	SetLEDWithClearTimeout(1, 20, 20, 100, 50);
 Error:

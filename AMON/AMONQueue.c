@@ -3,7 +3,6 @@
 
 list *g_pAMONQueue[NUM_LINKS];
 list *g_pAMONPendingQueue[NUM_LINKS];
-
 list *g_pAMONIncomingQueue[NUM_LINKS];
 
 unsigned char g_AMONQueueSending[NUM_LINKS];
@@ -16,7 +15,7 @@ RESULT InitializeAMONQueue() {
 	int i = 0;
 
 	for(i = 0; i < NUM_LINKS; i++) {
-		CBRM((g_pAMONQueue[i] == NULL), "InitializeAMONQueue: Failed to initialize AMON Queue %d since already initialized", i);
+		//CBRM((g_pAMONQueue[i] == NULL), "InitializeAMONQueue: Failed to initialize AMON Queue %d since already initialized", i);
 
 		g_pAMONQueue[i] = NULL;
 

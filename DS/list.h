@@ -4,8 +4,6 @@
 #include "..\Common\RESULT.h"
 #include "..\OS\console.h"
 
-extern Console *g_pConsole;
-
 typedef struct LIST_NODE{
 	int m_id;
 	void *m_pItem;

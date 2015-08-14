@@ -300,11 +300,11 @@ Error:
 RESULT TestAMONMap(Console *pc) {
 	RESULT r = R_OK;
 
-	AddConsoleFunctionByArgs(g_pConsole, TestCreateAMONMap, "CreateAMONMap", 2, 0);
-	AddConsoleFunctionByArgs(g_pConsole, TestAddAMONNode, "AddAMONNode", 3, 0);
-	AddConsoleFunctionByArgs(g_pConsole, TestRemoveAMONNode, "RemoveAMONNode", 2, 0);
-	AddConsoleFunctionByArgs(g_pConsole, TestPrintAMONMap, "PrintAMONMap", 1, 0);
-	AddConsoleFunctionByArgs(g_pConsole, TestNumberOfLinks, "AMONMapNumberOfLinks", 3, 0);
+	AddConsoleFunctionByArgs(GetConsole(), TestCreateAMONMap, "CreateAMONMap", 2, 0);
+	AddConsoleFunctionByArgs(GetConsole(), TestAddAMONNode, "AddAMONNode", 3, 0);
+	AddConsoleFunctionByArgs(GetConsole(), TestRemoveAMONNode, "RemoveAMONNode", 2, 0);
+	AddConsoleFunctionByArgs(GetConsole(), TestPrintAMONMap, "PrintAMONMap", 1, 0);
+	AddConsoleFunctionByArgs(GetConsole(), TestNumberOfLinks, "AMONMapNumberOfLinks", 3, 0);
 
 Error:
 	return r;

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 #include "../DS/SmartBuffer.h"
 #include "../DS/CircleBuffer.h"
@@ -66,7 +67,30 @@ typedef struct CONSOLE {
 	long int m_nFunctionID;
 } Console;
 
-extern Console *g_pConsole;
+Console *GetConsole();
+
+typedef RESULT (*cbSystemReset)();
+extern cbSystemReset m_SystemResetCallback;
+RESULT RegisterSystemResetCallback(cbSystemReset SystemResetCB);
+RESULT UnegisterSystemResetCallback();
+
+typedef RESULT (*cbUpdateConsoleInput)();
+typedef RESULT (*cbUpdateConsoleOutput)();
+
+RESULT InitializeConsole(cbUpdateConsoleInput UpdateConsoleInputCB, cbUpdateConsoleOutput UpdateConsoleOutputCB);
+
+extern cbUpdateConsoleInput m_UpdateConsoleInputCallback;
+RESULT RegisterUpdateConsoleInputCallback(cbUpdateConsoleInput UpdateConsoleInputCB);
+RESULT UnegisterUpdateConsoleInputCallback();
+
+extern cbUpdateConsoleOutput m_UpdateConsoleOutputCallback;
+RESULT RegisterUpdateConsoleOutputCallback(cbUpdateConsoleOutput UpdateConsoleOutputCB);
+RESULT UnegisterUpdateConsoleOutputCallback();
+
+typedef RESULT (*cbSystemPrintBuffer)(uint8_t *, uint32_t);
+extern cbSystemPrintBuffer m_SystemPrintBufferCallback;
+RESULT RegisterSystemPrintBufferCallback(cbSystemPrintBuffer SystemPrintBufferCB);
+RESULT UnegisterSystemPrintBufferCallback();
 
 Console* CreateConsole();
 RESULT DeleteConsole(Console *pc);
@@ -76,6 +100,7 @@ RESULT ReceiveInputChar(Console *pc, char c);
 
 RESULT CheckForOutput(Console *pc);
 RESULT DispatchOutput(Console *pc, char **ppn_output, int *pn_output_n);
+RESULT DispatchOutputBlocking(Console *pc);
 RESULT DumpOutputHistory(Console *pc);
 
 // Console maintains the output buffer
@@ -106,6 +131,7 @@ RESULT Path(Console *pc, char** ppn_pszPath);
 // Reserved Functions
 // All functions must take one input which is a reference to the Console itself
 RESULT Exit(Console* pc);
+RESULT Reset(Console *pc);
 RESULT History(Console* pc);
 RESULT Print(Console* pc, char *pszString);
 RESULT List(Console *pc);
@@ -114,6 +140,7 @@ RESULT Hi(Console* pc);
 
 typedef enum ConsoleReservedCommands {
     CONSOLE_EXIT,
+    CONSOLE_RESET,
 	CONSOLE_HISTORY,
     CONSOLE_PRINT,
 	CONSOLE_LIST,
@@ -131,6 +158,15 @@ static ConsoleFunction ReservedFunctions[] = {
 		0,
         1,
         NULL
+    },
+    {
+		CONSOLE_RESET,
+		Reset,
+		"reset",
+		NULL,
+		0,
+		1,
+		NULL
     },
 	{
 		CONSOLE_HISTORY,

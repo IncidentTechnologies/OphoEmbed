@@ -28,21 +28,23 @@
 #endif
 
 //#define CONSOLE
-#define DEBUG
+#ifndef CONSOLE
+	#define DEBUG
+#endif
 
 // Debug Console
-#ifdef DEBUG
+#if defined(DEBUG)
 	#define DEBUG_MSG(x, ...) UART0printf(x, __VA_ARGS__);
 	#define DEBUG_MSG_NA(x) UART0printf(x);
 	#define DEBUG_CURRENT_LINE() UART0printf(CurrentFileLine)
 	#define DEBUG_LINEOUT(x, ...) UART0printf(x, __VA_ARGS__); UART0printf("\r\n");
 	#define DEBUG_LINEOUT_NA(x) UART0printf(x); UART0printf("\r\n");
 #elif defined(CONSOLE)
-	#define DEBUG_MSG(x, ...) PrintToOutput(g_pConsole, x, __VA_ARGS__);
-	#define DEBUG_MSG_NA(x) PrintToOutput(g_pConsole, x);
-	#define DEBUG_CURRENT_LINE() PrintToOutput(g_pConsole,CurrentFileLine)
-	#define DEBUG_LINEOUT(x, ...) PrintToOutput(g_pConsole, x, __VA_ARGS__);
-	#define DEBUG_LINEOUT_NA(x) PrintToOutput(g_pConsole, x);
+	#define DEBUG_MSG(x, ...) PrintToOutput(GetConsole(), x, __VA_ARGS__);
+	#define DEBUG_MSG_NA(x) PrintToOutput(GetConsole(), x);
+	#define DEBUG_CURRENT_LINE() PrintToOutput(GetConsole(), CurrentFileLine)
+	#define DEBUG_LINEOUT(x, ...) PrintToOutput(GetConsole(), x, __VA_ARGS__);
+	#define DEBUG_LINEOUT_NA(x) PrintToOutput(GetConsole(), x);
 #else
 	#define DEBUG_MSG(x, ...)
 	#define DEBUG_MSG_NA(x)
@@ -53,7 +55,7 @@
 
 // Check RESULT value
 // Ensures that RESULT is successful
-#define CR(res) r = r; if(res < 0){ DEBUG_CURRENT_LINE(); DEBUG_MSG("Error: 0x%x\r\n", r); goto Error;}
+#define CR(res) do { r = r; if(res < 0){ DEBUG_CURRENT_LINE(); DEBUG_MSG("Error: 0x%x\r\n", r); goto Error;} } while(0)
 
 // Check RESULT value
 // Ensures that RESULT is successful
