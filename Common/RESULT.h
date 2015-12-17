@@ -10,6 +10,9 @@
  *  the line
 // ****************************************************************************/
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #ifndef NULL
 	#define NULL 0
 #endif

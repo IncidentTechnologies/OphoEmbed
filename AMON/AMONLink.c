@@ -163,15 +163,15 @@ AMON_LINK GetMasterLink() {
 
 const char* GetLinkStateString(AMON_LINK_STATE state) {
 	switch(state) {
-		case AMON_LINK_UNINITIALIZED: return "uninitialized"; break;
-		case AMON_LINK_ID_REQUESTED: return "id requested"; break;
-		case AMON_LINK_ID_SENT: return "id sent"; break;
-		case AMON_LINK_ESTABLISHING_LINK: return "establishing"; break;
-		case AMON_LINK_ESTABLISHED: return "established"; break;
-		case AMON_LINK_MAYBE_DISCONNECTED: return "maybe disconnected"; break;
+		case AMON_LINK_UNINITIALIZED: return "uninitialized";
+		case AMON_LINK_ID_REQUESTED: return "id requested";
+		case AMON_LINK_ID_SENT: return "id sent";
+		case AMON_LINK_ESTABLISHING_LINK: return "establishing";
+		case AMON_LINK_ESTABLISHED: return "established";
+		case AMON_LINK_MAYBE_DISCONNECTED: return "maybe disconnected";
 
 		default:
-		case AMON_LINK_STATE_INVALID: return "invalid"; break;
+		case AMON_LINK_STATE_INVALID: return "invalid";
 	}
 
 	return "invalid";
