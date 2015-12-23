@@ -4,6 +4,8 @@
 #include "../../Common/EHM.h"
 #include "../../Device/Device.h"
 
+#include "driverlib/rom.h"
+
 // Sets the frequency of the SysTick Interrupt
 #define SYSTICKS_PER_SECOND 100
 #define SYS_TIME_INTERVAL 10		// stay alive

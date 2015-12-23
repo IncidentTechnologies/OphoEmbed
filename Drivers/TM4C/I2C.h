@@ -8,6 +8,7 @@
 #include "inc/hw_types.h"
 #include "driverlib/pin_map.h"
 #include "driverlib/gpio.h"
+#include "driverlib/rom.h"
 #include "driverlib/sysctl.h"
 #include "inc/hw_memmap.h"
 #include "driverlib/i2c.h"	// I2C include

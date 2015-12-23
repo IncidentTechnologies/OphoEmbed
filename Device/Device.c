@@ -10,6 +10,9 @@ RESULT InitDevice(DEVICE device) {
 
 	memset(&(g_device.m_services), 0, sizeof(g_device.m_services));
 
+	// Turn off velocity sensing
+	g_device.m_fVelocityEnabled = 0;
+
 Error:
 	return r;
 }
@@ -55,8 +58,35 @@ uint8_t GetDeviceBatteryPercentage() {
 
 uint8_t GetDeviceSerialNumber(uint8_t byteNum) {
 	if(g_device.cbSerialNumber != NULL)
-			return g_device.cbSerialNumber((int)byteNum);
-		else
-			return 0;
+		return g_device.cbSerialNumber((int)byteNum);
+	else
+		return 0;
 }
+
+void *GetDeviceUserspaceAddress() {
+	if(g_device.cbGetUserspaceAddress != NULL)
+		return g_device.cbGetUserspaceAddress();
+	else
+		return NULL;
+}
+
+uint8_t *GetDeviceUserspaceSerialAddress() {
+	if(g_device.cbGetUserspaceSerialAddress != NULL)
+		return g_device.cbGetUserspaceSerialAddress();
+	else
+		return NULL;
+}
+
+uint8_t GetDeviceUserspaceAddressLength() {
+	if(g_device.cbGetUserspaceSerialLength != NULL)
+		return g_device.cbGetUserspaceSerialLength();
+	else
+		return NULL;
+}
+
+// USB Layer Access
+uint8_t GetDeviceUSBStatus() {
+	return 	g_USBStatus;
+}
+
 

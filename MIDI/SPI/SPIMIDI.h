@@ -5,7 +5,7 @@
 #include "../../Common/EHM.h"
 #include <stdbool.h>
 
-#include "../GtarMIDIMessages.h"
+#include "../MIDIMessages.h"
 
 #define MIDI_SPI_BASE SYSCTL_PERIPH_SSI1
 

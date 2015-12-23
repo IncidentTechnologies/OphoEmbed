@@ -10,7 +10,6 @@ int g_MasterCount = 0;
 
 AMONMap *g_AMONmap = NULL;
 
-
 cbAMONDeviceRegistered g_AMONDeviceRegisteredCallback = NULL;
 RESULT RegisterAMONDeviceRegisteredCallback(cbAMONDeviceRegistered AMONDeviceRegisteredCB) {
 	RESULT r = R_OK;
