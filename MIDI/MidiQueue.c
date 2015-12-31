@@ -1,6 +1,6 @@
 #include "MidiQueue.h"
 
-//#include "string_defines.h"	// TODO: Do we like this?
+#include "../Common/STRINGS.h"	// TODO: Do we like this?
 #include "MIDIController.h"
 
 // Pending MIDI events

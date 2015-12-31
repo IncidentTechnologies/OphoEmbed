@@ -5,11 +5,21 @@
 #include "../../Device/Device.h"
 //#define USB_VERBOSE
 
+#include "driverlib/gpio.h"
+#include "inc/hw_memmap.h"
+
 // USB includes
 #include "usblib/usb-ids.h"
 #include "driverlib/usb.h"
 #include "usblib/usblib.h"
 #include "usblib/device/usbdevice.h"
+
+#include "usblib/usbaudio.h"
+#include "usblib/device/usbdaudio.h"
+#include "usblib/usblibpriv.h"
+
+// uDMA used in USB
+#include "driverlib/udma.h"
 
 #define USB_VID_INCIDENTTECH 				0xDEAD
 #define USB_PID_GTAR						0xBEEF
@@ -252,7 +262,7 @@ void GPIOPortKIntHandler(void); //simplify interrupt calls and place all jack re
 RESULT AudioStatusCallback(void *pContext);
 RESULT USBStatusCallback(void *pContext);
 
-// CALLBACKS
+// USB CALLBACKS
 tStdRequest GetDescriptorCB(void *pvInstance, tUSBRequest *pUSBRequest);
 tStdRequest RequestHandlerCB(void *pvInstance, tUSBRequest *pUSBRequest);
 tInterfaceCallback InterfaceChangeCB(void *pvInstance, uint8_t ucInterfaceNum, uint8_t ucAlternateSetting);
@@ -274,21 +284,34 @@ RESULT ClearPiezoCmd();
 RESULT WrapMIDIBuffer(uint8_t **pBuffer, uint8_t *pBuffer_np);
 RESULT UnwrapMIDIBuffer(uint8_t *pBuffer, uint8_t *pBuffer_n);
 
+// Opho Device Callbacks
+typedef RESULT (*cbOnBusSuspend)(void);
+extern cbOnBusSuspend g_OnBusSuspendCallback;
+RESULT RegisterOnBusSuspendCallback(cbOnBusSuspend OnBusSuspendCB);
+RESULT UnregisterOnBusSuspendCallback();
+
+typedef RESULT (*cbOnUSBStatus)(void);
+extern cbOnUSBStatus g_OnUSBStatusCallback;
+RESULT RegisterOnUSBStatusCallback(cbOnUSBStatus OnUSBStatusCB);
+RESULT UnregisterOnUSBStatusCallback();
+
 // Utility to send Zero Length Packet
 RESULT SendZLP(uint32_t ui32Base, uint32_t ui32Endpoint);
 
 RESULT SendUSBBuffer(uint32_t ui32Base, uint32_t ui32Endpoint, uint8_t *pBuffer, uint32_t pBuffer_n);
 RESULT SendUSBBufferNoError(uint32_t ui32Base, uint32_t ui32Endpoint, uint8_t *pBuffer, uint32_t pBuffer_n);
 
-// MIDI functions
+// Device MIDI Functions
 RESULT SendUSBMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, uint8_t fOnOff);
-RESULT SendUSBMidiFret(uint8_t fret, uint8_t channel, uint8_t fFretDown);
-//RESULT SendUSBMidiCC(uint8_t index, uint8_t value);
+RESULT SendUSBMidiCC(uint8_t index, uint8_t value);
 RESULT SendUSBFirmwareVersion();
 RESULT SendUSBFirmwareDownloadAck(uint8_t status);
-RESULT SendUSBPiezoFirmwareDownloadAck(uint8_t status);
 RESULT SendUSBBatteryStatusAck();
 RESULT SendUSBBatteryChargePercentageAck();
+
+// Gtar MIDI Functions
+RESULT SendUSBMidiFret(uint8_t fret, uint8_t channel, uint8_t fFretDown);
+RESULT SendUSBPiezoFirmwareDownloadAck(uint8_t status);
 
 RESULT SendUSBRequestSerialNumberAck(uint8_t byteNumber);
 
@@ -301,7 +324,6 @@ RESULT SendUSBCommitUserspaceAck(uint8_t status);
 RESULT SendUSBResetUserspaceAck(uint8_t status);
 
 RESULT SendUSBPiezoCmdAck(uint8_t status);
-
 RESULT DeployFirmwarePage();
 
 // Handle Midi Packets (endpoint 2)

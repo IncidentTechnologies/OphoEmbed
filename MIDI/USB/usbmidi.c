@@ -1,11 +1,20 @@
 #include "usbmidi.h"
-#include "iPhoneAuth.h"
+#include "../../Common/STRINGS.h"
+//#include "gtar.h"
+#include "../../Device/Device.h"
+
+/*
 #include "FretLed.h"
 #include "piezo_fw_update.h"
-#include "gtar.h"
-#include "string_defines.h"
+*/
 
-#include "opho/MIDI/GtarMIDIMessages.h"
+
+//#include "opho/MIDI/GtarMIDIMessages.h"
+#include "../MIDIMessages.h"
+
+#ifdef IPHONE_IAP
+	#include "iPhoneAuth.h"
+#endif
 
 uint8_t g_fUSBConnected = 0;
 uint8_t g_fFirst = 0;
@@ -552,8 +561,9 @@ tUSBIntHandler BusSuspendCB(void *pvInstance) {
 	g_fiPhoneAuthenticated = 0;
 #endif
 
-	//SetDockLedState(DOCK_LED_O, LED_STATE_OFF);
-	SetDockLedState(DOCK_LED_R, LED_STATE_BLINK);
+	// Call the Device Callback
+	if(g_OnBusSuspendCallback != NULL)
+		g_OnBusSuspendCallback();
 	
 	return NULL;
 }
@@ -688,6 +698,52 @@ tUSBDeviceHandler DeviceHandlerCB(void *pvInstance, uint32_t  ulRequest, void *p
 	return NULL;
 }
 
+// Opho Device Callbacks
+// ************************************************************************************************************************
+cbOnBusSuspend g_OnBusSuspendCallback = NULL;
+RESULT RegisterOnBusSuspendCallback(cbOnBusSuspend OnBusSuspendCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_OnBusSuspendCallback == NULL), "RegisterOnBusSuspendCallback: On Bus Suspend Callback already registered");
+	g_OnBusSuspendCallback = OnBusSuspendCB;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterOnBusSuspendCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_OnBusSuspendCallback != NULL), "UnregisterOnBusSuspendCallback: On Bus Suspend Callback not registered");
+	g_OnBusSuspendCallback = NULL;
+
+Error:
+	return r;
+}
+
+cbOnUSBStatus g_OnUSBStatusCallback = NULL;
+RESULT RegisterOnUSBStatusCallback(cbOnUSBStatus OnUSBStatusCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_OnUSBStatusCallback == NULL), "RegisterOnUSBStatusCallback: On USB Status Callback already registered");
+	g_OnUSBStatusCallback = OnUSBStatusCB;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterOnUSBStatusCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_OnUSBStatusCallback != NULL), "UnregisterOnUSBStatusCallback: On USB Status Callback not registered");
+	g_OnUSBStatusCallback = NULL;
+
+Error:
+	return r;
+}
+
+// ************************************************************************************************************************
+
 RESULT SendZLP(uint32_t ui32Base, uint32_t ui32Endpoint) {
 	RESULT r = R_OK;
 
@@ -778,7 +834,13 @@ RESULT SendUSBFirmwareVersion() {
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
 	SendBuffer[2] = GTAR_SEND_MSG_FIRMWARE_VERSION;
-	SendBuffer[3] = ((FW_MAJOR_VERSION & 0xF) << 4) + ((FW_MINOR_VERSION) & 0xF);
+	//SendBuffer[3] = ((FW_MAJOR_VERSION & 0xF) << 4) + ((FW_MINOR_VERSION) & 0xF);
+
+	// TODO: This is silly
+	DEVICE_FIRMWARE_VERSION devFWVersion = GetDeviceFirmwareVersion();
+	uint8_t uiDevFWVersion = 0;
+	memcpy(&uiDevFWVersion, &devFWVersion, sizeof(uint8_t));
+	SendBuffer[3] = (uint8_t)(uiDevFWVersion);
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
 }
@@ -822,7 +884,8 @@ RESULT SendUSBBatteryStatusAck() {
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
 	SendBuffer[2] = GTAR_ACK_BATTERY_STATUS;
-	SendBuffer[3] = ((uint8_t)g_gtar.m_fCharging & 0x7F);
+	//SendBuffer[3] = ((uint8_t)g_gtar.m_fCharging & 0x7F);
+	SendBuffer[3] = ((uint8_t)IsDeviceCharging() & 0x7F);
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
 }
@@ -839,7 +902,8 @@ RESULT SendUSBBatteryChargePercentageAck() {
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
 	SendBuffer[2] = GTAR_ACK_BATTERY_PERCENTAGE;
-	SendBuffer[3] = g_Percentage & 0x7F;
+	//SendBuffer[3] = g_Percentage & 0x7F;
+	SendBuffer[3] = GetDeviceBatteryPercentage() & 0x7F;
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
 }
@@ -2283,7 +2347,7 @@ void ReadAudioStatus() {
 }
 
 //#define IAP_ONLY
-
+// TODO: This should go out of the USB driver
 RESULT AudioStatusCallback(void *pContext) {
 	ReadAudioStatus();
 
@@ -2303,8 +2367,9 @@ RESULT USBStatusCallback(void *pContext) {
 
 	ReadUSBStatus();
 
-	// Just to indicate something happened
-	SetDockLedState(DOCK_LED_O, LED_STATE_OFF);
+
+	if(g_OnUSBStatusCallback != NULL)
+		g_OnUSBStatusCallback();
 
 #ifdef IPHONE_IAP
 	if(g_LastUSBStatus != g_USBStatus) {
