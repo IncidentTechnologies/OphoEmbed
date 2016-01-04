@@ -2,6 +2,43 @@
 
 DEVICE g_device;
 
+// Flash location
+#define MAX_FIRMWARE_UPGRADE_SIZE SIZE_OF_UPDATE_SPACE_KB
+uint32_t  g_FirmwareDownloadAddress = FIRMWARE_DOWNLOAD_ADDRESS;
+uint32_t  g_DownloadedFirmwareBytes = 0;
+uint32_t  g_DownloadedFirmwarePages = 0;
+uint32_t  g_DownloadedFirmwareIsPiezo = 0;
+uint32_t  g_DownloadedPiezoFirmware_size = 0;
+
+RESULT PrintFirmwareDownloadedBytes() {
+	void *fwPtr = (void*)(g_FirmwareDownloadAddress);
+	DEBUG_LINEOUT("PrintFirmwareDownloadedBytes: %d bytes downloaded at address 0x%x", g_DownloadedFirmwareBytes, g_FirmwareDownloadAddress);
+	UARTprintfBinaryData(fwPtr, g_DownloadedFirmwareBytes, 20);
+
+	return R_OK;
+}
+
+RESULT EraseFirmwareUpdateEraseFlashArea() {
+	RESULT r = R_OK;
+	uint32_t  ulRes;
+	 int32_t  i = 0;
+
+	//DEBUG_LINEOUT_NA("EraseFirmwareUpdateEraseFlashArea: Starting erase");
+
+	for(i = 0; i < MAX_FIRMWARE_UPGRADE_SIZE; i++) {
+		uint32_t  tempAddr = (uint32_t )(g_FirmwareDownloadAddress + (0x400 * i));
+		ulRes = FlashErase(tempAddr);
+		CBRM((ulRes == 0), "EraseFirmwareUpdateFlashArea: Erase of flash address 0x%x failed", tempAddr);
+	}
+
+	DEBUG_LINEOUT_NA("EraseFirmwareUpdateEraseFlashArea: Finished erase with no error");
+
+Error:
+	return r;
+}
+
+#define FW_COPY_FUNC_ADDR 0x1B800
+
 RESULT InitDevice(DEVICE device) {
 	RESULT r = R_OK;
 

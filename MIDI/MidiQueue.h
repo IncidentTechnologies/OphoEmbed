@@ -13,6 +13,7 @@
 // MIDI message queue
 // This is used for messages inside of the interrupt handler
 // this is later picked up by the SysTick
+// TODO: Get rid of GTAR here
 typedef enum gTarMidiEventType {
 	GTAR_SEND_MIDI_NOTE,
 	GTAR_SEND_MIDI_FRET,

@@ -821,6 +821,25 @@ RESULT SendUSBMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel
     return SendUSBBufferNoError(USB0_BASE, MIDI_OUT_EP, &g_TempSendBuffer, 4);
 }
 
+RESULT SendUSBMidiCC(uint8_t index, uint8_t value) {
+	RESULT r = R_OK;
+	 int32_t  lStat = 0;
+	uint8_t SendBuffer[4];
+
+	if(!g_device.m_fUSB0)
+		return R_NO_EFFECT;
+
+	//DEBUG_LINEOUT("+SendUSBMidiCC index:%d value:%d", index, value);
+
+	// Control message (cable 0)
+	SendBuffer[0] = 0x0B;
+	SendBuffer[1] = MIDI_CONTROL_CHANGE;
+    SendBuffer[2] = index;
+    SendBuffer[3] = value;
+
+    return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
+}
+
 // SendFirmwareVersion
 // This will send the major and minor firmware version to the host
 RESULT SendUSBFirmwareVersion() {
@@ -833,7 +852,7 @@ RESULT SendUSBFirmwareVersion() {
 #endif
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-	SendBuffer[2] = GTAR_SEND_MSG_FIRMWARE_VERSION;
+	SendBuffer[2] = DEVICE_SEND_MSG_FIRMWARE_VERSION;
 	//SendBuffer[3] = ((FW_MAJOR_VERSION & 0xF) << 4) + ((FW_MINOR_VERSION) & 0xF);
 
 	// TODO: This is silly
@@ -854,22 +873,7 @@ RESULT SendUSBFirmwareDownloadAck(uint8_t status) {
 
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-	SendBuffer[2] = GTAR_ACK_DOWNLOAD_FW;
-	SendBuffer[3] = status;
-
-	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
-}
-
-// SendFirmwareDownloadAck
-// This will send the major and minor firmware version to the host
-RESULT SendUSBPiezoFirmwareDownloadAck(uint8_t status) {
-	RESULT r = R_OK;
-	int32_t  lStat = 0;
-	uint8_t SendBuffer[4];
-
-	SendBuffer[0] = 0x0B;
-	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-	SendBuffer[2] = GTAR_ACK_DOWNLOAD_PIEZO_FW;
+	SendBuffer[2] = DEVICE_ACK_DOWNLOAD_FW;
 	SendBuffer[3] = status;
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
@@ -883,7 +887,7 @@ RESULT SendUSBBatteryStatusAck() {
 
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-	SendBuffer[2] = GTAR_ACK_BATTERY_STATUS;
+	SendBuffer[2] = DEVICE_ACK_BATTERY_STATUS;
 	//SendBuffer[3] = ((uint8_t)g_gtar.m_fCharging & 0x7F);
 	SendBuffer[3] = ((uint8_t)IsDeviceCharging() & 0x7F);
 
@@ -901,64 +905,9 @@ RESULT SendUSBBatteryChargePercentageAck() {
 
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-	SendBuffer[2] = GTAR_ACK_BATTERY_PERCENTAGE;
+	SendBuffer[2] = DEVICE_ACK_BATTERY_PERCENTAGE;
 	//SendBuffer[3] = g_Percentage & 0x7F;
 	SendBuffer[3] = GetDeviceBatteryPercentage() & 0x7F;
-
-	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
-}
-
-RESULT SendUSBGetPiezoCrossTalkMatrixAck(uint8_t row, uint8_t col) {
-	uint8_t SendBuffer[4];
-
-	// ensure in matrix
-	if(row >= 6 || col >= 6)
-		return R_OUT_OF_BOUNDS;
-
-	// pass byte number through channel data
-	SendBuffer[0] = 0x0B;
-	SendBuffer[1] = MIDI_CONTROL_CHANGE + (row & 0x0F);
-	SendBuffer[2] = GTAR_ACK_GET_PIEZO_CT_MATRIX;
-	SendBuffer[3] = (uint8_t)(g_UserSpace.CrossTalkMatrix[row][col]);
-
-	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
-}
-
-RESULT SendUSBGetPiezoSensitivityAck(uint8_t string) {
-	uint8_t SendBuffer[4];
-
-	// ensure in bounds
-	if(string >= 6)
-		return R_OUT_OF_BOUNDS;
-
-	// pass byte number through channel data
-	SendBuffer[0] = 0x0B;
-	SendBuffer[1] = MIDI_CONTROL_CHANGE + (string & 0x0F);
-	SendBuffer[2] = GTAR_ACK_GET_PIEZO_SENSITIVITY;
-	SendBuffer[3] = (uint8_t)(g_UserSpace.Sensitivity[string]);
-
-	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
-}
-
-RESULT SendUSBCalibratePiezoStringAck(uint8_t string) {
-	uint8_t SendBuffer[4];
-
-	// pass byte number through channel data
-	SendBuffer[0] = 0x0B;
-	SendBuffer[1] = MIDI_CONTROL_CHANGE + (string & 0x0F);
-	SendBuffer[2] = GTAR_ACK_CALIBRATE_PIEZO_STRING;
-	SendBuffer[3] = 0xAA;	// not using for now
-
-	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
-}
-
-RESULT SendUSBPiezoCmdAck(uint8_t status) {
-	uint8_t SendBuffer[4];
-
-	SendBuffer[0] = 0x0B;
-	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-	SendBuffer[2] = GTAR_ACK_PIEZO_CMD;
-	SendBuffer[3] = status;
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
 }
@@ -968,7 +917,7 @@ RESULT SendUSBCommitUserspaceAck(uint8_t status) {
 
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-	SendBuffer[2] = GTAR_ACK_COMMIT_USERSPACE;
+	SendBuffer[2] = DEVICE_ACK_COMMIT_USERSPACE;
 	SendBuffer[3] = (uint8_t)(status);
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
@@ -979,41 +928,11 @@ RESULT SendUSBResetUserspaceAck(uint8_t status) {
 
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-	SendBuffer[2] = GTAR_ACK_RESET_USERSPACE;
+	SendBuffer[2] = DEVICE_ACK_RESET_USERSPACE;
 	SendBuffer[3] = (uint8_t)(status);
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
 }
-
-RESULT SendUSBGetPiezoWindowAck(uint8_t index) {
-	uint8_t SendBuffer[4];
-	uint8_t data;
-
-	// ensure in bounds
-	if(index >= 2)
-		return R_OUT_OF_BOUNDS;
-
-	// pass byte number through channel data
-	SendBuffer[0] = 0x0B;
-	SendBuffer[1] = MIDI_CONTROL_CHANGE + (index & 0x0F);
-	SendBuffer[2] = GTAR_ACK_GET_PIEZO_WINDOW;
-
-	switch(index) {
-		case 0: data = (uint8_t)(g_UserSpace.Window); break;
-		case 1: data = (uint8_t)(g_UserSpace.WindowIncrement); break;
-		case 2: data = (uint8_t)(g_UserSpace.DownCount); break;
-		case 3: data = (uint8_t)(g_UserSpace.UpCount); break;
-		case 4: data = (uint8_t)(g_UserSpace.UpSlope); break;
-		case 5: data = (uint8_t)(g_UserSpace.DownSlope * -1); break;		// treated as a negative number
-		case 6: data = (uint8_t)(g_UserSpace.MaxValue); break;
-		default: data = (uint8_t)(0xFF);
-	}
-
-	SendBuffer[3] = (uint8_t)(data);
-
-	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
-}
-
 
 RESULT SendUSBRequestSerialNumberAck(uint8_t byteNumber) {
 	uint8_t SendBuffer[4];
@@ -1025,70 +944,21 @@ RESULT SendUSBRequestSerialNumberAck(uint8_t byteNumber) {
 	// pass byte number through channel data
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE + (byteNumber & 0x0F);
-	SendBuffer[2] = GTAR_ACK_REQUEST_SERIAL_NUMBER;
+	SendBuffer[2] = DEVICE_ACK_REQUEST_SERIAL_NUMBER;
 
 	/*
 	SendBuffer[3] = (0x7F & (uint8_t)(g_SerialNumber[byteNumber]));
 	DEBUG_LINEOUT("Serial: Sending byte %d val:0x%x", byteNumber, (0x7F & (uint8_t)(g_SerialNumber[byteNumber])));
 	*/
 
-	SendBuffer[3] = (uint8_t)(g_UserSpace.serial[byteNumber]);
+	//SendBuffer[3] = (uint8_t)(g_UserSpace.serial[byteNumber]);
+	SendBuffer[3] = (uint8_t)(GetDeviceSerialNumber(byteNumber));
+
 #ifdef USB_VERBOSE
 	DEBUG_LINEOUT("Serial: Sending byte %d val:0x%x", byteNumber, (uint8_t)(g_UserSpace.serial[byteNumber]));
 #endif
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
-}
-
-// SendUSBMidiFret
-// This will send either a "down" or "up" message
-// on a given channel
-// if fFretDown != 0 then it's a fret down message, otherwise fret up
-RESULT SendUSBMidiFret(uint8_t fret, uint8_t channel, uint8_t fFretDown) {
-	RESULT r = R_OK;
-	 int32_t  lStat = 0;
-	uint8_t SendBuffer[4];
-
-#ifdef USB_VERBOSE
-	DEBUG_LINEOUT("+ SendUSBMidiFret fret:%d ch:%d fDown:%d", fret, channel, fFretDown);
-#endif
-	// Do some error checks
-	CBRM((channel >= 1 && channel <= 16), "SendUSBMidiFret: Channel %d must be [1,16]", channel);
-	
-	// Control message (cable 0)
-	SendBuffer[0] = 0x0B;
-	SendBuffer[1] = MIDI_CONTROL_CHANGE + channel;
-	
-    if(fFretDown)
-    	SendBuffer[2] = GTAR_SEND_MSG_FRET_DOWN;
-    else
-    	SendBuffer[2] = GTAR_SEND_MSG_FRET_UP;
-    
-    SendBuffer[3] = fret;
-
-    CR(SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4));
-
-Error:
-	return r;
-}
-
-RESULT SendUSBMidiCC(uint8_t index, uint8_t value) {
-	RESULT r = R_OK;
-	 int32_t  lStat = 0;
-	uint8_t SendBuffer[4];
-
-	if(!g_device.m_fUSB0)
-		return R_NO_EFFECT;
-
-	//DEBUG_LINEOUT("+SendUSBMidiCC index:%d value:%d", index, value);
-
-	// Control message (cable 0)
-	SendBuffer[0] = 0x0B;
-	SendBuffer[1] = MIDI_CONTROL_CHANGE;
-    SendBuffer[2] = index;
-    SendBuffer[3] = value;
-
-    return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
 }
 
 // Storage for state machine
@@ -1275,7 +1145,7 @@ RESULT DeployFirmwarePage() {
 
 	SysCtlDelay(ROM_SysCtlClockGet() / 100);
 
-	 int32_t  tempBufferCount = g_pBuffer_nc + (g_pBuffer_nc % 4);
+	int32_t  tempBufferCount = g_pBuffer_nc + (g_pBuffer_nc % 4);
 	DEBUG_LINEOUT("DeployFirmware: writing %d bytes, actually %d bytes (divide by 4 diff: %d)", g_pBuffer_nc, tempBufferCount, (g_pBuffer_nc % 4));
 
 	// Might copy over up to 3 bytes of garbage but should only happen on last transfer
@@ -1313,8 +1183,6 @@ Error:
 		g_pBuffer_c = 0;
 		g_checkSum = 0;
 	}
-
-
 
 	GTAR_MIDI_EVENT gme;
 
@@ -1374,6 +1242,8 @@ Error:
 	return r;
 }
 
+/*
+// TODO: Actually remove this code
 RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 	RESULT r = R_OK;
 	 int32_t  i = 0;
@@ -1385,7 +1255,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 	/*
 	DEBUG_LINEOUT("*** rx pkt: %d bytes ***", pBuffer_n);
 	UARTprintfBinaryData(pBuffer, pBuffer_n, 20);
-	//*/
+	//
 	
 	uint8_t pBuffer_c = 0;
 	
@@ -1836,7 +1706,8 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 
 			// SET NOTE ACTIVE
 			case UMPMS_SET_NA_0: {
-				if(/*CodeIndexNumber != 0x06 || */pBuffer[pBuffer_c + 2] != 0xF7) {
+				//if(CodeIndexNumber != 0x06 || pBuffer[pBuffer_c + 2] != 0xF7) {
+				if(pBuffer[pBuffer_c + 2] != 0xF7) {
 					DEBUG_LINEOUT_NA("err: HandleMidiPacket: SET_NA_0 expected 0x06 packet with third byte of 0xF7");
 				}
 				else {
@@ -1848,7 +1719,8 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 
 			// SET FRET FOLLOW
 			case UMPMS_SET_FW_0: {
-				if(/*CodeIndexNumber != 0x06 || */pBuffer[pBuffer_c + 2] != 0xF7) {
+				//if(CodeIndexNumber != 0x06 || pBuffer[pBuffer_c + 2] != 0xF7) {
+				if(pBuffer[pBuffer_c + 2] != 0xF7) {
 					DEBUG_LINEOUT_NA("err: HandleMidiPacket: SET_FW_0 expected third byte of 0xF7");
 				}
 				else {
@@ -2332,6 +2204,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 Error:
 	return r;	
 }
+*/
 
 uint8_t g_USBStatus = 0;
 uint8_t g_LastUSBStatus = 0;

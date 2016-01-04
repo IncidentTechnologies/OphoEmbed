@@ -83,6 +83,15 @@ typedef struct {
 
 extern DEVICE g_device;
 
+// Firmware Update
+extern uint32_t  g_FirmwareDownloadAddress;
+extern uint32_t  g_DownloadedFirmwareBytes;
+extern uint32_t  g_DownloadedFirmwarePages;
+extern uint32_t  g_DownloadedFirmwareIsPiezo;
+extern uint32_t  g_DownloadedPiezoFirmware_size;
+RESULT EraseFirmwareUpdateEraseFlashArea();
+RESULT PrintFirmwareDownloadedBytes();
+
 RESULT InitDevice(DEVICE device);
 bool IsDeviceInitialized();
 

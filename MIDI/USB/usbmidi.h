@@ -3,6 +3,7 @@
 
 #include "../../Common/EHM.h"
 #include "../../Device/Device.h"
+#include "../MIDIQueue.h"
 //#define USB_VERBOSE
 
 #include "driverlib/gpio.h"
@@ -308,25 +309,15 @@ RESULT SendUSBFirmwareVersion();
 RESULT SendUSBFirmwareDownloadAck(uint8_t status);
 RESULT SendUSBBatteryStatusAck();
 RESULT SendUSBBatteryChargePercentageAck();
-
-// Gtar MIDI Functions
-RESULT SendUSBMidiFret(uint8_t fret, uint8_t channel, uint8_t fFretDown);
-RESULT SendUSBPiezoFirmwareDownloadAck(uint8_t status);
-
-RESULT SendUSBRequestSerialNumberAck(uint8_t byteNumber);
-
 RESULT SendUSBAck(uint8_t SendBuffer[4]);
-RESULT SendUSBGetPiezoCrossTalkMatrixAck(uint8_t row, uint8_t col);
-RESULT SendUSBGetPiezoSensitivityAck(uint8_t string);
-RESULT SendUSBGetPiezoWindowAck(uint8_t index);
-RESULT SendUSBCalibratePiezoStringAck(uint8_t string);
 RESULT SendUSBCommitUserspaceAck(uint8_t status);
 RESULT SendUSBResetUserspaceAck(uint8_t status);
+RESULT SendUSBRequestSerialNumberAck(uint8_t byteNumber);
 
-RESULT SendUSBPiezoCmdAck(uint8_t status);
 RESULT DeployFirmwarePage();
 
 // Handle Midi Packets (endpoint 2)
+//RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n);
 RESULT HandleUSBMIDIPacket(uint8_t *pBuffer, uint16_t pBuffer_n);
 
 #endif /*USBDEFS_H_*/
