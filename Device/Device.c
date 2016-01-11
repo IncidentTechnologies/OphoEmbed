@@ -1,4 +1,5 @@
 #include "Device.h"
+#include "../MIDI/USB/usbmidi.h"
 
 DEVICE g_device;
 
@@ -65,6 +66,13 @@ uint8_t GetDeviceID() {
 		return 0;
 }
 
+uint16_t GetDeviceIDEx() {
+	if(g_device.cbDeviceIDEx != NULL)
+			return g_device.cbDeviceIDEx();
+		else
+			return 0;
+}
+
 DEVICE_FIRMWARE_VERSION GetDeviceFirmwareVersion() {
 	DEVICE_FIRMWARE_VERSION version;
 
@@ -91,34 +99,6 @@ uint8_t GetDeviceBatteryPercentage() {
 		return g_device.cbBatteryPercentage();
 	else
 		return 0;
-}
-
-uint8_t GetDeviceSerialNumber(uint8_t byteNum) {
-	if(g_device.cbSerialNumber != NULL)
-		return g_device.cbSerialNumber((int)byteNum);
-	else
-		return 0;
-}
-
-void *GetDeviceUserspaceAddress() {
-	if(g_device.cbGetUserspaceAddress != NULL)
-		return g_device.cbGetUserspaceAddress();
-	else
-		return NULL;
-}
-
-uint8_t *GetDeviceUserspaceSerialAddress() {
-	if(g_device.cbGetUserspaceSerialAddress != NULL)
-		return g_device.cbGetUserspaceSerialAddress();
-	else
-		return NULL;
-}
-
-uint8_t GetDeviceUserspaceAddressLength() {
-	if(g_device.cbGetUserspaceSerialLength != NULL)
-		return g_device.cbGetUserspaceSerialLength();
-	else
-		return NULL;
 }
 
 // USB Layer Access

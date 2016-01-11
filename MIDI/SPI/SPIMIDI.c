@@ -264,18 +264,18 @@ RESULT SendSPIFirmwareVersion() {
 #endif
 
 	//return SendSPIMidiCC(GTAR_SEND_MSG_FIRMWARE_VERSION, ((FW_MAJOR_VERSION & 0xF) << 4) + ((FW_MINOR_VERSION) & 0xF), 0);
-	return SendSPIMidiCC(GTAR_SEND_MSG_FIRMWARE_VERSION, ((fwVersion.major & 0xF) << 4) + ((fwVersion.minor) & 0xF), 0);
+	return SendSPIMidiCC(DEVICE_SEND_MSG_FIRMWARE_VERSION, ((fwVersion.major & 0xF) << 4) + ((fwVersion.minor) & 0xF), 0);
 }
 
 // SendFirmwareDownloadAck
 // This will send the major and minor firmware version to the host
 RESULT SendSPIFirmwareDownloadAck(uint8_t status) {
-	return SendSPIMidiCC(GTAR_ACK_DOWNLOAD_FW, status, 0);
+	return SendSPIMidiCC(DEVICE_ACK_DOWNLOAD_FW, status, 0);
 }
 
 // Send Battery Status Ack
 RESULT SendSPIBatteryStatusAck() {
-	return SendSPIMidiCC(GTAR_ACK_BATTERY_STATUS, ((uint8_t)IsDeviceCharging() & 0x7F), 0);
+	return SendSPIMidiCC(DEVICE_ACK_BATTERY_STATUS, ((uint8_t)IsDeviceCharging() & 0x7F), 0);
 }
 
 RESULT SendSPIAck(uint8_t SendBuffer[4]) {
@@ -298,15 +298,15 @@ RESULT SendSPIAck(uint8_t SendBuffer[4]) {
 // Send Battery Status Ack
 RESULT SendSPIBatteryChargePercentageAck() {
 	uint8_t percentage = GetDeviceBatteryPercentage();
-	return SendSPIMidiCC(GTAR_ACK_BATTERY_PERCENTAGE, percentage & 0x7F, 0);
+	return SendSPIMidiCC(DEVICE_ACK_BATTERY_PERCENTAGE, percentage & 0x7F, 0);
 }
 
 RESULT SendSPICommitUserspaceAck(uint8_t status) {
-	return SendSPIMidiCC(GTAR_ACK_COMMIT_USERSPACE, (uint8_t)(status), 0);
+	return SendSPIMidiCC(DEVICE_ACK_COMMIT_USERSPACE, (uint8_t)(status), 0);
 }
 
 RESULT SendSPIResetUserspaceAck(uint8_t status) {
-	return SendSPIMidiCC(GTAR_ACK_RESET_USERSPACE, (uint8_t)(status), 0);
+	return SendSPIMidiCC(DEVICE_ACK_RESET_USERSPACE, (uint8_t)(status), 0);
 }
 
 RESULT SendSPIRequestSerialNumberAck(uint8_t byteNumber) {
@@ -319,6 +319,6 @@ RESULT SendSPIRequestSerialNumberAck(uint8_t byteNumber) {
 #endif
 
 	uint8_t serialByte = GetDeviceSerialNumber(byteNumber);
-	return SendSPIMidiCC(GTAR_ACK_REQUEST_SERIAL_NUMBER, serialByte, 0);
+	return SendSPIMidiCC(DEVICE_ACK_REQUEST_SERIAL_NUMBER, serialByte, 0);
 }
 

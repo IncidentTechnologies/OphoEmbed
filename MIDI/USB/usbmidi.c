@@ -2,6 +2,7 @@
 #include "../../Common/STRINGS.h"
 //#include "gtar.h"
 #include "../../Device/Device.h"
+#include "../../Device/UserspaceController.h"
 
 /*
 #include "FretLed.h"
@@ -2208,29 +2209,9 @@ Error:
 
 uint8_t g_USBStatus = 0;
 uint8_t g_LastUSBStatus = 0;
-uint8_t g_AudioStatus = 0;
-uint8_t g_LastAudioStatus = 0;
 
 void ReadUSBStatus() {
 	g_USBStatus = GPIOPinRead(USB_STATUS_PORT, USB_STATUS_PIN) == USB_STATUS_PIN;
-}
-
-void ReadAudioStatus() {
-	g_AudioStatus = GPIOPinRead(AUDIO_STATUS_PORT, AUDIO_STATUS_PIN) == AUDIO_STATUS_PIN;
-}
-
-//#define IAP_ONLY
-// TODO: This should go out of the USB driver
-RESULT AudioStatusCallback(void *pContext) {
-	ReadAudioStatus();
-
-	// Just to indicate something happened
-	SetDockLedState(DOCK_LED_O, LED_STATE_OFF);
-
-	DEBUG_LINEOUT("porth: ajack:0x%x", g_AudioStatus);
-	GPIOIntClear(AUDIO_STATUS_PORT, AUDIO_STATUS_PIN);
-
-	return R_OK;
 }
 
 RESULT USBStatusCallback(void *pContext) {
@@ -2288,20 +2269,10 @@ RESULT InitUSBMIDI() {
 	GPIOPinTypeGPIOInput(USB_STATUS_PORT, USB_STATUS_PIN);
 	ROM_GPIOPadConfigSet(USB_STATUS_PORT, USB_STATUS_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD);
 
-	// Set up audio detect peripheral
-	CBRM_NA(ROM_SysCtlPeripheralPresent(AUDIO_STATUS_PERIPH), "InitUSBMIDI: AUDIO_STATUS_PERIPH is not present");
-	ROM_SysCtlPeripheralEnable(AUDIO_STATUS_PERIPH);
-	// audio status
-	GPIOPinTypeGPIOInput(AUDIO_STATUS_PORT, AUDIO_STATUS_PIN);
-	ROM_GPIOPadConfigSet(AUDIO_STATUS_PORT, AUDIO_STATUS_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
-
 #ifdef IPHONE_IAP
 	CRM(RegisterInterrupt(USB_STATUS_PORT, GPIOPinToInt(USB_STATUS_PIN), GPIO_BOTH_EDGES, USBStatusCallback, NULL),
 			"Failed to set interrupt cb for port %x on pin %d", USB_STATUS_PORT, GPIOPinToInt(USB_STATUS_PIN));
 #endif
-
-	CRM(RegisterInterrupt(AUDIO_STATUS_PORT, GPIOPinToInt(AUDIO_STATUS_PIN), GPIO_BOTH_EDGES, AudioStatusCallback, NULL),
-			"Failed to set interrupt cb for port %x on pin %d", AUDIO_STATUS_PORT, GPIOPinToInt(AUDIO_STATUS_PIN));
 
 	// For some reason this doesn't seem to work on LM3S3748
 	CBRM_NA_WARN(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_USB0), "InitUSBMIDI: USB0 is not present");
@@ -2323,9 +2294,6 @@ RESULT InitUSBMIDI() {
 
 	// Figure out which mode to use on start up
 	int32_t  mode = USB_MIDI;
-
-	ReadAudioStatus();
-	g_LastAudioStatus = g_AudioStatus;
 
 #ifdef IPHONE_IAP
 	ReadUSBStatus();

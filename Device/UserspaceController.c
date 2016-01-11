@@ -1,8 +1,16 @@
 #include "UserspaceController.h"
 
 // User Space flash location
-USER_SPACE g_UserSpace;
-uint32_t  g_UserSpaceAddr = USER_SPACE_ADDRESS;	// this is set to the 122KB point in flash
+// TODO: This should be a memory location, not a struct
+// then access interface defined by a struct as provided by the application
+// Device side Userspace can use the USER_SPACE template struct but the memory location
+// should be a void* or something like that
+
+void *g_pUserSpaceAddr = NULL;
+USER_SPACE *g_pUserSpace = NULL;
+int g_UserSpace_n = 0;		// User defined userspace size
+
+uint32_t  g_UserSpaceAddr = USER_SPACE_ADDRESS;			// This is set to the 122KB point in flash
 volatile uint8_t spacer;
 
 //volatile void (*g_vdFnPtr)() = CommitFirmware;
@@ -28,14 +36,103 @@ Error:
 	return r;
 }
 
+// This will return R_OK if this is a debug unit or R_NO if not
+// this is done by checking to see if the serial number is deadbeef
+RESULT DebugUnit() {
+	 int32_t  i = 0;
+	 //int32_t  count = sizeof(g_UserSpace.serial) / sizeof(g_UserSpace.serial[0]);
+
+	 //for(i = 0; i < count; i++)
+	 for(i = 0; i < SERIAL_NUMBER_BYTES; i++)
+		if(g_pUserSpace->serial[i] != 0)
+			return R_FAIL;
+
+	return R_OK;
+}
+
+RESULT IsSerialNumberZero() {
+	 int32_t  i = 0;
+
+	for(i = 0; i < 16; i++)
+		if(g_pUserSpace->serial[i] != 0)
+			return R_FALSE;
+
+	return R_OK;
+}
+
+RESULT SetSerialNumber(int32_t  val) {
+	 int32_t  i = 0;
+	 //int32_t  count = sizeof(val);
+
+	memset(g_pUserSpace->serial, 0, sizeof(g_pUserSpace->serial));
+
+	//for(i = 0; i < count; i++)
+	for(i = 0; i < SERIAL_NUMBER_BYTES; i++)
+		g_pUserSpace->serial[15 - i] = (val >> (i * 8)) & 0xFF;
+
+	// Commit serial number to flash
+	OutputSerialToDebug();
+	return CommitUserSpace();
+}
+
+//inline RESULT OutputSerialToDebug()
+RESULT OutputSerialToDebug() {
+	int32_t  i = 0;
+	//int32_t  count = sizeof(g_pUserSpace->serial) / sizeof(g_pUserSpace->serial[0]);
+
+	DEBUG_MSG_NA("Serial Number: 0x");
+	//for(i = 0; i < count; i++)
+
+	for(i = 0; i < SERIAL_NUMBER_BYTES; i++)
+		DEBUG_MSG("%x", g_pUserSpace->serialserial[i]);
+
+	DEBUG_MSG_NA("\n\r");
+
+	return R_OK;
+}
+
+void *GetUserspaceSerialAddress() {
+	return g_pUserSpace->serialserial;
+}
+
+uint8_t GetDeviceSerialNumber(uint8_t byteNum) {
+	return (uint8_t)(g_pUserSpace->serialserial[byteNum]);
+}
+
+void *GetDeviceUserspaceAddress() {
+	return (void*)(g_pUserSpace);
+}
+
+uint8_t *GetDeviceUserspaceSerialAddress() {
+	return (g_pUserSpace->serial);
+}
+
+uint8_t GetDeviceUserspaceAddressLength() {
+	//return sizeof(g_UserSpace.serial);			// This will not likely work
+	return SERIAL_NUMBER_BYTES;
+}
+
+RESULT ClearUserSpaceMemory() {
+	RESULT r = R_OK;
+
+	CNM(g_pUserSpaceAddr, "ClearUserSpaceMemory: No userspace address set")
+	CBM(g_UserSpace_n, "ClearUserSpaceMemory: User space size cannot be zero");
+
+	memset(g_pUserSpaceAddr, 0, g_UserSpace_n);
+
+Error:
+	return r;
+}
+
 RESULT EraseUserSpace() {
 	RESULT r = R_OK;
 
 	// Clear the UserSpace
-	DEBUG_LINEOUT_NA("+EraseUserSpace");
+	DEBUG_LINEOUT("+EraseUserSpace 0x%x", USER_SPACE_ADDRESS);
 
 	uint32_t  ulRes = ROM_FlashErase(USER_SPACE_ADDRESS);	// first kb
 	CBRM((ulRes == 0), "EraseUserSpace: Failed to erase address 0x%x", USER_SPACE_ADDRESS);
+
 	SysCtlDelay(ROM_SysCtlClockGet() / 100);
 
 	DEBUG_LINEOUT_NA("-EraseUserSpace");
@@ -47,15 +144,16 @@ Error:
 RESULT EraseUserSpacePreserveSerialNumber() {
 	RESULT r = R_OK;
 	uint8_t tempSerial[16];
-	 int32_t  i = 0;
+	int32_t  i = 0;
+
 	void *ulPtr = (void*)(g_UserSpaceAddr);
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
 
 	DEBUG_LINEOUT_NA("+EraseUserPsacePreserveSerialNumber");
 
 	// Save the serial
-	memcpy(&g_UserSpace, pUserSpace, sizeof(USER_SPACE));	// copy in user space
-	memcpy(tempSerial, g_UserSpace.serial, sizeof(tempSerial));
+	memcpy(g_pUserSpace, pUserSpace, sizeof(USER_SPACE));	// Copy in user space from Flash
+	memcpy(tempSerial, g_pUserSpace->serial, sizeof(tempSerial));
 
 	// Clear UserSpace
 	uint32_t  ulRes = ROM_FlashErase(USER_SPACE_ADDRESS);	// first kb
@@ -63,16 +161,87 @@ RESULT EraseUserSpacePreserveSerialNumber() {
 	SysCtlDelay(ROM_SysCtlClockGet() / 100);
 
 	// Read back in userspace into mem
-	memcpy(&g_UserSpace, pUserSpace, sizeof(USER_SPACE));
+	memcpy(g_pUserSpace, pUserSpace, sizeof(USER_SPACE));
 
 	// Copy serial number back in
-	memcpy(g_UserSpace.serial, tempSerial, sizeof(tempSerial));
+	memcpy(g_pUserSpace->serial, tempSerial, sizeof(tempSerial));
 
 	// Commit back to userspace flash
 	CRM_NA(CommitUserSpace(),"EraseUserSpacePreserveSerialNumber: Failed to Commit UserSpace");
 
 Error:
 	DEBUG_LINEOUT_NA("-EraseUserPsacePreserveSerialNumber");
+	return r;
+}
+
+RESULT PrintUserspace() {
+	UARTprintfBinaryData(ulPtr, sizeof(g_UserSpace_n), 20);
+	return R_OK;
+}
+
+RESULT AllocateUserSpace() {
+	RESULT r = R_OK;
+
+	CBRM((g_UserSpace_n != 0), "AllocateUserSpace: Userspace size cannot be zero");
+	CBRM((g_pUserSpaceAddr == NULL), "AllocateUserSpace: Userspace already allocated, dellaoc first");
+
+	g_pUserSpaceAddr = (void*)malloc(g_UserSpace_n);
+	CNM(g_pUserSpaceAddr, "AllocateUserSpace: Failed to allocate %d bytes for userspace", g_UserSpace_n);
+
+	g_pUserSpace = (USER_SPACE*)(g_pUserSpaceAddr);
+
+	return r;
+Error:
+	if(g_pUserSpaceAddr != NULL) {
+		free(g_pUserSpaceAddr);
+		g_pUserSpaceAddr = NULL;
+	}
+
+	g_pUserSpace = NULL;
+
+	return r;
+}
+
+RESULT DeallocateUserSpace() {
+	RESULT r = R_OK;
+
+	CBRM((g_pUserSpaceAddr != NULL), "DeallocateUserSpace: Userspace not allocated");
+
+	free(g_pUserSpaceAddr);
+	g_pUserSpaceAddr = NULL;
+
+	g_pUserSpace = NULL;
+
+Error:
+	return r;
+}
+
+RESULT LoadUserSpaceToMemory() {
+	RESULT r = R_OK;
+
+	void *ulPtr = (void*)(g_UserSpaceAddr);
+	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
+
+	CBRM((g_pUserSpaceAddr != NULL), "LoadUserSpaceToMemory: Userspace not allocated");
+	CNM(pUserSpace, "LoadUserSpaceToMemory: UserSpace Flash pointer is null")
+
+	memcpy(g_pUserSpaceAddr, pUserSpace, g_UserSpace_n);
+
+Error:
+	return r;
+}
+
+RESULT FlashProgramUserspace() {
+	RESULT r = R_OK;
+
+	CBRM((g_UserSpace_n != 0), "User defined user space size cannot be zero");
+
+	uint32_t  ulRes = ROM_FlashProgram((uint32_t  *)(g_pUserSpace), (void*)g_UserSpaceAddr, sizeof(g_UserSpace_n));
+	CBRM_NA_WARN((ulRes == 0), "SetUSFwUpdateStatus: failed to program new user space into flash");
+
+	ROM_SysCtlDelay(ROM_SysCtlClockGet() / 100);
+
+Error:
 	return r;
 }
 
@@ -83,21 +252,17 @@ RESULT SetUSFwUpdateStatus(FW_UPDATE_STATUS newStatus) {
 	EraseUserSpace();
 
 	DEBUG_LINEOUT("SetUSFwUpdateStatus: setting to new fw update status: 0x%x", (uint8_t)newStatus);
-	g_UserSpace.fw_update_status = (uint8_t)newStatus;
-	g_UserSpace.fw_downloaded_pages = g_DownloadedFirmwarePages;
+	g_pUserSpace->fw_update_status = (uint8_t)newStatus;
+	g_pUserSpace->fw_downloaded_pages = g_DownloadedFirmwarePages;
 
-	uint32_t  ulRes = FlashProgram((uint32_t  *)(&g_UserSpace), (void*)g_UserSpaceAddr, sizeof(USER_SPACE));
-	CBRM_NA_WARN((ulRes == 0), "SetUSFwUpdateStatus: failed to program new user space into flash");
+	CRM(FlashProgramUserspace(), "SetUSFwUpdateState: Failed to flash userspace");
 
-	SysCtlDelay(ROM_SysCtlClockGet() / 100);
-
-	// print buffer
-	UARTprintfBinaryData(ulPtr, sizeof(g_UserSpace), 20);
+	// Print buffer
+	CRM(PrintUserspace(), "Failed to print userspace");
 
 Error:
 	return r;
 }
-
 
 RESULT CommitUserSpace() {
 	uint32_t  ulRes = 0;
@@ -107,71 +272,70 @@ RESULT CommitUserSpace() {
 
 	SysCtlDelay(ROM_SysCtlClockGet() / 100);
 
-	DEBUG_LINEOUT("Commiting Userspace: sizeof(USER_SPACE):%d", sizeof(USER_SPACE));
+	DEBUG_LINEOUT("Commiting Userspace: sizeof(USER_SPACE):%d", sizeof(g_UserSpace_n));
 
-	ulRes = ROM_FlashProgram((uint32_t  *)(&g_UserSpace), (void*)g_UserSpaceAddr, sizeof(USER_SPACE));
-	CBRM_NA_WARN((ulRes == 0), "InitUserSpace: failed to program new user space into flash");
+	CRM(FlashProgramUserspace(), "CommitUserSpace: Failed to flash userspace");
 
-	SysCtlDelay(ROM_SysCtlClockGet() / 100);
-
-	// print buffer
-	UARTprintfBinaryData(ulPtr, sizeof(g_UserSpace), 20);
+	// Print buffer
+	CRM(PrintUserspace(), "Failed to print userspace");
 
 	return R_OK;
 }
 
-RESULT InitUserSpace()
-{
-	 int32_t  i = 0;
+RESULT InitUserSpace(int UserSpaceSize, cbInitUserSpace fnInitUserSpace) {
+	int32_t  i = 0;
 	RESULT r = R_OK;
 	uint8_t tempSerial[16];
 
-	DEBUG_LINEOUT_NA("+InitUserSpace()");
-	//DEBUG_LINEOUT("sizeof(USER_SPACE):%d", sizeof(USER_SPACE));
-
-	SysCtlDelay(ROM_SysCtlClockGet() / 10);
+	DEBUG_LINEOUT("+InitUserSpace(%d)", UserSpaceSize);
 
 	void *ulPtr = (void*)(g_UserSpaceAddr);
-
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
-	if(pUserSpace->GtarDeviceID == GTAR_DEVICE_ID && pUserSpace->GtarDeviceIDEx == GTAR_DEVICE_ID_EX)
-	{
-		switch(pUserSpace->fw_update_status)
-		{
-			case FW_UPDATE_PENDING:
-			{
+
+	CBRM((UserSpaceSize != 0), "InitUserSpace: UserSpaceSize cannot be zero");
+	g_UserSpace_n = UserSpaceSize;
+
+	// Allocate and load userspace
+	CRM(AllocateUserSpace(), "InitUserSpace: Failed to allocate UserSpace");
+	CRM(LoadUserSpaceToMemory(), "InitUserSpace: Failed to load user space to local memory");
+
+	if(pUserSpace->DeviceID == GetDeviceID() && pUserSpace->DeviceIDEx == GetDeviceIDEx()) {
+		switch(pUserSpace->fw_update_status) {
+			case FW_UPDATE_PENDING: {
 				// First erase the userspace so we don't have to do it in the loader
 				//EraseUserSpace();
 				EraseUserSpacePreserveSerialNumber();
-				DEBUG_LINEOUT("InitUserSpace: Pending FW Update: 0x%x", (uint32_t )(g_vdFnPtr));
+				//DEBUG_LINEOUT("InitUserSpace: Pending FW Update: 0x%x", (uint32_t )(g_vdFnPtr));
+
+				DEBUG_LINEOUT("InitUserSpace: Pending FW Update: 0x%x", (uint32_t )(g_HandleCommitFirmwareCallback));
 				SysCtlDelay(ROM_SysCtlClockGet() / 10);
-				g_vdFnPtr();
+
+				//g_vdFnPtr();
+
+				if(g_HandleCommitFirmwareCallback != NULL)
+					g_HandleCommitFirmwareCallback();
+
 			} break;
 		}
 
 		// Found the user space
 		DEBUG_LINEOUT("InitUserSpace: Found valid user space, GtarDeviceID:0x%x GtarDeviceIDEx:0x%x fw_stat:0x%x",
 				pUserSpace->GtarDeviceID, pUserSpace->GtarDeviceIDEx, pUserSpace->fw_update_status);
-		memcpy(&g_UserSpace, pUserSpace, sizeof(USER_SPACE));
 
 		SysCtlDelay(ROM_SysCtlClockGet() / 100);
 	}
-	else
-	{
+	else {
 		// No user space clear the space
-		//EraseUserSpace();
 		EraseUserSpacePreserveSerialNumber();
 
 		// Save before wiping user space
-		memcpy(tempSerial, g_UserSpace.serial, sizeof(tempSerial));
+		memcpy(tempSerial, g_pUserSpace->serial, sizeof(tempSerial));
 
 		// 0xFF all not allowed
 		i = 0;
-		while(tempSerial[i] == 0xFF)
-		{
+		while(tempSerial[i] == 0xFF) {
 			i++;
-			if(i == 16)
-			{
+			if(i == 16) {
 				DEBUG_LINEOUT_NA("Overwriting 0xFF all serial with 0");
 				memset(tempSerial, 0, sizeof(tempSerial));
 				break;
@@ -179,53 +343,31 @@ RESULT InitUserSpace()
 		}
 
 		// Set up a clean user space object
-		memset(&g_UserSpace, 0, sizeof(USER_SPACE));
+		CRM(ClearUserSpaceMemory(), "Failed to clear userspace memory");
 
 		// Copy serial number back in
-		memcpy(g_UserSpace.serial, tempSerial, sizeof(tempSerial));
+		memcpy(g_pUserSpace->serial, tempSerial, sizeof(tempSerial));
 
-		g_UserSpace.GtarDeviceID = (uint8_t)GTAR_DEVICE_ID;
-		g_UserSpace.GtarDeviceIDEx = (uint16_t)GTAR_DEVICE_ID_EX;
-		g_UserSpace.fw_major_version = (uint8_t)FW_MAJOR_VERSION;
-		g_UserSpace.fw_minor_version = (uint8_t)FW_MINOR_VERSION;
-		g_UserSpace.fw_minor_minor_version = (uint8_t)FW_MINOR_MINOR_VERSION;
+		DEVICE_FIRMWARE_VERSION fwv = GetDeviceFirmwareVersion();
 
-		// Assign Default values
-		uint8_t DefaultCrossTalkMatrix[6][6] = {
-			{ 0,  55,  40,  70,  70,  70},
-			{55,   0,  55,  70,  70,  70},
-			{35,  55,   0,  70,  70,  70},
-			{35,  35,  55,   0,  60,  60},
-			{30,  30,  30,  55,   0,  65},
-			{30,  30,  30,  55,  65,   0}
-		};
+		g_pUserSpace->GtarDeviceID = (uint8_t)GetDeviceID();
+		g_pUserSpace->GtarDeviceIDEx = (uint16_t)GetDeviceIDEx();
+		g_pUserSpace->fw_major_version = (uint8_t)fwv.major;
+		g_pUserSpace->fw_minor_version = (uint8_t)fwv.minor;
+		//g_pUserSpace->fw_minor_minor_version = (uint8_t)FW_MINOR_MINOR_VERSION;
+		// TODO: Remove this entirely
+		g_pUserSpace->fw_minor_minor_version = (uint8_t)0;
 
-		memcpy(g_UserSpace.CrossTalkMatrix, DefaultCrossTalkMatrix, sizeof(DefaultCrossTalkMatrix));
-
-		uint8_t DefaultSensitivity[6] = {11,
-											   11,
-											   11,
-											   11,
-											   11,
-											   11
-											  };
-
-		memcpy(g_UserSpace.Sensitivity, DefaultSensitivity, sizeof(DefaultSensitivity));
-
-		g_UserSpace.Window = 40;
-		g_UserSpace.WindowIncrement = 5;
-
-		g_UserSpace.DownCount = 10;
-		g_UserSpace.UpCount = 2;
-		g_UserSpace.UpSlope = 3;
-		g_UserSpace.DownSlope = -1;
-		g_UserSpace.MaxValue = 135;	// 2.7V
+		// Let the client have a chance to initialize it's own values
+		if(fnInitUserSpace != NULL)
+			CRM(fnInitUserSpace(g_pUserSpace), "InitUserSpace: User provided Userspace init function failed");
 
 		CommitUserSpace();
 	}
 
-	// print the buffer quick
-	UARTprintfBinaryData(ulPtr, sizeof(g_UserSpace), 20);
+	// Print the Userspace
+	CRM(PrintUserspace(), "Failed to print userspace");
+	SysCtlDelay(ROM_SysCtlClockGet() / 10);
 
 	DEBUG_LINEOUT_NA("-InitUserSpace()");
 

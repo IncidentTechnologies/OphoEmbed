@@ -8,6 +8,7 @@
 
 #include "driverlib/gpio.h"
 #include "inc/hw_memmap.h"
+#include "driverlib/sysctl.h"
 
 // USB includes
 #include "usblib/usb-ids.h"
@@ -216,11 +217,9 @@ extern const uint8_t gc_piAPInterfaceString[];
 extern const uint8_t * const gc_ppStringDescriptors[]; 
 extern uint8_t g_fUSBConnected;
 
-// Audio / USB status
+// USB status
 extern uint8_t g_USBStatus;
-extern uint8_t g_AudioStatus;
 extern uint8_t g_LastUSBStatus;
-extern uint8_t g_LastAudioStatus;
 
 typedef enum {
 	USB_MIDI_SYS_EX				= 0x4,
@@ -247,20 +246,13 @@ RESULT InitUSBMIDI();
 #define USB_STATUS_PORT		GPIO_PORTK_BASE
 #define USB_STATUS_PIN		GPIO_PIN_2
 
-#define AUDIO_STATUS_PERIPH SYSCTL_PERIPH_GPIOH
-#define AUDIO_STATUS_PORT	GPIO_PORTH_BASE
-#define AUDIO_STATUS_PIN	GPIO_PIN_4
-
 void ReadUSBStatus();
-void ReadAudioStatus();
 
 /*
 void GPIOPortHIntHandler(void); //TODO: convert to contextual JACK_PLATE handlers
 void GPIOPortKIntHandler(void); //simplify interrupt calls and place all jack related
 								//interrupts into single handler
 */
-
-RESULT AudioStatusCallback(void *pContext);
 RESULT USBStatusCallback(void *pContext);
 
 // USB CALLBACKS

@@ -7,6 +7,7 @@
 // and allows for custom services as needed
 
 #include "../Common/EHM.h"
+#include "memorymap.h"
 
 typedef bool (*fnbool)();
 typedef uint8_t (*fnuint8)();
@@ -63,14 +64,19 @@ typedef struct {
 
 	unsigned m_fVelocityEnabled :1;
 
-	fnuint32 cbDeviceID;
+	fnuint8 cbDeviceID;
+	fnuint16 cbDeviceIDEx;
+
 	fnuint8 cbFirmwareVersion;
 	fnbool cbIsCharging;
 	fnuint8 cbBatteryPercentage;
+
+	/*
 	fnuint8_v cbSerialNumber;
 	fnpvoid cbGetUserspaceAddress;
 	fnpuint8 cbGetUserspaceSerialAddress;
 	fnuint8 cbGetUserspaceSerialLength;
+	*/
 
 	// TODO: Put all of the standard services into generic services arch?
 	DEVICE_SERVICE m_services[MAX_DEVICE_SERVICES];
@@ -96,16 +102,12 @@ RESULT InitDevice(DEVICE device);
 bool IsDeviceInitialized();
 
 uint8_t GetDeviceID();
+uint16_t GetDeviceIDEx();
 DEVICE_FIRMWARE_VERSION GetDeviceFirmwareVersion();
 bool IsDeviceCharging();
 uint8_t GetDeviceBatteryPercentage();
-uint8_t GetDeviceSerialNumber(uint8_t byteNum);
 
 uint8_t GetDeviceUSBStatus();
-
-void *GetDeviceUserspaceAddress();
-uint8_t *GetDeviceUserspaceSerialAddress();
-uint8_t GetDeviceUserspaceSerialLength();
 
 
 #endif // ! DEVICE_H_
