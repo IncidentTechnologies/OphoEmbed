@@ -84,7 +84,7 @@ RESULT OutputSerialToDebug() {
 	//for(i = 0; i < count; i++)
 
 	for(i = 0; i < SERIAL_NUMBER_BYTES; i++)
-		DEBUG_MSG("%x", g_pUserSpace->serialserial[i]);
+		DEBUG_MSG("%x", g_pUserSpace->serial[i]);
 
 	DEBUG_MSG_NA("\n\r");
 
@@ -92,11 +92,11 @@ RESULT OutputSerialToDebug() {
 }
 
 void *GetUserspaceSerialAddress() {
-	return g_pUserSpace->serialserial;
+	return g_pUserSpace->serial;
 }
 
 uint8_t GetDeviceSerialNumber(uint8_t byteNum) {
-	return (uint8_t)(g_pUserSpace->serialserial[byteNum]);
+	return (uint8_t)(g_pUserSpace->serial[byteNum]);
 }
 
 void *GetDeviceUserspaceAddress() {
@@ -175,7 +175,8 @@ Error:
 }
 
 RESULT PrintUserspace() {
-	UARTprintfBinaryData(ulPtr, sizeof(g_UserSpace_n), 20);
+	//UARTprintfBinaryData(ulPtr, sizeof(g_UserSpace_n), 20);
+	UARTprintfBinaryData(g_pUserSpaceAddr, sizeof(g_UserSpace_n), 20);
 	return R_OK;
 }
 
@@ -265,6 +266,7 @@ Error:
 }
 
 RESULT CommitUserSpace() {
+	RESULT r = R_OK;
 	uint32_t  ulRes = 0;
 	void *ulPtr = (void*)(g_UserSpaceAddr);
 
@@ -279,6 +281,7 @@ RESULT CommitUserSpace() {
 	// Print buffer
 	CRM(PrintUserspace(), "Failed to print userspace");
 
+Error:
 	return R_OK;
 }
 
@@ -320,7 +323,7 @@ RESULT InitUserSpace(int UserSpaceSize, cbInitUserSpace fnInitUserSpace) {
 
 		// Found the user space
 		DEBUG_LINEOUT("InitUserSpace: Found valid user space, GtarDeviceID:0x%x GtarDeviceIDEx:0x%x fw_stat:0x%x",
-				pUserSpace->GtarDeviceID, pUserSpace->GtarDeviceIDEx, pUserSpace->fw_update_status);
+				pUserSpace->DeviceID, pUserSpace->DeviceIDEx, pUserSpace->fw_update_status);
 
 		SysCtlDelay(ROM_SysCtlClockGet() / 100);
 	}
@@ -350,8 +353,8 @@ RESULT InitUserSpace(int UserSpaceSize, cbInitUserSpace fnInitUserSpace) {
 
 		DEVICE_FIRMWARE_VERSION fwv = GetDeviceFirmwareVersion();
 
-		g_pUserSpace->GtarDeviceID = (uint8_t)GetDeviceID();
-		g_pUserSpace->GtarDeviceIDEx = (uint16_t)GetDeviceIDEx();
+		g_pUserSpace->DeviceID = (uint8_t)GetDeviceID();
+		g_pUserSpace->DeviceIDEx = (uint16_t)GetDeviceIDEx();
 		g_pUserSpace->fw_major_version = (uint8_t)fwv.major;
 		g_pUserSpace->fw_minor_version = (uint8_t)fwv.minor;
 		//g_pUserSpace->fw_minor_minor_version = (uint8_t)FW_MINOR_MINOR_VERSION;
