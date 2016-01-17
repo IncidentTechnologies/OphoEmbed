@@ -51,6 +51,8 @@ RESULT InitDevice(DEVICE device) {
 	// Turn off velocity sensing
 	g_device.m_fVelocityEnabled = 0;
 
+	DEBUG_LINEOUT("Initialized Opho Device");
+
 Error:
 	return r;
 }

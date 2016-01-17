@@ -4,6 +4,7 @@
 #include "../Common/EHM.h"
 #include "../Device/Device.h"
 
+
 #define SERIAL_NUMBER_BYTES 16
 
 typedef enum {
@@ -13,7 +14,7 @@ typedef enum {
 	FW_UPDATE_INVALD
 } FW_UPDATE_STATUS;
 
-#pragma pack(push, 1) // exact fit - no padding
+#pragma pack(push, 4) // exact fit - no padding
 typedef struct {
 	uint8_t DeviceID;
 	uint16_t nSize;				// size in bytes
@@ -54,6 +55,7 @@ uint8_t GetDeviceSerialNumber(uint8_t byteNum);
 void *GetDeviceUserspaceAddress();
 uint8_t *GetDeviceUserspaceSerialAddress();
 uint8_t GetDeviceUserspaceSerialLength();
+uint8_t GetDeviceUserspaceAddressLength();
 
 RESULT DebugUnit();
 RESULT OutputSerialToDebug();

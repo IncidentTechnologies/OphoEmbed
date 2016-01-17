@@ -9,6 +9,26 @@
 #include "../Common/EHM.h"
 #include "memorymap.h"
 
+// This will turn on peripheral checks
+#define INIT_CAUTIOUS
+
+// Driver Library
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "driverlib/rom.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+
+// Includes
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_ints.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_usb.h"
+#include "inc/hw_i2c.h"
+
 typedef bool (*fnbool)();
 typedef uint8_t (*fnuint8)();
 typedef uint8_t* (*fnpuint8)();

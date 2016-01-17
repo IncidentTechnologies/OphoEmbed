@@ -10,7 +10,7 @@ void *g_pUserSpaceAddr = NULL;
 USER_SPACE *g_pUserSpace = NULL;
 int g_UserSpace_n = 0;		// User defined userspace size
 
-uint32_t  g_UserSpaceAddr = USER_SPACE_ADDRESS;			// This is set to the 122KB point in flash
+uint32_t g_UserSpaceAddr = USER_SPACE_ADDRESS;			// This is set to the 122KB point in flash
 volatile uint8_t spacer;
 
 //volatile void (*g_vdFnPtr)() = CommitFirmware;
@@ -108,15 +108,21 @@ uint8_t *GetDeviceUserspaceSerialAddress() {
 }
 
 uint8_t GetDeviceUserspaceAddressLength() {
+	return g_UserSpace_n;
+}
+
+uint8_t GetDeviceUserspaceSerialLength() {
 	//return sizeof(g_UserSpace.serial);			// This will not likely work
 	return SERIAL_NUMBER_BYTES;
 }
 
+
+
 RESULT ClearUserSpaceMemory() {
 	RESULT r = R_OK;
 
-	CNM(g_pUserSpaceAddr, "ClearUserSpaceMemory: No userspace address set")
-	CBM(g_UserSpace_n, "ClearUserSpaceMemory: User space size cannot be zero");
+	CNRM(g_pUserSpaceAddr, "ClearUserSpaceMemory: No userspace address set");
+	CBRM(g_UserSpace_n, "ClearUserSpaceMemory: User space size cannot be zero");
 
 	memset(g_pUserSpaceAddr, 0, g_UserSpace_n);
 
@@ -149,7 +155,9 @@ RESULT EraseUserSpacePreserveSerialNumber() {
 	void *ulPtr = (void*)(g_UserSpaceAddr);
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
 
-	DEBUG_LINEOUT_NA("+EraseUserPsacePreserveSerialNumber");
+	DEBUG_LINEOUT_NA("+EraseUseSpacePreserveSerialNumber");
+
+	CNRM(g_pUserSpace, "EraseUseSpacePreserveSerialNumber: Device Userspace not allocated");
 
 	// Save the serial
 	memcpy(g_pUserSpace, pUserSpace, sizeof(USER_SPACE));	// Copy in user space from Flash
@@ -176,7 +184,7 @@ Error:
 
 RESULT PrintUserspace() {
 	//UARTprintfBinaryData(ulPtr, sizeof(g_UserSpace_n), 20);
-	UARTprintfBinaryData(g_pUserSpaceAddr, sizeof(g_UserSpace_n), 20);
+	UARTprintfBinaryData(g_pUserSpaceAddr, g_UserSpace_n, 20);
 	return R_OK;
 }
 
@@ -187,7 +195,7 @@ RESULT AllocateUserSpace() {
 	CBRM((g_pUserSpaceAddr == NULL), "AllocateUserSpace: Userspace already allocated, dellaoc first");
 
 	g_pUserSpaceAddr = (void*)malloc(g_UserSpace_n);
-	CNM(g_pUserSpaceAddr, "AllocateUserSpace: Failed to allocate %d bytes for userspace", g_UserSpace_n);
+	CNRM(g_pUserSpaceAddr, "AllocateUserSpace: Failed to allocate %d bytes for userspace", g_UserSpace_n);
 
 	g_pUserSpace = (USER_SPACE*)(g_pUserSpaceAddr);
 
@@ -224,7 +232,7 @@ RESULT LoadUserSpaceToMemory() {
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
 
 	CBRM((g_pUserSpaceAddr != NULL), "LoadUserSpaceToMemory: Userspace not allocated");
-	CNM(pUserSpace, "LoadUserSpaceToMemory: UserSpace Flash pointer is null")
+	CNRM(pUserSpace, "LoadUserSpaceToMemory: UserSpace Flash pointer is null");
 
 	memcpy(g_pUserSpaceAddr, pUserSpace, g_UserSpace_n);
 
@@ -236,8 +244,9 @@ RESULT FlashProgramUserspace() {
 	RESULT r = R_OK;
 
 	CBRM((g_UserSpace_n != 0), "User defined user space size cannot be zero");
+	CBRM((g_UserSpace_n % 4 == 0), "User defined user space size must be factor of 4");
 
-	uint32_t  ulRes = ROM_FlashProgram((uint32_t  *)(g_pUserSpace), (void*)g_UserSpaceAddr, sizeof(g_UserSpace_n));
+	uint32_t  ulRes = ROM_FlashProgram((uint32_t  *)(g_pUserSpace), (void*)g_UserSpaceAddr, g_UserSpace_n);
 	CBRM_NA_WARN((ulRes == 0), "SetUSFwUpdateStatus: failed to program new user space into flash");
 
 	ROM_SysCtlDelay(ROM_SysCtlClockGet() / 100);
@@ -274,7 +283,7 @@ RESULT CommitUserSpace() {
 
 	SysCtlDelay(ROM_SysCtlClockGet() / 100);
 
-	DEBUG_LINEOUT("Commiting Userspace: sizeof(USER_SPACE):%d", sizeof(g_UserSpace_n));
+	DEBUG_LINEOUT("Commiting Userspace: sizeof(USER_SPACE):%d", g_UserSpace_n);
 
 	CRM(FlashProgramUserspace(), "CommitUserSpace: Failed to flash userspace");
 
@@ -296,6 +305,7 @@ RESULT InitUserSpace(int UserSpaceSize, cbInitUserSpace fnInitUserSpace) {
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
 
 	CBRM((UserSpaceSize != 0), "InitUserSpace: UserSpaceSize cannot be zero");
+	CBRM((UserSpaceSize % 4 == 0), "InitUserSpace: User defined space must be factor of 4 in size");
 	g_UserSpace_n = UserSpaceSize;
 
 	// Allocate and load userspace

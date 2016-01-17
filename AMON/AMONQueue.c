@@ -30,7 +30,7 @@ RESULT InitializeAMONQueue() {
 		g_NumQueuedPackets[i] = 0;
 	}
 
-	DEBUG_LINEOUT_NA("InitializeAMONQueue: AMON Queue initialized")
+	DEBUG_LINEOUT("InitializeAMONQueue: AMON Queue initialized");
 
 Error:
 	return r;
