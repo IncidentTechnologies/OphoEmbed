@@ -173,8 +173,6 @@ const char* GetLinkStateString(AMON_LINK_STATE state) {
 		default:
 		case AMON_LINK_STATE_INVALID: return "invalid";
 	}
-
-	return "invalid";
 }
 
 RESULT PrintAMONLinkInfo(AMON_LINK link) {

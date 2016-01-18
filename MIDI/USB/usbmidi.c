@@ -23,6 +23,8 @@ uint8_t g_fFirst = 0;
 USB_MIDI_PACKET_MACHINE_STATES g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 USB_MIDI_CC_SET_LED_MACHINE_STATES g_USBMIDICCSetLEDMachineState = UMCCSLMS_INITIAL;
 
+
+#ifdef USB_UDMA
 //*****************************************************************************
 // The control table used by the uDMA controller.  This table must be aligned
 // to a 1024 byte boundary.  In this application uDMA is only used for USB,
@@ -37,6 +39,7 @@ USB_MIDI_CC_SET_LED_MACHINE_STATES g_USBMIDICCSetLEDMachineState = UMCCSLMS_INIT
 #else
 	tDMAControlTable g_sDMAControlTable[64] __attribute__ ((aligned(1024)));
 #endif
+#endif // ! USB_UDMA
 
 //#define IAP_ENABLED
 
@@ -847,9 +850,10 @@ RESULT SendUSBFirmwareVersion() {
 	RESULT r = R_OK;
 	int32_t  lStat = 0;
 	uint8_t SendBuffer[4];
+	DEVICE_FIRMWARE_VERSION devFWVersion = GetDeviceFirmwareVersion();
 
 #ifdef USB_VERBOSE
-	DEBUG_LINEOUT("Sending Firmware Version %d.%d", FW_MAJOR_VERSION, FW_MINOR_VERSION);
+	DEBUG_LINEOUT("Sending Firmware Version %d.%d", devFWVersion.major, devFWVersion.minor);
 #endif
 	SendBuffer[0] = 0x0B;
 	SendBuffer[1] = MIDI_CONTROL_CHANGE;
@@ -857,7 +861,6 @@ RESULT SendUSBFirmwareVersion() {
 	//SendBuffer[3] = ((FW_MAJOR_VERSION & 0xF) << 4) + ((FW_MINOR_VERSION) & 0xF);
 
 	// TODO: This is silly
-	DEVICE_FIRMWARE_VERSION devFWVersion = GetDeviceFirmwareVersion();
 	uint8_t uiDevFWVersion = 0;
 	memcpy(&uiDevFWVersion, &devFWVersion, sizeof(uint8_t));
 	SendBuffer[3] = (uint8_t)(uiDevFWVersion);
@@ -937,6 +940,7 @@ RESULT SendUSBResetUserspaceAck(uint8_t status) {
 
 RESULT SendUSBRequestSerialNumberAck(uint8_t byteNumber) {
 	uint8_t SendBuffer[4];
+	uint8_t serialByte = (uint8_t)(GetDeviceSerialNumber(byteNumber));
 
 	// max 16 bytes in serial number
 	if(byteNumber > 0x0F)
@@ -953,10 +957,10 @@ RESULT SendUSBRequestSerialNumberAck(uint8_t byteNumber) {
 	*/
 
 	//SendBuffer[3] = (uint8_t)(g_UserSpace.serial[byteNumber]);
-	SendBuffer[3] = (uint8_t)(GetDeviceSerialNumber(byteNumber));
+	SendBuffer[3] = serialByte;
 
 #ifdef USB_VERBOSE
-	DEBUG_LINEOUT("Serial: Sending byte %d val:0x%x", byteNumber, (uint8_t)(g_UserSpace.serial[byteNumber]));
+	DEBUG_LINEOUT("Serial: Sending byte %d val:0x%x", byteNumber, serialByte);
 #endif
 
 	return SendUSBBuffer(USB0_BASE, MIDI_OUT_EP, SendBuffer, 4);
@@ -2221,7 +2225,6 @@ RESULT USBStatusCallback(void *pContext) {
 
 	ReadUSBStatus();
 
-
 	if(g_OnUSBStatusCallback != NULL)
 		g_OnUSBStatusCallback();
 
@@ -2253,23 +2256,29 @@ RESULT USBStatusCallback(void *pContext) {
 	return R_OK;
 }
 
-
 // current prototype doesn't have 3V3OUT reroute
 #define ENABLE_IAP_MIDI_ISR
+
+USB_PERIPHERAL_INFO *m_pUSBPeripheral = NULL;
+
+RESULT InitializeUSBPeripheralConfiguration(USB_PERIPHERAL_INFO *pUSBPeripheral) {
+	m_pUSBPeripheral = pUSBPeripheral;
+	return R_OK;
+}
 
 // Audio status code injected into here for now, need to separate into own init function
 RESULT InitUSBMIDI() {
 	RESULT r = R_OK;
 
+#ifdef IPHONE_IAP
 	// Set up the handler for port H to handle iPhone connect / disconnect
 	CBRM_NA(ROM_SysCtlPeripheralPresent(USB_STATUS_PERIPH), "InitUSBMIDI: USB_STATUS_PERIPH is not present");
 	ROM_SysCtlPeripheralEnable(USB_STATUS_PERIPH);
 
-	// init pin
+	// Init pin
 	GPIOPinTypeGPIOInput(USB_STATUS_PORT, USB_STATUS_PIN);
 	ROM_GPIOPadConfigSet(USB_STATUS_PORT, USB_STATUS_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD);
 
-#ifdef IPHONE_IAP
 	CRM(RegisterInterrupt(USB_STATUS_PORT, GPIOPinToInt(USB_STATUS_PIN), GPIO_BOTH_EDGES, USBStatusCallback, NULL),
 			"Failed to set interrupt cb for port %x on pin %d", USB_STATUS_PORT, GPIOPinToInt(USB_STATUS_PIN));
 #endif
@@ -2281,37 +2290,51 @@ RESULT InitUSBMIDI() {
 	else return R_NO_EFFECT;
 
 	// Set up the handler for port H to handle iPhone connect / disconnect
+	/*
 	CBRM_NA(ROM_SysCtlPeripheralPresent(USB_MIDI_PERIPH), "InitUSBMIDI: USBMIDI GPIO port is not present");
 	ROM_SysCtlPeripheralEnable(USB_MIDI_PERIPH);
 	ROM_GPIOPinTypeUSBAnalog(USB_MIDI_PORT_BASE, USB_MIDI_DP_PIN | USB_MIDI_DM_PIN);
+	*/
+
+	CNRM(m_pUSBPeripheral, "USB Peripheral Configuration not set");
+	CBRM_NA(ROM_SysCtlPeripheralPresent(m_pUSBPeripheral->gpio.GPIOPeripheral), "InitUSBMIDI: USBMIDI GPIO port is not present");
+	ROM_SysCtlPeripheralEnable(m_pUSBPeripheral->gpio.GPIOPeripheral);
+	ROM_GPIOPinTypeUSBAnalog(m_pUSBPeripheral->gpio.GPIOPort, m_pUSBPeripheral->gpio.dp_pin | m_pUSBPeripheral->gpio.dm_pin);
+	m_pUSBPeripheral->fInitialized = 1;
+	m_pUSBPeripheral->gpio.fEnabled = 1;	// TODO: this should be more useful
 
     // Enable the uDMA controller and set up the control table base.
+	// TODO: UDMA?
+#ifdef USB_UDMA
     SysCtlPeripheralEnable(SYSCTL_PERIPH_UDMA);
     uDMAEnable();
     uDMAControlBaseSet(g_sDMAControlTable);
+#endif
 
-	USBStackModeSet(0, eUSBModeDevice, 0);
-
-	// Figure out which mode to use on start up
-	int32_t  mode = USB_MIDI;
+	//USBStackModeSet(0, eUSBModeDevice, 0);
+    USBStackModeSet(0, eUSBModeForceDevice, 0);		// This forces device regardless of VBUS and USB ID
 
 #ifdef IPHONE_IAP
 	ReadUSBStatus();
 	g_LastUSBStatus = g_USBStatus;
 
+	// Figure out which mode to use on start up
+
+	int32_t  mode = USB_MIDI;
+
 	if(g_USBStatus)
 		mode = IAP_MIDI;
 	else
 		mode = USB_MIDI;
-#endif
+
 
 	switch(mode) {
-#ifdef IPHONE_IAP
+
 		case IAP_MIDI: {
 			USBDCDInit(0, &gc_MidiDevice_iAP, NULL);
 			DEBUG_LINEOUT_NA("USB (iAP) initialized!");
 		} break;
-#endif
+
 		case USB_MIDI: {
 			USBDCDInit(0, &gc_MidiDevice, NULL);
 			DEBUG_LINEOUT_NA("USB-MIDI initialized!");
@@ -2320,8 +2343,13 @@ RESULT InitUSBMIDI() {
 		default: {
 			DEBUG_LINEOUT("USB not initialized, mode %d not supported", mode);
 			return R_ERROR;
-		} break;
+		//} break;
 	}
+#else
+	USBDCDInit(0, &gc_MidiDevice, NULL);
+	DEBUG_LINEOUT_NA("USB-MIDI initialized!");
+	ROM_IntMasterEnable();	// just in case
+#endif
 
 Error:
 	return r;

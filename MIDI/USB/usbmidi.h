@@ -4,7 +4,9 @@
 #include "../../Common/EHM.h"
 #include "../../Device/Device.h"
 #include "../MIDIQueue.h"
-//#define USB_VERBOSE
+
+#define USB_VERBOSE
+#define USB_UDMA
 
 #include "driverlib/gpio.h"
 #include "inc/hw_memmap.h"
@@ -21,7 +23,9 @@
 #include "usblib/usblibpriv.h"
 
 // uDMA used in USB
+#ifdef USB_UDMA
 #include "driverlib/udma.h"
+#endif
 
 #define USB_VID_INCIDENTTECH 				0xDEAD
 #define USB_PID_GTAR						0xBEEF
@@ -232,13 +236,30 @@ typedef enum {
 	USB_MIDI_PITCH				= 0xE
 } USB_MIDI_MSG_TYPE;
 
+typedef struct {
+	unsigned fEnabled: 1;
+	uint32_t GPIOPeripheral;
+	uint32_t GPIOPort;
+	uint32_t dp_pin;
+	uint32_t dm_pin;
+} USB_GPIO_INFO;
+
+typedef struct {
+	unsigned fInitialized: 1;
+	USB_GPIO_INFO gpio;
+} USB_PERIPHERAL_INFO;
+
 //USB-MIDI port
+// TODO: Move this to the implementation
+/*
 #define USB_MIDI_PERIPH		SYSCTL_PERIPH_GPIOJ
 #define USB_MIDI_PORT_BASE	GPIO_PORTJ_BASE
 #define USB_MIDI_DP_PIN		GPIO_PIN_0
 #define USB_MIDI_DM_PIN		GPIO_PIN_1
+*/
 
 // Initialize USB-MIDI
+RESULT InitializeUSBPeripheralConfiguration(USB_PERIPHERAL_INFO *pUSBPeripheral);
 RESULT InitUSBMIDI();
 
 //USB and Audio connect status HW defines

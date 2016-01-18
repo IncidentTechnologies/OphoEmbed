@@ -88,7 +88,7 @@ typedef struct {
 int GetSSIConfigCount();
 SSI_PERIPHERAL_INFO *GetSSIConfig(uint8_t configNum);
 
-RESULT InitializeSSIConfiguration(SSI_PERIPHERAL_INFO **ppSSIPeripherals, int SSIPeripherals_n);
+RESULT InitializeSSIConfiguration(SSI_PERIPHERAL_INFO *pSSIPeripherals, int SSIPeripherals_n);
 RESULT SSIInit(uint8_t spiNum);
 RESULT SSISendChar(uint8_t spiNum, uint8_t cTX, uint8_t *pcRX);
 RESULT SSISendBuffer(uint8_t spiNum, uint16_t *pBuffer, int pBuffer_n);

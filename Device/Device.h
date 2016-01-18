@@ -10,7 +10,8 @@
 #include "memorymap.h"
 
 // This will turn on peripheral checks
-#define INIT_CAUTIOUS
+// TODO: This seems to fail
+//#define INIT_CAUTIOUS
 
 // Driver Library
 #include "driverlib/pin_map.h"

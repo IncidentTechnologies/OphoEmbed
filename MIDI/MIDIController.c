@@ -54,7 +54,7 @@ RESULT SendMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, u
 	else
 		return SendUSBMidiNoteMsg(midiVal, midiVelocity, channel, fOnOff);
 
-	return R_FAIL;
+	//return R_FAIL;
 }
 
 RESULT SendMidiCC(uint8_t index, uint8_t value) {
@@ -63,7 +63,7 @@ RESULT SendMidiCC(uint8_t index, uint8_t value) {
 	else
 		return SendUSBMidiCC(index, value);
 
-	return R_FAIL;
+	//return R_FAIL;
 }
 
 RESULT SendFirmwareVersion() {
@@ -72,7 +72,7 @@ RESULT SendFirmwareVersion() {
 	else
 		return SendUSBFirmwareVersion();
 
-	return R_FAIL;
+	// return R_FAIL;
 }
 
 RESULT SendFirmwareDownloadAck(uint8_t status) {
@@ -81,7 +81,7 @@ RESULT SendFirmwareDownloadAck(uint8_t status) {
 	else
 		return SendUSBFirmwareDownloadAck(status);
 
-	return R_FAIL;
+	// return R_FAIL;
 }
 
 RESULT SendBatteryStatusAck() {
@@ -90,7 +90,7 @@ RESULT SendBatteryStatusAck() {
 	else
 		return SendUSBBatteryStatusAck();
 
-	return R_FAIL;
+	// return R_FAIL;
 }
 
 RESULT SendBatteryChargePercentageAck() {
@@ -99,7 +99,7 @@ RESULT SendBatteryChargePercentageAck() {
 	else
 		return SendUSBBatteryChargePercentageAck();
 
-	return R_FAIL;
+	// return R_FAIL;
 }
 
 RESULT SendRequestSerialNumberAck(uint8_t byteNumber) {
@@ -108,7 +108,7 @@ RESULT SendRequestSerialNumberAck(uint8_t byteNumber) {
 	else
 		return SendUSBRequestSerialNumberAck(byteNumber);
 
-	return R_FAIL;
+	// return R_FAIL;
 }
 
 RESULT SendAck(uint8_t SendBuffer[4]) {
@@ -117,7 +117,7 @@ RESULT SendAck(uint8_t SendBuffer[4]) {
 	else
 		return SendUSBAck(SendBuffer);
 
-	return R_FAIL;
+	// return R_FAIL;
 }
 
 RESULT SendCommitUserspaceAck(uint8_t status) {
@@ -126,7 +126,7 @@ RESULT SendCommitUserspaceAck(uint8_t status) {
 	else
 		return SendUSBCommitUserspaceAck(status);
 
-	return R_FAIL;
+	// return R_FAIL;
 }
 
 RESULT SendResetUserspaceAck(uint8_t status) {
@@ -135,7 +135,7 @@ RESULT SendResetUserspaceAck(uint8_t status) {
 	else
 		return SendUSBCommitUserspaceAck(status);
 
-	return R_FAIL;
+	// return R_FAIL;
 }
 
 //uint8_t m_pSysExBuffer[MAX_SYS_EX_SIZE];
@@ -489,7 +489,8 @@ RESULT HandleMIDISysExBuffer() {
 		} break;
 		*/
 
-		// TODO:
+		// TODO: Test the firmware update function
+		// TODO: Add DFU as a back up still
 		case DEVICE_MSG_DOWNLOAD_NEW_FW_PACKAGE: {
 			DEVICE_DOWNLOAD_NEW_FW_PAGE_HEADER *pDeviceDownloadFWPageHeader = pDeviceMsg;
 

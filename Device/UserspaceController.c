@@ -155,9 +155,8 @@ RESULT EraseUserSpacePreserveSerialNumber() {
 	void *ulPtr = (void*)(g_UserSpaceAddr);
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
 
-	DEBUG_LINEOUT_NA("+EraseUseSpacePreserveSerialNumber");
-
-	CNRM(g_pUserSpace, "EraseUseSpacePreserveSerialNumber: Device Userspace not allocated");
+	DEBUG_LINEOUT_NA("+EraseUserSpacePreserveSerialNumber");
+	CNRM(g_pUserSpace, "EraseUserSpacePreserveSerialNumber: Device Userspace not allocated");
 
 	// Save the serial
 	memcpy(g_pUserSpace, pUserSpace, sizeof(USER_SPACE));	// Copy in user space from Flash
@@ -178,7 +177,7 @@ RESULT EraseUserSpacePreserveSerialNumber() {
 	CRM_NA(CommitUserSpace(),"EraseUserSpacePreserveSerialNumber: Failed to Commit UserSpace");
 
 Error:
-	DEBUG_LINEOUT_NA("-EraseUserPsacePreserveSerialNumber");
+	DEBUG_LINEOUT_NA("-EraseUserSpacePreserveSerialNumber");
 	return r;
 }
 

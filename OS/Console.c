@@ -186,7 +186,7 @@ Error:
 // **************************************
 
 char** GetInputBufferHistory(Console *c) {
-	return c->m_InputBufferHistory;
+	return (char**)c->m_InputBufferHistory;
 }
 
 ConsoleFunction* GetCommandList(Console *c){
@@ -196,11 +196,14 @@ ConsoleFunction* GetCommandList(Console *c){
 RESULT ConvertToArgumentList(Console *c, char *pd_InputBuffer, char*** pppn_Args, int *pppn_Args_n) {
     RESULT r = R_OK;
 
+    /*
     // TODO: Seems to help?
     int x = 0;
+
     size_t top_of_stack = (size_t) &x;
     char *cc = (char)malloc(sizeof(char));
     size_t top_of_heap = (size_t) cc;
+    */
 
     int Args_n = 0;
     char *TempChar = strtok(pd_InputBuffer, " -,;");	// dont move
@@ -217,14 +220,14 @@ RESULT ConvertToArgumentList(Console *c, char *pd_InputBuffer, char*** pppn_Args
     *pppn_Args = ppArgsList;
     *pppn_Args_n = Args_n;
 
-Error:
+//Error:
     //delete d_InputBuffer;
     return r;
 }
 
 RESULT ExecuteConsoleFunction(Console *pc, char *pszCommand, int pszCommand_n) {
     RESULT r = R_OK;
-    char TempCharBuffer[MAX_COMMAND];
+    //char TempCharBuffer[MAX_COMMAND];
 
     // First copy over the buffer to our own thing
     char *TempBuffer = (char *)calloc((pszCommand_n + 1), sizeof(char));
@@ -569,9 +572,7 @@ RESULT PrintToOutput(Console *pc, const char* output_format, ...) {
                     CRM_NA(PrintToOutputPsz(pc, InputBuffer), "Could not print input buffer!");
                 } break;
 
-                default: {
-                    CBRM_NA(0, "Unknown format specifier");
-                } break;
+                default: CBRM_NA(0, "Unknown format specifier");
             }
         }
         else if(output_format[i] == '\\') {
@@ -581,9 +582,7 @@ RESULT PrintToOutput(Console *pc, const char* output_format, ...) {
                     CRM_NA(PrintToOutputChar(pc, '\n'), "Could not print newline to output");
                 } break;
 
-                default: {
-                    CBRM_NA(0, "Unknown special character");
-                } break;
+                default: CBRM_NA(0, "Unknown special character");
             }
         }
         else {

@@ -577,24 +577,24 @@ RESULT SendEcho(AMON_LINK link) {
 
 const char* GetLinkPhyStateString(AMON_PHY_STATE state) {
 	switch(state) {
-		case AMON_PHY_UNINITIALIZED: return "uninitialized"; break;
-		case AMON_PHY_IDENTIFIED: return "identified"; break;
-		case AMON_PHY_REQUESTED: return "requested"; break;
-		case AMON_PHY_AVAILABLE: return "available"; break;
-		case AMON_PHY_ACCEPTED: return "accepted"; break;
-		case AMON_PHY_ASSIGNED: return "assigned"; break;
-		case AMON_PHY_MAYBE_DISCONNECTED: return "maybe disconnect"; break;
-		case AMON_PHY_READY: return "ready"; break;
-		case AMON_PHY_REQUEST_TRANSMIT: return "request transmit"; break;
-		case AMON_PHY_ACCEPT_TRANSMIT: return "accept transmit"; break;
-		case AMON_PHY_TRANSMIT_ACTIVE: return "transmit active"; break;
-		case AMON_PHY_TRANSMIT_COMPLETE: return "transmit complete"; break;
-		case AMON_PHY_TRANSMIT_COMPLETE_PENDING: return "transmit complete pending"; break;
-		case AMON_PHY_REQUEST_TRANSMIT_RESPONSE: return "request transmit response"; break;
+		case AMON_PHY_UNINITIALIZED: return "uninitialized";
+		case AMON_PHY_IDENTIFIED: return "identified";
+		case AMON_PHY_REQUESTED: return "requested";
+		case AMON_PHY_AVAILABLE: return "available";
+		case AMON_PHY_ACCEPTED: return "accepted";
+		case AMON_PHY_ASSIGNED: return "assigned";
+		case AMON_PHY_MAYBE_DISCONNECTED: return "maybe disconnect";
+		case AMON_PHY_READY: return "ready";
+		case AMON_PHY_REQUEST_TRANSMIT: return "request transmit";
+		case AMON_PHY_ACCEPT_TRANSMIT: return "accept transmit";
+		case AMON_PHY_TRANSMIT_ACTIVE: return "transmit active";
+		case AMON_PHY_TRANSMIT_COMPLETE: return "transmit complete";
+		case AMON_PHY_TRANSMIT_COMPLETE_PENDING: return "transmit complete pending";
+		case AMON_PHY_REQUEST_TRANSMIT_RESPONSE: return "request transmit response";
 
 		default:
-		case AMON_PHY_STATE_INVALID: return "invalid"; break;
+		case AMON_PHY_STATE_INVALID: return "invalid";
 	}
 
-	return "invalid";
+	//return "invalid";
 }

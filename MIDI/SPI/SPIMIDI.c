@@ -207,6 +207,8 @@ RESULT InitializeSPIMIDI() {
 	// Register a CB for the first SPI config
 	// TODO: Eventually have this set up the SPI config and kick it off
 	SSI_PERIPHERAL_INFO *pConfig = GetSSIConfig(SPI_MIDI_CONFIG);
+	CNRM(pConfig, "Could not find SSI Configuration %d for SPI", SPI_MIDI_CONFIG);
+
 	pConfig->intpin.cbInt = HandleSPIMIDIInterrupt;
 
 	CRM_NA(InitializeIncomingBLEQueue(), "Failed to initialize BLE Msg Queue");

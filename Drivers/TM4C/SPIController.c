@@ -6,7 +6,7 @@
 // The active SSI configurations, more are possible - there are 4 SSI peripherals on
 // the TM4C
 
-SSI_PERIPHERAL_INFO **m_ppSSIPeripherals = NULL;
+SSI_PERIPHERAL_INFO *m_pSSIPeripherals = NULL;
 int m_SSIPeripherals_n = 0;
 
 int GetSSIConfigCount() { return m_SSIPeripherals_n; }
@@ -16,15 +16,15 @@ SSI_PERIPHERAL_INFO *GetSSIConfig(uint8_t configNum) {
 
 	CBRM((configNum < m_SSIPeripherals_n), "SSIInit: SPI configuration %d not available", configNum);
 
-	return &(m_ppSSIPeripherals[configNum]);
+	return &(m_pSSIPeripherals[configNum]);
 
 Error:
 	return NULL;
 }
 
 // TODO:
-RESULT InitializeSSIConfiguration(SSI_PERIPHERAL_INFO **ppSSIPeripherals, int SSIPeripherals_n) {
-	m_ppSSIPeripherals = ppSSIPeripherals;
+RESULT InitializeSSIConfiguration(SSI_PERIPHERAL_INFO *pSSIPeripherals, int SSIPeripherals_n) {
+	m_pSSIPeripherals = pSSIPeripherals;
 	m_SSIPeripherals_n = SSIPeripherals_n;
 
 	return R_OK;
@@ -33,9 +33,10 @@ RESULT InitializeSSIConfiguration(SSI_PERIPHERAL_INFO **ppSSIPeripherals, int SS
 RESULT SSIInit(uint8_t spiNum) {
 	RESULT r = R_OK;
 
-	CNRM_NA((m_ppSSIPeripherals), "SSIInit: SPI Configuration not initialized");
+	CNRM_NA((m_pSSIPeripherals), "SSIInit: SPI Configuration not initialized");
 	CBRM((spiNum < m_SSIPeripherals_n), "SSIInit: SPI configuration %d not available", spiNum);
-	SSI_PERIPHERAL_INFO *pSSIInfo = &(m_ppSSIPeripherals[spiNum]);
+	//SSI_PERIPHERAL_INFO *pSSIInfo = &(m_pSSIPeripherals[spiNum]);
+	SSI_PERIPHERAL_INFO *pSSIInfo = GetSSIConfig(spiNum);
 
 	// Enable and configure the SPI SS
 	if(pSSIInfo->select.fEnabled) {
@@ -98,7 +99,8 @@ Error:
 
 bool SSICheckInterruptLine(uint8_t spiNum) {
 	if(spiNum < m_SSIPeripherals_n) {
-			SSI_PERIPHERAL_INFO *pSSIInfo = &(m_ppSSIPeripherals[spiNum]);
+			//SSI_PERIPHERAL_INFO *pSSIInfo = &(m_pSSIPeripherals[spiNum]);
+			SSI_PERIPHERAL_INFO *pSSIInfo = GetSSIConfig(spiNum);
 
 			if(pSSIInfo->intpin.fEnabled == true)
 				if(GPIOPinRead(pSSIInfo->intpin.GPIOPort, pSSIInfo->intpin.pin) != 0)
@@ -114,17 +116,17 @@ RESULT SSISendChar(uint8_t spiNum, uint8_t cTX, uint8_t *pcRX) {
 
 	CBRM((spiNum < m_SSIPeripherals_n), "SSISendChar: SPI configuration %d not available", spiNum);
 
-	if((*m_ppSSIPeripherals)[spiNum].select.fEnabled)
-		GPIOPinWrite((*m_ppSSIPeripherals)[spiNum].select.GPIOPort, (*m_ppSSIPeripherals)[spiNum].select.pin, 0x00);		// active low
+	if((m_pSSIPeripherals)[spiNum].select.fEnabled)
+		GPIOPinWrite((m_pSSIPeripherals)[spiNum].select.GPIOPort, (m_pSSIPeripherals)[spiNum].select.pin, 0x00);		// active low
 
-	SSIDataPut((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase, cTX);
-	while(SSIBusy((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase)){ /* wait while busy */ };
+	SSIDataPut((m_pSSIPeripherals)[spiNum].gpio.SSIBase, cTX);
+	while(SSIBusy((m_pSSIPeripherals)[spiNum].gpio.SSIBase)){ /* wait while busy */ };
 
-	if((*m_ppSSIPeripherals)[spiNum].select.fEnabled)
-		GPIOPinWrite((*m_ppSSIPeripherals)[spiNum].select.GPIOPort, (*m_ppSSIPeripherals)[spiNum].select.pin, 0xFF);		// active low
+	if((m_pSSIPeripherals)[spiNum].select.fEnabled)
+		GPIOPinWrite((m_pSSIPeripherals)[spiNum].select.GPIOPort, (m_pSSIPeripherals)[spiNum].select.pin, 0xFF);		// active low
 
 	if(pcRX != NULL)
-		SSIDataGetNonBlocking((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase, pcRX);
+		SSIDataGetNonBlocking((m_pSSIPeripherals)[spiNum].gpio.SSIBase, pcRX);
 
 Error:
 	return R_OK;
@@ -137,18 +139,18 @@ RESULT SSISendShort(uint8_t spiNum, uint16_t sTX, uint16_t *psRX) {
 
 	CBRM((spiNum < m_SSIPeripherals_n), "SSISendShort: SPI configuration %d not available", spiNum);
 
-	if((*m_ppSSIPeripherals)[spiNum].select.fEnabled)
-		GPIOPinWrite((*m_ppSSIPeripherals)[spiNum].select.GPIOPort, (*m_ppSSIPeripherals)[spiNum].select.pin, 0x00);		// active low
+	if((m_pSSIPeripherals)[spiNum].select.fEnabled)
+		GPIOPinWrite((m_pSSIPeripherals)[spiNum].select.GPIOPort, (m_pSSIPeripherals)[spiNum].select.pin, 0x00);		// active low
 
-	SSIDataPut((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase, sTX);
-	while(SSIBusy((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase)){ /* wait while busy */ };
+	SSIDataPut((m_pSSIPeripherals)[spiNum].gpio.SSIBase, sTX);
+	while(SSIBusy((m_pSSIPeripherals)[spiNum].gpio.SSIBase)){ /* wait while busy */ };
 
-	if((*m_ppSSIPeripherals)[spiNum].select.fEnabled)
-		GPIOPinWrite((*m_ppSSIPeripherals)[spiNum].select.GPIOPort, (*m_ppSSIPeripherals)[spiNum].select.pin, 0xFF);		// active low
+	if((m_pSSIPeripherals)[spiNum].select.fEnabled)
+		GPIOPinWrite((m_pSSIPeripherals)[spiNum].select.GPIOPort, (m_pSSIPeripherals)[spiNum].select.pin, 0xFF);		// active low
 
 	// Copy over the received short
 	if(psRX != NULL) {
-		SSIDataGetNonBlocking((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase, &tempShort);
+		SSIDataGetNonBlocking((m_pSSIPeripherals)[spiNum].gpio.SSIBase, &tempShort);
 		*psRX = SPI_SHORT(tempShort);
 	}
 
@@ -166,19 +168,19 @@ RESULT SSISendBuffer(uint8_t spiNum, uint16_t *pBuffer, int pBuffer_n) {
 
 	CBRM((spiNum < m_SSIPeripherals_n), "SSIInit: SPI configuration %d not available", spiNum);
 
-	if((*m_ppSSIPeripherals)[spiNum].select.fEnabled)
-			GPIOPinWrite((*m_ppSSIPeripherals)[spiNum].select.GPIOPort, (*m_ppSSIPeripherals)[spiNum].select.pin, 0x00);		// active low
+	if((m_pSSIPeripherals)[spiNum].select.fEnabled)
+			GPIOPinWrite((m_pSSIPeripherals)[spiNum].select.GPIOPort, (m_pSSIPeripherals)[spiNum].select.pin, 0x00);		// active low
 
 	for(i = 0; i < pBuffer_n; i++) {
 		unsigned short s = pBuffer[i];
-		SSIDataPut((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase, SPI_SHORT(s));
-		SSIDataGet((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase, &temp);
+		SSIDataPut((m_pSSIPeripherals)[spiNum].gpio.SSIBase, SPI_SHORT(s));
+		SSIDataGet((m_pSSIPeripherals)[spiNum].gpio.SSIBase, &temp);
 	}
 
-	while(SSIBusy((*m_ppSSIPeripherals)[spiNum].gpio.SSIBase)){ /* wait while busy */ };
+	while(SSIBusy((m_pSSIPeripherals)[spiNum].gpio.SSIBase)){ /* wait while busy */ };
 
-	if((*m_ppSSIPeripherals)[spiNum].select.fEnabled)
-			GPIOPinWrite((*m_ppSSIPeripherals)[spiNum].select.GPIOPort, (*m_ppSSIPeripherals)[spiNum].select.pin, 0xFF);		// active low
+	if((m_pSSIPeripherals)[spiNum].select.fEnabled)
+			GPIOPinWrite((m_pSSIPeripherals)[spiNum].select.GPIOPort, (m_pSSIPeripherals)[spiNum].select.pin, 0xFF);		// active low
 
 Error:
 	return r;
