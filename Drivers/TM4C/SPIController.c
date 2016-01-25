@@ -38,6 +38,24 @@ RESULT SSIInit(uint8_t spiNum) {
 	//SSI_PERIPHERAL_INFO *pSSIInfo = &(m_pSSIPeripherals[spiNum]);
 	SSI_PERIPHERAL_INFO *pSSIInfo = GetSSIConfig(spiNum);
 
+	// TODO: Horrible design, but for now
+	switch(spiNum) {
+		case 0: {
+			if(!g_device.m_fSPI0) g_device.m_fSPI0 = true;
+				else return R_NO_EFFECT;
+		} break;
+
+		case 1: {
+			if(!g_device.m_fSPI1) g_device.m_fSPI1 = true;
+				else return R_NO_EFFECT;
+		} break;
+
+		default: {
+			DEBUG_LINEOUT("Initializing SSI %d");
+
+		} break;
+	}
+
 	// Enable and configure the SPI SS
 	if(pSSIInfo->select.fEnabled) {
 		ROM_SysCtlPeripheralEnable(pSSIInfo->select.GPIOPeripheral);

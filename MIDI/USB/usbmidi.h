@@ -5,7 +5,7 @@
 #include "../../Device/Device.h"
 #include "../MIDIQueue.h"
 
-#define USB_VERBOSE
+//#define USB_VERBOSE
 #define USB_UDMA
 
 #include "driverlib/gpio.h"

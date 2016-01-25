@@ -46,6 +46,48 @@ Error:
 	return r;
 }
 
+cbHandleDebugSysEx g_HandleDebugSysExCallback = NULL;
+RESULT RegisterHandleDebugSysExCallback(cbHandleDebugSysEx HandleDebugSysExCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_HandleDebugSysExCallback == NULL), "RegisterHandleDebugSysExCallback: Handle Debug SysEx Callback already registered");
+	g_HandleDebugSysExCallback = HandleDebugSysExCB;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterHandleDebugSysExCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_HandleDebugSysExCallback != NULL), "UnregisterHandleDebugSysExCallback: Handle Debug SysEx Callback not registered");
+	g_HandleDebugSysExCallback = NULL;
+
+Error:
+	return r;
+}
+
+cbHandleLEDStateCC g_HandleLEDStateCCCallback = NULL;
+RESULT RegisterHandleLEDStateCCCallback(cbHandleLEDStateCC HandleLEDStateCCCB) {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_HandleLEDStateCCCallback == NULL), "RegisterHandleLEDStateCCCallback: Handle LED State CC Callback already registered");
+	g_HandleLEDStateCCCallback = HandleLEDStateCCCB;
+
+Error:
+	return r;
+}
+
+RESULT UnregisterHandleLEDStateCCCallback() {
+	RESULT r = R_OK;
+
+	CBRM_NA((g_HandleLEDStateCCCallback != NULL), "UnregisterHandleLEDStateCCCallback: Handle LED State CC Callback not registered");
+	g_HandleLEDStateCCCallback = NULL;
+
+Error:
+	return r;
+}
+
 // Device MIDI functions
 // Application functions should be declared in the given application MIDI Controller
 RESULT SendMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, uint8_t fOnOff) {
@@ -228,9 +270,16 @@ RESULT HandleMIDIPacket(MIDI_MSG midiPacket) {
 				m_CCSetLEDColor = UintToRGBM(midiPacket.data2);
 
 				// Dispatch the LED message here
-				r = SendStringFretLEDStateRGBM(m_CCSetLEDString, m_CCSetLEDFret, RGBMToUint(m_CCSetLEDColor));
-				ResetCCSetLED();
-				CRM_NA(r,"Failed to set CC Set LED msg");
+				//r = SendStringFretLEDStateRGBM(m_CCSetLEDString, m_CCSetLEDFret, RGBMToUint(m_CCSetLEDColor));
+				if(g_HandleLEDStateCCCallback != NULL) {
+					r = g_HandleLEDStateCCCallback(m_CCSetLEDString, m_CCSetLEDFret, RGBMToUint(m_CCSetLEDColor));
+					ResetCCSetLED();
+					CRM_NA(r, "Failed to set CC Set LED msg");
+				}
+				else {
+					DEBUG_LINEOUT("No LED RGBM Handler present");
+				}
+
 			}
 		} break;
 
@@ -366,30 +415,43 @@ RESULT HandleMIDISysExBuffer() {
 	switch(pDeviceMsg->header.msgType) {
 
 		case DEVICE_MSG_ENABLE_DEBUG: {
-			CRM_NA(InitJTAGStrings(), "Failed to disable debug mode");
+			// This needs to be a callback
+			//CRM_NA(InitJTAGStrings(), "Failed to disable debug mode");
+			if(g_HandleDebugSysExCallback != NULL) {
+				CRM_NA(g_HandleDebugSysExCallback(TRUE), "Failed to enable debug mode");
+			}
+			else {
+				DEBUG_LINEOUT("No enable debug callback registered");
+			}
 		} break;
 
 		case DEVICE_MSG_DISABLE_DEBUG: {
-			CRM_NA(InitJTAG(), "Failed to enter debug mode");
+			//CRM_NA(InitJTAG(), "Failed to enter debug mode");
+			if(g_HandleDebugSysExCallback != NULL) {
+				CRM_NA(g_HandleDebugSysExCallback(FALSE), "Failed to disable debug mode");
+			}
+			else {
+				DEBUG_LINEOUT("No disable debug callback registered");
+			}
 		} break;
 
 		// TODO: Generalize MIDI Queue Arch
 		case DEVICE_MSG_REQ_FW_VERSION: {
-			GTAR_MIDI_EVENT gme;
-			gme.m_gmet = GTAR_SEND_FW_VERSION;
+			DEVICE_MIDI_EVENT gme;
+			gme.m_gmet = DEVICE_SEND_FW_VERSION;
 			gme.m_params_n = 0;
 			QueueNewMidiEvent(gme);
 		} break;
 
 		case DEVICE_MSG_REQ_BATTERY_STATUS: {
 			// Queue up send battery status and send battery charge
-			GTAR_MIDI_EVENT gme_status;
-			gme_status.m_gmet = GTAR_SEND_BATTERY_STATUS;
+			DEVICE_MIDI_EVENT gme_status;
+			gme_status.m_gmet = DEVICE_SEND_BATTERY_STATUS;
 			gme_status.m_params_n = 0;
 			QueueNewMidiEvent(gme_status);
 
-			GTAR_MIDI_EVENT gme_charge;
-			gme_charge.m_gmet = GTAR_SEND_BATTERY_CHARGE;
+			DEVICE_MIDI_EVENT gme_charge;
+			gme_charge.m_gmet = DEVICE_SEND_BATTERY_CHARGE;
 			gme_charge.m_params_n = 0;
 			QueueNewMidiEvent(gme_charge);
 		} break;
@@ -405,10 +467,12 @@ RESULT HandleMIDISysExBuffer() {
 		// TODO: Generalize Userspace
 		case DEVICE_MSG_COMMIT_USERSPACE: {
 			CommitUserSpace();
-			PrintPiezoSettingsUserspace();
 
-			GTAR_MIDI_EVENT gme;
-			gme.m_gmet = GTAR_SEND_COMMIT_USERSPACE;
+			// Pretty sure this was here for debugging,
+			// PrintPiezoSettingsUserspace();
+
+			DEVICE_MIDI_EVENT gme;
+			gme.m_gmet = DEVICE_SEND_COMMIT_USERSPACE;
 			gme.m_params_n = 1;
 			gme.m_params[0] = 0;
 			QueueNewMidiEvent(gme);
@@ -418,24 +482,26 @@ RESULT HandleMIDISysExBuffer() {
 			EraseUserSpace();
 			InitUserSpace();
 
-			GTAR_MIDI_EVENT gme;
-			gme.m_gmet = GTAR_SEND_RESET_USERSPACE;
+			DEVICE_MIDI_EVENT gme;
+			gme.m_gmet = DEVICE_SEND_RESET_USERSPACE;
 			gme.m_params_n = 1;
 			gme.m_params[0] = 0;
 			QueueNewMidiEvent(gme);
 		} break;
 
+		/*
 		case DEVICE_MSG_SET_ACCELEROMETER_STATE: {
 			DEVICE_SET_STATE *pDeviceSetAccelState = pDeviceMsg;
 			SetAccelerometerState(pDeviceSetAccelState);
 		} break;
+		*/
 
 		case DEVICE_MSG_REQ_SERIAL_NUM: {
 			DEVICE_REQUEST_BYTE_NUMBER *pDeviceRequestSerialNumber = pDeviceMsg;
 
 			// Request serial number
-			GTAR_MIDI_EVENT gme_status;
-			gme_status.m_gmet = GTAR_SEND_SERIAL_NUMBER;
+			DEVICE_MIDI_EVENT gme_status;
+			gme_status.m_gmet = DEVICE_SEND_SERIAL_NUMBER;
 			gme_status.m_params_n = 1;
 			gme_status.m_params[0] = pDeviceRequestSerialNumber->byteNumber;
 			QueueNewMidiEvent(gme_status);

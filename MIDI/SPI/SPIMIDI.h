@@ -59,7 +59,8 @@ extern bool g_fSPIMIDIInterrupt;
 RESULT HandleSPIMIDIInterrupt(void *pContext);
 RESULT CheckForSPIMIDIHangCondition();
 
-RESULT InitializeSPIMIDI();
+//RESULT InitializeSPIMIDI();
+RESULT InitializeSPIMIDI(int spiConfigNum);
 
 // MIDI functions
 RESULT SendSPIMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, uint8_t fOnOff);

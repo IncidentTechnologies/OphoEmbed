@@ -1165,6 +1165,7 @@ RESULT DeployFirmwarePage() {
 	if(g_curPage == g_totPages - 1) {
 		//PC = 0x10000;
 
+		/* Fix with the Piezo revive
 		if(g_DownloadedFirmwareIsPiezo) {
 			g_DownloadedPiezoFirmware_size = g_totFWBytes;
 			PiezoFWUpdate(g_DownloadedPiezoFirmware_size);
@@ -1177,6 +1178,14 @@ RESULT DeployFirmwarePage() {
 			SysCtlDelay(ROM_SysCtlClockGet() / 10);
 			ROM_SysCtlReset();
 		}
+		*/
+
+		g_DownloadedFirmwarePages = g_totPages;
+		SetUSFwUpdateStatus(FW_UPDATE_PENDING);
+
+		DEBUG_LINEOUT_NA("Resetting the device");
+		SysCtlDelay(ROM_SysCtlClockGet() / 10);
+		ROM_SysCtlReset();
 	}
 
 
@@ -1189,12 +1198,15 @@ Error:
 		g_checkSum = 0;
 	}
 
-	GTAR_MIDI_EVENT gme;
+	DEVICE_MIDI_EVENT gme;
 
+	/* TODO: Fix with the piezo revive
 	if(g_DownloadedFirmwareIsPiezo)
-		gme.m_gmet = GTAR_SEND_PIEZO_FW_ACK;
+		gme.m_gmet = DEVICE_SEND_PIEZO_FW_ACK;
 	else
-		gme.m_gmet = GTAR_SEND_FW_ACK;
+		gme.m_gmet = DEVICE_SEND_FW_ACK;
+	*/
+	gme.m_gmet = DEVICE_SEND_FW_ACK;
 
 	gme.m_params_n = 1;
 	gme.m_params[0] = (r == R_OK) ? 0x00 : 0x01;

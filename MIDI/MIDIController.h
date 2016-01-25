@@ -18,7 +18,18 @@ RESULT InitializeMIDIController();
 typedef RESULT (*cbHandleCustomDeviceSysEx)(DEVICE_MSG*);
 extern cbHandleCustomDeviceSysEx g_HandleCustomDeviceSysExCallback;
 RESULT RegisterHandleCustomDeviceSysExCallback(cbHandleCustomDeviceSysEx HandleCustomDeviceSysExCB);
-RESULT UnregisterHandleCustomDeviceSysExDeviceRegisteredCallback();
+RESULT UnregisterHandleCustomDeviceSysExCallback();
+
+typedef RESULT (*cbHandleDebugSysEx)(bool);
+extern cbHandleDebugSysEx g_HandleDebugSysExCallback;
+RESULT RegisterHandleDebugSysExCallback(cbHandleDebugSysEx HandleDebugSysExCB);
+RESULT UnregisterHandleDebugSysExCallback();
+
+// channel, value, RGBM color
+typedef RESULT (*cbHandleLEDStateCC)(uint8_t, uint8_t, uint8_t);
+extern cbHandleLEDStateCC g_HandleLEDStateCCCallback;
+RESULT RegisterHandleLEDStateCCCallback(cbHandleLEDStateCC HandleLEDStateCCCB);
+RESULT UnregisterHandleLEDStateCCCallback();
 
 // MIDI functions
 RESULT SendMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, uint8_t fOnOff);

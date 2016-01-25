@@ -3,8 +3,8 @@
 //#include "usbmidi.h"
 #include "../../Drivers/TM4C/SPIController.h"
 
-#define SPI_MIDI_CONFIG 1
 #define MAX_RX 16
+int m_SPIMidiConfig = 0;
 
 // Pending Incoming SPI MIDI events
 MIDI_MSG m_gTarPendingIncomingBLEMsgs[MAX_INCOMING_BLE_PENDING_MSGS];
@@ -138,7 +138,7 @@ Error:
 // then likely we have a hang condition
 RESULT CheckForSPIMIDIHangCondition() {
 	if(g_fSPIMIDIInterrupt == false) {
-		if(SSICheckInterruptLine(SPI_MIDI_CONFIG) == true) {
+		if(SSICheckInterruptLine(m_SPIMidiConfig) == true) {
 			DEBUG_LINEOUT_NA("SPI hang detected");
 			return HandleSPIMIDIInterrupt(NULL);
 		}
@@ -156,9 +156,9 @@ RESULT SSIReadSPIMessage(SPI_MESSAGE **n_ppSPIMessage) {
 	int i = 0;
 	uint16_t tempShort = 0xFFFF;
 	uint16_t rxBuffer[MAX_SPI_MSG_LENGTH];
-	uint8_t spiNum = SPI_MIDI_CONFIG;			// TODO: Make this more generic later?
+	uint8_t spiNum = m_SPIMidiConfig;			// TODO: Make this more generic later?
 
-	SSI_PERIPHERAL_INFO *pSSIPeripheral = GetSSIConfig(SPI_MIDI_CONFIG);
+	SSI_PERIPHERAL_INFO *pSSIPeripheral = GetSSIConfig(m_SPIMidiConfig);
 
 	CNRM_NA(pSSIPeripheral, "SSIReadSPIMessage: Failed to get config");
 	CBRM_NA((*n_ppSPIMessage == NULL), "SSIReadSPIMessage: spi message must be null");
@@ -201,21 +201,23 @@ Error:
 	return r;
 }
 
-RESULT InitializeSPIMIDI() {
+RESULT InitializeSPIMIDI(int spiConfigNum) {
 	RESULT r = R_OK;
+	m_SPIMidiConfig = spiConfigNum;
 
 	// Register a CB for the first SPI config
 	// TODO: Eventually have this set up the SPI config and kick it off
-	SSI_PERIPHERAL_INFO *pConfig = GetSSIConfig(SPI_MIDI_CONFIG);
-	CNRM(pConfig, "Could not find SSI Configuration %d for SPI", SPI_MIDI_CONFIG);
+	SSI_PERIPHERAL_INFO *pConfig = GetSSIConfig(m_SPIMidiConfig);
+	CNRM(pConfig, "Could not find SSI Configuration %d for SPI", m_SPIMidiConfig);
 
 	pConfig->intpin.cbInt = HandleSPIMIDIInterrupt;
 
 	CRM_NA(InitializeIncomingBLEQueue(), "Failed to initialize BLE Msg Queue");
 
-	CRM_NA(SPI1Init(), "init: Failed to initialize SPI1 at %d bitrate");
+	//CRM_NA(SPI1Init(), "init: Failed to initialize SPI1 at %d bitrate");
+	CRM(SSIInit(m_SPIMidiConfig), "init: Failed to initialize SPI%d at %d bitrate", m_SPIMidiConfig);
 
-	DEBUG_LINEOUT_NA("SPI MIDI initialized");
+	DEBUG_LINEOUT("SPI MIDI initialized on config %d", m_SPIMidiConfig);
 
 Error:
 	return r;
