@@ -60,6 +60,7 @@ RESULT HandleSPIMIDIInterrupt(void *pContext);
 RESULT CheckForSPIMIDIHangCondition();
 
 //RESULT InitializeSPIMIDI();
+RESULT SetSPIMIDIConfig(int SPIMidiConfig);
 RESULT InitializeSPIMIDI(int spiConfigNum);
 
 // MIDI functions

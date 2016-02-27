@@ -45,10 +45,10 @@ typedef enum DeviceMidiEventType {
 	*/
 
 
-} GTAR_MIDI_EVENT_TYPE;
+} DEVICE_MIDI_EVENT_TYPE;
 
 typedef struct DeviceMidiEvent {
-	GTAR_MIDI_EVENT_TYPE m_gmet;
+	DEVICE_MIDI_EVENT_TYPE m_gmet;
 	uint8_t m_params_n;
 	uint8_t m_params[MAX_MIDI_EVENT_PARAMS];
 } DEVICE_MIDI_EVENT;

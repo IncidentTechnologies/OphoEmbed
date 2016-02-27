@@ -201,6 +201,11 @@ Error:
 	return r;
 }
 
+RESULT SetSPIMIDIConfig(int SPIMidiConfig) {
+	m_SPIMidiConfig = SPIMidiConfig;
+	return R_OK;
+}
+
 RESULT InitializeSPIMIDI(int spiConfigNum) {
 	RESULT r = R_OK;
 	m_SPIMidiConfig = spiConfigNum;

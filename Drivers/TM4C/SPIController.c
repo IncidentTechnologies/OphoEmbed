@@ -41,13 +41,23 @@ RESULT SSIInit(uint8_t spiNum) {
 	// TODO: Horrible design, but for now
 	switch(spiNum) {
 		case 0: {
-			if(!g_device.m_fSPI0) g_device.m_fSPI0 = true;
-				else return R_NO_EFFECT;
+			if(!g_device.m_fSPI0) {
+				g_device.m_fSPI0 = true;
+			}
+			else {
+				DEBUG_LINEOUT("SSIInit: SPI0 Already initialized");
+				return R_NO_EFFECT;
+			}
 		} break;
 
 		case 1: {
-			if(!g_device.m_fSPI1) g_device.m_fSPI1 = true;
-				else return R_NO_EFFECT;
+			if(!g_device.m_fSPI1) {
+				g_device.m_fSPI1 = true;
+			}
+			else {
+				DEBUG_LINEOUT("SSIInit: SPI1 Already initialized");
+				return R_NO_EFFECT;
+			}
 		} break;
 
 		default: {

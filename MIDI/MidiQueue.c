@@ -96,7 +96,7 @@ RESULT ExecuteQueuedMidiEvent() {
 			CRM_NA(SendMidiNoteMsg( m_gTarPendingMidiEvents[i].m_params[0],
 									m_gTarPendingMidiEvents[i].m_params[1],
 									m_gTarPendingMidiEvents[i].m_params[2],
-									m_gTarPendingMidiEvents[i].m_params[3]), g_SendUSBMidiNoteMsg_errmsg);
+									m_gTarPendingMidiEvents[i].m_params[3]), "ExecuteQueuedMidiEvent: Failed to send usb midi note msg");
 		} break;
 
 		/*
@@ -108,31 +108,31 @@ RESULT ExecuteQueuedMidiEvent() {
 		*/
 
 		case DEVICE_SEND_FW_VERSION: {
-			CRM_NA(SendFirmwareVersion(), g_SendFirmwareVersion_errmsg);
+			CRM_NA(SendFirmwareVersion(), "ExecuteQueuedMidiEvent: SendFirmwareVersion failed");
 		} break;
 
 		case DEVICE_SEND_FW_ACK: {
-			CRM_NA(SendFirmwareDownloadAck( m_gTarPendingMidiEvents[i].m_params[0]), g_SendFirmwareDownloadAck_errmsg);
+			CRM_NA(SendFirmwareDownloadAck( m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueuedMidiEvent: Failed to FW downlaod ACK");
 		} break;
 
 		case DEVICE_SEND_BATTERY_STATUS: {
-			CRM_NA(SendBatteryStatusAck(), g_SendBatteryStatusAck_errmsg);
+			CRM_NA(SendBatteryStatusAck(), "ExecuteQueuedMidiEvent: Failed to send battery status ACK");
 		} break;
 
 		case DEVICE_SEND_BATTERY_CHARGE: {
-			CRM_NA(SendBatteryChargePercentageAck(), g_SendBatteryChargePercentageAck_errmsg);
+			CRM_NA(SendBatteryChargePercentageAck(), "ExecuteQueuedMidiEvent: Failed to send battery int8_tge percentage ACK");
 		} break;
 
 		case DEVICE_SEND_SERIAL_NUMBER: {
-			CRM_NA(SendRequestSerialNumberAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendRequestSerialNumberAck_errmsg);
+			CRM_NA(SendRequestSerialNumberAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send RequestSerialNumberAck");
 		} break;
 
 		case DEVICE_SEND_COMMIT_USERSPACE: {
-			CRM_NA(SendCommitUserspaceAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendCommitUserspaceAck_errmsg);
+			CRM_NA(SendCommitUserspaceAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send CommitUserspaceaAck");
 		} break;
 
 		case DEVICE_SEND_RESET_USERSPACE: {
-			CRM_NA(SendResetUserspaceAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendResetUserspaceAck_errmsg);
+			CRM_NA(SendResetUserspaceAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send ResetUserspaceaAck");
 		} break;
 
 		// Pass event to device - still hits Error if there's an issue
