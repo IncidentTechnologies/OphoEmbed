@@ -194,8 +194,10 @@ RESULT SSIReadSPIMessage(SPI_MESSAGE **n_ppSPIMessage) {
 		((uint8_t*)(*n_ppSPIMessage))[i + 1] = (uint8_t)((rxBuffer[i/2] & 0x00FF));
 	}
 
-	//DEBUG_LINEOUT("SPI RX %d bytes", SPIMessageHeader.length);
-	//UARTprintfBinaryData((unsigned char*)(n_ppSPIMessage), SPIMessageHeader.length, 20);
+	/*
+	DEBUG_LINEOUT("SPI RX %d bytes", SPIMessageHeader.length);
+	UARTprintfBinaryData((unsigned char*)(n_ppSPIMessage), SPIMessageHeader.length, 20);
+	//*/
 
 Error:
 	return r;

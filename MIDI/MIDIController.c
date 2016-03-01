@@ -219,15 +219,17 @@ RESULT HandleMIDISysExPacket(MIDI_MSG midiPacket) {
 	for(i = 0; i < 3; i++) {
 		uint8_t dataByte = pBuffer[i];
 
-		if(dataByte == MIDI_SYS_EX) {
-			CRM_NA(SysExError(), "HandleMIDISysExPacket: got 0xF0 inside a sysex message");
-		}
-		else if(dataByte == MIDI_SYS_EX_END) {
+		if(dataByte == MIDI_SYS_EX_END) {
 			// end of sys ex
 			m_fSysEx = false;
 			return HandleMIDISysExBuffer();
 		}
 		else {
+			if(dataByte == MIDI_SYS_EX) {
+				//CRM_NA(SysExError(), "HandleMIDISysExPacket: got 0xF0 inside a sysex message");
+				//DEBUG_LINEOUT("Warning: 0xF0 inside of SysEx message");
+				// TODO: Fix the iOS app to use the new MRGB format!!
+			}
 			m_pSysExBuffer[m_pSysExBuffer_n++] = dataByte;
 		}
 	}
@@ -238,6 +240,8 @@ Error:
 
 RESULT HandleMIDIPacket(MIDI_MSG midiPacket) {
 	RESULT r = R_OK;
+
+	//DEBUG_LINEOUT("SPI H: %02x %02x %02x", midiPacket.type, midiPacket.data1, midiPacket.data2);
 
 	if(m_fSysEx) {
 		return HandleMIDISysExPacket(midiPacket);
@@ -403,7 +407,7 @@ RESULT HandleMIDISysExBuffer() {
 
 	// Handle MIDI Sys Ex!
 
-	///*
+	/*
 	DEBUG_LINEOUT("*** rx sysex buffer: %d bytes ***", m_pSysExBuffer_n);
 	UARTprintfBinaryData(m_pSysExBuffer, m_pSysExBuffer_n, 20);
 	//*/
@@ -582,10 +586,14 @@ RESULT HandleMIDISysExBuffer() {
 		} break;
 
 		default: {
-			if(g_HandleCustomDeviceSysExCallback != NULL)
-				return g_HandleCustomDeviceSysExCallback(pDeviceMsg);
-			else
+			//DEBUG_LINEOUT("Handling device specifc SysEx type 0x%x", pDeviceMsg->header.msgType);
+
+			if(g_HandleCustomDeviceSysExCallback != NULL) {
+				CRM(g_HandleCustomDeviceSysExCallback(pDeviceMsg), "Device handler failed");
+			}
+			else {
 				DEBUG_LINEOUT("Unhandled SysEx type 0x%x", pDeviceMsg->header.msgType);
+			}
 		} break;
 	}
 
