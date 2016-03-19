@@ -5,6 +5,7 @@
 
 #define MAX_RX 16
 int m_SPIMidiConfig = 0;
+bool m_fSPIMIDIInitialized = false;
 
 // Pending Incoming SPI MIDI events
 MIDI_MSG m_gTarPendingIncomingBLEMsgs[MAX_INCOMING_BLE_PENDING_MSGS];
@@ -29,18 +30,19 @@ Error:
 	return r;
 }
 
-RESULT QueueNewIncomingBLEMsg(MIDI_MSG midiMsg) {
-	RESULT r = R_OK;
+// Critical path - conventions need not apply
+inline RESULT QueueNewIncomingBLEMsg(MIDI_MSG midiMsg) {
+	//RESULT r = R_OK;
 
-	CBRM_NA((m_gTarPendingIncomingBLEMsgs_n < MAX_INCOMING_BLE_PENDING_MSGS), "QueueNewIncomingBLEMsg: Cannot queue another message as queue is full!");
-
-	 int32_t  i = m_gTarPendingIncomingBLEMsgs_c;
-	 int32_t  j = 0;
+	if(m_gTarPendingIncomingBLEMsgs_n >= MAX_INCOMING_BLE_PENDING_MSGS){
+		DEBUG_LINEOUT("QueueNewIncomingBLEMsg: Cannot queue another message as queue is full!");
+		return R_FAIL;
+	}
 
 	 // copy over the event to avoid dynamic allocation
-	m_gTarPendingIncomingBLEMsgs[i].type = midiMsg.type;
-	m_gTarPendingIncomingBLEMsgs[i].data1 = midiMsg.data1;
-	m_gTarPendingIncomingBLEMsgs[i].data2 = midiMsg.data2;
+	m_gTarPendingIncomingBLEMsgs[m_gTarPendingIncomingBLEMsgs_c].type = midiMsg.type;
+	m_gTarPendingIncomingBLEMsgs[m_gTarPendingIncomingBLEMsgs_c].data1 = midiMsg.data1;
+	m_gTarPendingIncomingBLEMsgs[m_gTarPendingIncomingBLEMsgs_c].data2 = midiMsg.data2;
 
 	m_gTarPendingIncomingBLEMsgs_n++;
 
@@ -54,8 +56,7 @@ RESULT QueueNewIncomingBLEMsg(MIDI_MSG midiMsg) {
 			midiMsg.type, m_gTarPendingIncomingBLEMsgs_c, m_gTarPendingIncomingBLEMsgs_n, m_gTarPendingIncomingBLEMsgs_e);
 	//*/
 
-Error:
-	return r;
+	return R_OK;
 }
 
 uint8_t IsIncomingBLEMsgPending() {
@@ -88,9 +89,11 @@ Error:
 
 bool g_fSPIMIDIInterrupt = false;
 
+
+// Critical path (interrupt) - conventions need not apply
 RESULT HandleSPIMIDIInterrupt(void *pContext) {
 	g_fSPIMIDIInterrupt = true;
-	RESULT r = R_OK;
+	//RESULT r = R_OK;
 
 	/*
 	uint16_t sTX = 0xAAAA;
@@ -99,17 +102,28 @@ RESULT HandleSPIMIDIInterrupt(void *pContext) {
 	*/
 
 	SPI_MESSAGE *pSPIMessage = NULL;
-	CRM_NA(SSIReadSPIMessage(&pSPIMessage), "HandleSPIMIDIInterrupt: Failed to read SPI message");
+
+	if(SSIReadSPIMessage(&pSPIMessage) != R_OK) {
+		DEBUG_LINEOUT("HandleSPIMIDIInterrupt: Failed to read SPI message");
+		g_fSPIMIDIInterrupt = false;
+		return R_FAIL;
+	}
 
 	switch(pSPIMessage->header.type) {
 		case SPI_MSG_MIDI: {
-			SPI_MIDI_MESSAGE *pSPIMidiMessage = (SPI_MIDI_MESSAGE *)(pSPIMessage);
+			//SPI_MIDI_MESSAGE *pSPIMidiMessage = (SPI_MIDI_MESSAGE *)(pSPIMessage);
 
 			//DEBUG_LINEOUT("spi midi: 0x%x %d %d", pSPIMidiMessage->midiMsg.type, pSPIMidiMessage->midiMsg.data1, pSPIMidiMessage->midiMsg.data2);
 
 			// Queue incoming MIDI
 			// CRM_NA(HandleMIDIPacket(pSPIMidiMessage->midiMsg), "HandleSPIMIDI: Failed to handle MIDI Message");
-			CRM_NA(QueueNewIncomingBLEMsg(pSPIMidiMessage->midiMsg), "HandleSPIMIDI: Failed to queue BLE MIDI Message");
+
+			//if(QueueNewIncomingBLEMsg(pSPIMidiMessage->midiMsg) != R_OK) {
+			if(QueueNewIncomingBLEMsg(((SPI_MIDI_MESSAGE *)(pSPIMessage))->midiMsg) != R_OK) {
+				DEBUG_LINEOUT("HandleSPIMIDI: Failed to queue BLE MIDI Message");
+				g_fSPIMIDIInterrupt = false;
+				return R_FAIL;
+			}
 		} break;
 
 		case SPI_MSG_SYS: {
@@ -129,15 +143,14 @@ RESULT HandleSPIMIDIInterrupt(void *pContext) {
 		} break;
 	}
 
-Error:
 	g_fSPIMIDIInterrupt = false;
-	return r;
+	return R_OK;
 }
 
 // If the INT signal is high, but we didn't hit the ISR
 // then likely we have a hang condition
 RESULT CheckForSPIMIDIHangCondition() {
-	if(g_fSPIMIDIInterrupt == false) {
+	if(g_fSPIMIDIInterrupt == false && m_fSPIMIDIInitialized == true) {
 		if(SSICheckInterruptLine(m_SPIMidiConfig) == true) {
 			DEBUG_LINEOUT_NA("SPI hang detected");
 			return HandleSPIMIDIInterrupt(NULL);
@@ -151,7 +164,7 @@ RESULT CheckForSPIMIDIHangCondition() {
 // This will read a message by sending shorts, this will copy the data into new memory
 // TODO: This will discard the RX data for now
 // TODO: Should this go into the SPI Controller?
-RESULT SSIReadSPIMessage(SPI_MESSAGE **n_ppSPIMessage) {
+inline RESULT SSIReadSPIMessage(SPI_MESSAGE **n_ppSPIMessage) {
 	RESULT r = R_OK;
 	int i = 0;
 	uint16_t tempShort = 0xFFFF;
@@ -224,6 +237,7 @@ RESULT InitializeSPIMIDI(int spiConfigNum) {
 	//CRM_NA(SPI1Init(), "init: Failed to initialize SPI1 at %d bitrate");
 	CRM(SSIInit(m_SPIMidiConfig), "init: Failed to initialize SPI%d at %d bitrate", m_SPIMidiConfig);
 
+	m_fSPIMIDIInitialized = true;
 	DEBUG_LINEOUT("SPI MIDI initialized on config %d", m_SPIMidiConfig);
 
 Error:

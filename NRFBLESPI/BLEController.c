@@ -2,12 +2,12 @@
 
 bool m_fBLEConnected = false;
 
-RESULT SetBLEConnect(uint8_t fStatus) {
+inline RESULT SetBLEConnect(uint8_t fStatus) {
 	m_fBLEConnected = fStatus;
 	return R_OK;
 }
 
-bool IsBLEConnected() {
+inline bool IsBLEConnected() {
 #ifdef SPOOF_BLE
 	return SPOOF_BLE;
 #else

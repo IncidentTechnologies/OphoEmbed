@@ -241,7 +241,7 @@ Error:
 RESULT HandleMIDIPacket(MIDI_MSG midiPacket) {
 	RESULT r = R_OK;
 
-	//DEBUG_LINEOUT("SPI H: %02x %02x %02x", midiPacket.type, midiPacket.data1, midiPacket.data2);
+	//DEBUG_LINEOUT("SPI H: %02x %02x %02x sysex:%d", midiPacket.type, midiPacket.data1, midiPacket.data2, m_fSysEx);
 
 	if(m_fSysEx) {
 		return HandleMIDISysExPacket(midiPacket);
