@@ -14,6 +14,7 @@
 #define MAX_SYS_EX_SIZE 1024*2
 
 RESULT InitializeMIDIController();
+bool IsMIDIConnected();
 
 typedef RESULT (*cbHandleCustomDeviceSysEx)(DEVICE_MSG*);
 extern cbHandleCustomDeviceSysEx g_HandleCustomDeviceSysExCallback;

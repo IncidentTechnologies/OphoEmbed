@@ -57,7 +57,6 @@ typedef enum incident_result
     R_FALSE 		= 0x80000000,
     R_DEPRECATED	= 0x80000001,			// Deprecated is an error, since this should not be called
     R_OUT_OF_BOUNDS	= 0x80000002,
-    
     R_TIMEOUT		= 0x80000003,
 
     // Success Codes
@@ -71,6 +70,7 @@ typedef enum incident_result
     R_UNSUPPORTED   = 0x00000010,
     R_NO_EFFECT		= 0x00000010,
     R_OFF			= 0x00000020,
+	R_NOT_CONNECTED = 0x00000030,
     
     
     R_INVALID_RESULT        = 0xFFFFFFFF        // Last result EVER!

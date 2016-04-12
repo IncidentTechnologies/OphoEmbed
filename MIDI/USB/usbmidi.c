@@ -2273,6 +2273,15 @@ RESULT USBStatusCallback(void *pContext) {
 
 USB_PERIPHERAL_INFO *m_pUSBPeripheral = NULL;
 
+bool IsUSBConnected() {
+#ifdef SPOOF_MIDI
+	return SPOOF_MIDI;
+#else
+	return g_fUSBConnected;
+#endif
+}
+
+
 RESULT InitializeUSBPeripheralConfiguration(USB_PERIPHERAL_INFO *pUSBPeripheral) {
 	m_pUSBPeripheral = pUSBPeripheral;
 	return R_OK;

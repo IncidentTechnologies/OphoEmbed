@@ -54,7 +54,8 @@ RESULT QueueNewMidiEvent(DEVICE_MIDI_EVENT event) {
 
 	int32_t  i = m_gTarPendingMidiEvents_c;
 	int32_t  j = 0;
-	// copy over the event to avoid dynamic allocation
+
+	// Copy over the event to avoid dynamic allocation
 	m_gTarPendingMidiEvents[i].m_gmet = event.m_gmet;
 	m_gTarPendingMidiEvents[i].m_params_n = event.m_params_n;
 	for(j = 0; j < event.m_params_n; j++)
@@ -62,7 +63,7 @@ RESULT QueueNewMidiEvent(DEVICE_MIDI_EVENT event) {
 
 	m_gTarPendingMidiEvents_n++;
 
-	// circular buffer style
+	// Circular buffer style
 	m_gTarPendingMidiEvents_c++;
 	if(m_gTarPendingMidiEvents_c == MAX_PENDING_EVENTS)
 		m_gTarPendingMidiEvents_c = 0;

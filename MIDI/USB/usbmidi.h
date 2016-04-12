@@ -7,6 +7,7 @@
 
 //#define USB_VERBOSE
 #define USB_UDMA
+//#define SPOOF_MIDI true
 
 #include "driverlib/gpio.h"
 #include "inc/hw_memmap.h"
@@ -257,6 +258,8 @@ typedef struct {
 #define USB_MIDI_DP_PIN		GPIO_PIN_0
 #define USB_MIDI_DM_PIN		GPIO_PIN_1
 */
+
+bool IsUSBConnected();
 
 // Initialize USB-MIDI
 RESULT InitializeUSBPeripheralConfiguration(USB_PERIPHERAL_INFO *pUSBPeripheral);

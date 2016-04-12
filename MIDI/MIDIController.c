@@ -88,96 +88,100 @@ Error:
 	return r;
 }
 
+bool IsMIDIConnected() {
+	return (IsBLEConnected() || IsUSBConnected());
+}
+
 // Device MIDI functions
 // Application functions should be declared in the given application MIDI Controller
 RESULT SendMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, uint8_t fOnOff) {
 	if(IsBLEConnected())
 		return SendSPIMidiNoteMsg(midiVal, midiVelocity, channel, fOnOff);
-	else
+	else if(IsUSBConnected())
 		return SendUSBMidiNoteMsg(midiVal, midiVelocity, channel, fOnOff);
 
-	//return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendMidiCC(uint8_t index, uint8_t value) {
 	if(IsBLEConnected())
 		return SendSPIMidiCC(index, value);
-	else
+	else if(IsUSBConnected())
 		return SendUSBMidiCC(index, value);
 
-	//return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendFirmwareVersion() {
 	if(IsBLEConnected())
 		return SendSPIFirmwareVersion();
-	else
+	else if(IsUSBConnected())
 		return SendUSBFirmwareVersion();
 
-	// return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendFirmwareDownloadAck(uint8_t status) {
 	if(IsBLEConnected())
 		return SendSPIFirmwareDownloadAck(status);
-	else
+	else if(IsUSBConnected())
 		return SendUSBFirmwareDownloadAck(status);
 
-	// return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendBatteryStatusAck() {
 	if(IsBLEConnected())
 		return SendSPIBatteryStatusAck();
-	else
+	else if(IsUSBConnected())
 		return SendUSBBatteryStatusAck();
 
-	// return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendBatteryChargePercentageAck() {
 	if(IsBLEConnected())
 		return SendSPIBatteryChargePercentageAck();
-	else
+	else if(IsUSBConnected())
 		return SendUSBBatteryChargePercentageAck();
 
-	// return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendRequestSerialNumberAck(uint8_t byteNumber) {
 	if(IsBLEConnected())
 		return SendSPIRequestSerialNumberAck(byteNumber);
-	else
+	else if(IsUSBConnected())
 		return SendUSBRequestSerialNumberAck(byteNumber);
 
-	// return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendAck(uint8_t SendBuffer[4]) {
 	if(IsBLEConnected())
 		return SendSPIAck(SendBuffer);
-	else
+	else if(IsUSBConnected())
 		return SendUSBAck(SendBuffer);
 
-	// return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendCommitUserspaceAck(uint8_t status) {
 	if(IsBLEConnected())
 		return SendSPICommitUserspaceAck(status);
-	else
+	else if(IsUSBConnected())
 		return SendUSBCommitUserspaceAck(status);
 
-	// return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 RESULT SendResetUserspaceAck(uint8_t status) {
 	if(IsBLEConnected())
 		return SendSPICommitUserspaceAck(status);
-	else
+	else if(IsUSBConnected())
 		return SendUSBCommitUserspaceAck(status);
 
-	// return R_FAIL;
+	return R_NOT_CONNECTED;
 }
 
 //uint8_t m_pSysExBuffer[MAX_SYS_EX_SIZE];
