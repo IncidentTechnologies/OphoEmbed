@@ -100,6 +100,11 @@
 //#define CNRM_NA(pointer, msg) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_LINEOUT_NA(msg); r = R_ERROR; goto Error; }
 #define CNRM_NA(pointer, msg) CNRM(pointer, msg)
 
+// CN Alias
+#define CN(pointer) CNR(pointer)
+#define CNM(pointer, msg, ...) CNRM(pointer, msg, ##__VA_ARGS__)
+#define CNM_NA(pointer, msg) CNM(pointer, msg)
+
 // Check NULL Result Message
 // Ensures that the pointer is not a NULL
 //#define CNRM(pointer, msg, ...) if(pointer == NULL) { DEBUG_CURRENT_LINE(); DEBUG_MSG(msg, __VA_ARGS__); DEBUG_MSG("\r\n"); r = R_ERROR; goto Error; }

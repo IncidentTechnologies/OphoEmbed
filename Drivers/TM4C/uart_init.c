@@ -45,6 +45,7 @@ int32_t  UART0write(const int8_t *pcBuf, uint32_t  ulLen) {
 RESULT UART0printf(const int8_t *pcString, ...) {
 	RESULT r = R_OK;
 
+	float fValue;
     uint32_t  ulIdx, ulValue, ulPos, ulCount, ulBase, ulNeg;
     int8_t *pcStr, pcBuf[16], cFill;
     va_list vaArgP;
