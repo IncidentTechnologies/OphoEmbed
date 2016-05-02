@@ -108,6 +108,11 @@ RESULT ExecuteQueuedMidiEvent() {
 		} break;
 		*/
 
+		case DEVICE_SEND_MIDI_CONTROL_CHANGE: {
+			CRM_NA(SendMidiCC( m_gTarPendingMidiEvents[i].m_params[0], m_gTarPendingMidiEvents[i].m_params[1]),
+					"ExecuteQueuedMidiEvent: Failed to send usb midi CC msg");
+		} break;
+
 		case DEVICE_SEND_FW_VERSION: {
 			CRM_NA(SendFirmwareVersion(), "ExecuteQueuedMidiEvent: SendFirmwareVersion failed");
 		} break;
