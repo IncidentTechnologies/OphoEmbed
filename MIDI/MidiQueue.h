@@ -7,7 +7,7 @@
 #include "USB/usbmidi.h"		// TODO: move the defines?
 
 #define MAX_MIDI_EVENT_PARAMS 4
-#define MAX_PENDING_EVENTS 20
+#define MAX_PENDING_EVENTS 40
 
 // MIDI_QUEUE_VERBOSE - Used for debugging the MIDI queue
 // Will output debug messages when events are queued or executed
