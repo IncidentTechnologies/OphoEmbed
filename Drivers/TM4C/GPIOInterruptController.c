@@ -34,12 +34,19 @@ GPIO_INTERRUPT_LUT g_PortInterrupts[] = {
 		.InterruptHandlerCallback = GPIOPortKIntHandler,
 		.port = GPIO_PORTK_BASE,
 		.pin = 0
+	},
+	{
+		.fEnabled = 0,
+		.InterruptHandlerCallback = GPIOPortJIntHandler,
+		.port = GPIO_PORTJ_BASE,
+		.pin = 0
 	}
 };
 int g_PortInterrupts_n = sizeof(g_PortInterrupts) / sizeof(g_PortInterrupts[0]);
 
 int g_PortHConfig = 0;
 int g_PortKConfig = 0;
+int g_PortJConfig = 0;
 
 
 RESULT InitializeGPIOInterruptController() {
@@ -53,6 +60,7 @@ RESULT InitializeGPIOInterruptController() {
 		switch(g_PortInterrupts[i].port) {
 			case GPIO_PORTH_BASE: g_PortHConfig = i; break;
 			case GPIO_PORTK_BASE: g_PortKConfig = i; break;
+			case GPIO_PORTJ_BASE: g_PortJConfig = i; break;
 		}
 	}
 
@@ -83,6 +91,8 @@ RESULT RegisterInterrupt(uint32_t port, uint8_t pin, uint32_t type, PinInterrupt
 	g_PortInterrupts[i].pin[pin].fEnabled = 1;
 	GPIOIntEnable(port, GPIO_PIN(pin));
 
+	DEBUG_LINEOUT("Registered int on port 0x%x pin %d", port, pin);
+
 Error:
 	return r;
 }
@@ -108,5 +118,9 @@ void GPIOPortHIntHandler(void) {
 // Port K Interrupt Handler
 void GPIOPortKIntHandler(void) {
 	return GPIOIntHandler(GPIO_PORTK_BASE, g_PortKConfig);
+}
+
+void GPIOPortJIntHandler(void) {
+	return GPIOIntHandler(GPIO_PORTJ_BASE, g_PortJConfig);
 }
 

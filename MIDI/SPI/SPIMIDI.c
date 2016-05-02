@@ -93,13 +93,6 @@ bool g_fSPIMIDIInterrupt = false;
 // Critical path (interrupt) - conventions need not apply
 RESULT HandleSPIMIDIInterrupt(void *pContext) {
 	g_fSPIMIDIInterrupt = true;
-	//RESULT r = R_OK;
-
-	/*
-	uint16_t sTX = 0xAAAA;
-	uint16_t pRXBuffer[MAX_RX];
-	int i = 0;
-	*/
 
 	SPI_MESSAGE *pSPIMessage = NULL;
 
@@ -138,6 +131,10 @@ RESULT HandleSPIMIDIInterrupt(void *pContext) {
 				case SPI_SYS_BLE_DISCONNECTED: {
 					SetBLEConnect(false);
 					DEBUG_LINEOUT_NA("BLE Disconnected!");
+				} break;
+
+				default: {
+					DEBUG_LINEOUT("Unhandled SPI SYS MSG 0x%x", pSPISysMessage->msgType);
 				} break;
 			}
 		} break;
@@ -256,7 +253,8 @@ RESULT SendSPIMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel
 
 	DEBUG_LINEOUT("Sending SPI note %s val %d chan %d", (fOnOff) ? "on" : "off", channel, midiVal);
 
-	return SSI1SendBuffer((uint16_t*)(&spiMidiNoteMessage), sizeof(spiMidiNoteMessage) / 2);
+	//return SSI1SendBuffer((uint16_t*)(&spiMidiNoteMessage), sizeof(spiMidiNoteMessage) / 2);
+	return SSISendBuffer(m_SPIMidiConfig, (uint16_t*)(&spiMidiNoteMessage), sizeof(spiMidiNoteMessage) / 2);
 }
 
 RESULT SendSPIMidiCC(uint8_t index, uint8_t value, uint8_t channel) {
@@ -274,8 +272,8 @@ RESULT SendSPIMidiCC(uint8_t index, uint8_t value, uint8_t channel) {
 	spiMidiMessage.midiMsg.data1 = index;
 	spiMidiMessage.midiMsg.data2 = value;
 
-	return SSI1SendBuffer((uint16_t*)(&spiMidiMessage), sizeof(spiMidiMessage) / 2);
-
+	//return SSI1SendBuffer((uint16_t*)(&spiMidiMessage), sizeof(spiMidiMessage) / 2);
+	return SSISendBuffer(m_SPIMidiConfig, (uint16_t*)(&spiMidiMessage), sizeof(spiMidiMessage) / 2);
 }
 
 // SendFirmwareVersion
@@ -317,7 +315,8 @@ RESULT SendSPIAck(uint8_t SendBuffer[4]) {
 	spiMidiMessage.midiMsg.data1 = SendBuffer[2];
 	spiMidiMessage.midiMsg.data2 = SendBuffer[3];
 
-	return SSI1SendBuffer((uint16_t*)(&spiMidiMessage), sizeof(spiMidiMessage) / 2);
+	//return SSI1SendBuffer((uint16_t*)(&spiMidiMessage), sizeof(spiMidiMessage) / 2);
+	return SSISendBuffer(m_SPIMidiConfig, (uint16_t*)(&spiMidiMessage), sizeof(spiMidiMessage) / 2);
 }
 
 // Send Battery Status Ack

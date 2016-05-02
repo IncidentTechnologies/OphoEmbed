@@ -28,7 +28,7 @@ typedef RESULT (*PinInterruptCallback)(void *);
 #define FRET_LED_TX_PIN		 GPIO_PIN_5
 */
 
-#define DEFAULT_SPI_BITRATE 100000
+#define DEFAULT_SPI_BITRATE 2000000
 #define SPI_SHORT(s) ((s & 0xFF) << 8) + ((s & 0xFF00) >> 8)
 
 #define MAX_SPI_MSG_LENGTH 16

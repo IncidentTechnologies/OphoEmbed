@@ -424,6 +424,11 @@ const uint8_t gc_pManufacturerString[] =  {
 	
 };
 
+// TODO: Fix this
+//#define KEYS_USB
+//#define GTAR_USB
+
+#ifdef _GTAR_DEVICE
 const uint8_t gc_pProductString[] =  {
 	(4 + 1) * 2,
 	USB_DTYPE_STRING,
@@ -435,6 +440,21 @@ const uint8_t gc_pSerialString[] = {
 	USB_DTYPE_STRING,
 	'G', 0, 'T', 0, 'A', 0, 'R', 0
 };
+#endif
+
+#ifdef _KEYS_DEVICE
+const uint8_t gc_pProductString[] =  {
+	(4 + 1) * 2,
+	USB_DTYPE_STRING,
+	'K', 0, 'e', 0, 'y', 0, 's', 0
+};
+
+const uint8_t gc_pSerialString[] = {
+	(4 + 1) * 2,
+	USB_DTYPE_STRING,
+	'K', 0, 'E', 0, 'Y', 0, 'S', 0
+};
+#endif
 
 const uint8_t gc_piAPInterfaceString[] = {
 	(13 + 1) * 2,
@@ -500,66 +520,74 @@ tDeviceInfo gc_MidiDevice_iAP =
 #endif
 
 tStdRequest GetDescriptorCB(void *pvInstance, tUSBRequest *pUSBRequest) {
-#ifdef USB_VERBOSE
+//#ifdef USB_VERBOSE
 	DEBUG_LINEOUT_NA("GetDescriptorCB");
-#endif
+//#endif
 	return NULL;
 }
 
 tStdRequest RequestHandlerCB(void *pvInstance, tUSBRequest *pUSBRequest) {
-#ifdef USB_VERBOSE
+//#ifdef USB_VERBOSE
 	DEBUG_LINEOUT("RequestHandlerCB type:0x%x r:0x%x val:0x%x i:0x%x len:0x%x",
 				   pUSBRequest->bmRequestType,  pUSBRequest->bRequest,
 				   pUSBRequest->wValue, pUSBRequest->wIndex, pUSBRequest->wLength);
-#endif
+//#endif
 	
 	return NULL;
 }
 
 tInterfaceCallback InterfaceChangeCB(void *pvInstance, uint8_t ucInterfaceNum, uint8_t ucAlternateSetting) {
-#ifdef USB_VERBOSE
+//#ifdef USB_VERBOSE
 	DEBUG_LINEOUT_NA("InterfaceChangeCB");
-#endif
+//#endif
 	return NULL;	
 }
 
 tInfoCallback ConfigChangeCB(void *pvInstance, uint32_t  ulInfo) {
-#ifdef USB_VERBOSE
+//#ifdef USB_VERBOSE
 	DEBUG_LINEOUT("ConfigChangeCB: 0x%x", ulInfo);
-#endif
+//#endif
 	
-	// flush out the FIFOs
+	// If config number is not zero
+	if(ulInfo != 0)
+		g_fUSBConnected = TRUE;
+
+	// Flush out the FIFOs
 	USBFIFOFlush(USB0_BASE, USB_EP_1, USB_EP_DEV_IN);
 	USBFIFOFlush(USB0_BASE, USB_EP_2, USB_EP_DEV_IN);
 	USBFIFOFlush(USB0_BASE, USB_EP_1, USB_EP_DEV_OUT);
 	
-	// send zlp on interrupt pipe	
+	// Send zlp on interrupt pipe
 	SendZLP(USB0_BASE, USB_EP_1);
 	
 	return NULL;
 }
 
 tInfoCallback DataReceivedCB(void *pvInstance, uint32_t  ulInfo) {
-#ifdef USB_VERBOSE
+//#ifdef USB_VERBOSE
 	DEBUG_LINEOUT_NA("DataReceivedCB");
-#endif
+//#endif
 	return NULL;
 }
 
 tUSBIntHandler BusResetCB(void *pvInstance) {
-#ifdef USB_VERBOSE
+//#ifdef USB_VERBOSE
 	DEBUG_LINEOUT_NA("BusResetCB");
-#endif
+//#endif
+
+	g_fFirst = 0;
+	g_fUSBConnected = FALSE;
+
 	return NULL;
 }
 
 tUSBIntHandler BusSuspendCB(void *pvInstance) {
-#ifdef USB_VERBOSE
+//#ifdef USB_VERBOSE
 	DEBUG_LINEOUT_NA("BusSuspendCB");
-#endif
+//#endif
 	
 	g_fFirst = 0;
-	g_fUSBConnected = 0;
+	g_fUSBConnected = FALSE;
 
 #ifdef IPHONE_IAP
 	g_fiPhoneAuthenticated = 0;
@@ -573,9 +601,10 @@ tUSBIntHandler BusSuspendCB(void *pvInstance) {
 }
 
 tUSBIntHandler BusResumeCB(void *pvInstance) {
-#ifdef USB_VERBOSE
+//#ifdef USB_VERBOSE
 	DEBUG_LINEOUT_NA("BusResumeCB");
-#endif
+//#endif
+
 	return NULL;
 }
 
@@ -597,7 +626,7 @@ static void EndpointCB(void *pvInstance, uint32_t  ulStatus) {
 	DEBUG_LINEOUT("EndpointCB status:0x%x\r\n", ulStatus);
 #endif
 	
-	 int32_t  ep = USB_EP_0;
+	int32_t  ep = USB_EP_0;
 
 	if(ulStatus & 0x80000)
 		ep = USB_EP_3;
@@ -606,7 +635,7 @@ static void EndpointCB(void *pvInstance, uint32_t  ulStatus) {
 	else if(ulStatus & 0x4 || ulStatus & 0x40000)
 		ep = USB_EP_2;  	
 		
-	// lets not mess with it if it's EP0
+	// Lets not mess with it if it's EP0
 	if(ep != USB_EP_0)
 	{
 		uint32_t  ulFlags = USBEndpointStatus(USB0_BASE, ep);	
