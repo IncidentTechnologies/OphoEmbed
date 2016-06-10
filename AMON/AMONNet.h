@@ -17,6 +17,8 @@
 #define AMONShort(usValue)       (usValue & 0xff), (usValue >> 8)
 #define AMONToShort(lsb, msb) 	 ((msb & 0xFF) << 8) + (lsb & 0xFF)
 
+#define AMON_LINK_INTERVAL_DIV 30
+
 //#define AMON_VERBOSE
 
 extern int g_SysTicksPerSecond;

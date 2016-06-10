@@ -96,6 +96,8 @@ RESULT UnregisterLinkDelayCallback();
 
 RESULT InitAMONPHY();
 
+RESULT AMONHandlePHYError(const char *pszStr, AMON_LINK link);
+
 RESULT AMONErrorLink(AMON_LINK link);
 RESULT AMONReceiveByte(AMON_LINK link, unsigned char byte);
 RESULT AMONHandlePHYByte(AMON_LINK link, unsigned char byte);

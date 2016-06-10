@@ -34,6 +34,32 @@ Error:
 	return r;
 }
 
+RESULT ResetLink(AMON_LINK link) {
+	RESULT r = R_OK;
+
+	DEBUG_LINEOUT("RESET LINK %d", link);
+
+	//CRM(FlushPHY(link), "ResetLink: Failed to flush link %d PHY", link);
+
+	memset(link_input[link][MAX_MSG_LENGTH], 0, sizeof(unsigned char) * MAX_MSG_LENGTH);
+	link_input_c[link] = 0;
+
+	g_LinkRxState[link] = AMON_RX_READY;
+
+	g_linkMessageLength[link] = 0;
+	g_linkMessageType[link] = AMON_NULL;
+
+	g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
+	g_AMONLinkStates[link] = AMON_LINK_UNINITIALIZED;
+
+	// Unlock the link
+	UnlockAMONLinkRx(link);
+	UnlockAMONLinkTx(link);
+
+Error:
+	return R_OK;
+}
+
 cbAMONLink g_AMONLinkEstablishedCallback = NULL;
 RESULT RegisterAMONLinkEstablishedCallback(cbAMONLink AMONLinkEstablishedCB) {
 	RESULT r = R_OK;
@@ -76,32 +102,6 @@ Error:
 	return r;
 }
 
-RESULT ResetLink(AMON_LINK link) {
-	RESULT r = R_OK;
-
-	DEBUG_LINEOUT("RESET LINK %d", link);
-
-	//CRM(FlushPHY(link), "ResetLink: Failed to flush link %d PHY", link);
-
-	memset(link_input[link][MAX_MSG_LENGTH], 0, sizeof(unsigned char) * MAX_MSG_LENGTH);
-	link_input_c[link] = 0;
-
-	g_LinkRxState[link] = AMON_RX_READY;
-
-	g_linkMessageLength[link] = 0;
-	g_linkMessageType[link] = AMON_NULL;
-
-	g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
-	g_AMONLinkStates[link] = AMON_LINK_UNINITIALIZED;
-
-	// Unlock the link
-	UnlockAMONLinkRx(link);
-	UnlockAMONLinkTx(link);
-
-Error:
-	return R_OK;
-}
-
 RESULT DisconnectLink(AMON_LINK link) {
 	RESULT r = R_OK;
 
@@ -140,8 +140,9 @@ RESULT CheckLinkStatus(AMON_LINK link) {
 		g_amon.links[link].LinkStatusCounter++;
 		g_amon.links[link].fPendingLinkStatus = 0;
 
-		if(g_amon.links[link].LinkStatusCounter > LINK_STATUS_COUNTER_THRESHOLD)
+		if(g_amon.links[link].LinkStatusCounter > LINK_STATUS_COUNTER_THRESHOLD) {
 			return DisconnectLink(link);
+		}
 	}
 
 	g_amon.links[link].fPendingLinkStatus = 1;

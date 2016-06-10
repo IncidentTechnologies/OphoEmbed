@@ -202,8 +202,6 @@ RESULT OnAMONInterval() {
 	RESULT r = R_OK;
 	int i = 0;
 
-	g_uiAMONInterval_c++;
-
 	/*
 	for(i = 0; i < NUM_LINKS; i++) {
 		if(NumPacketsInPendingQueue(i) != 0 && g_AMONLinkPhys[i] == AMON_PHY_READY) {
@@ -218,38 +216,47 @@ RESULT OnAMONInterval() {
 		}
 	}*/
 
-	if(g_amon.fStart == 0)
+	if(g_amon.fStart == 0) {
 		return R_OFF;
+	}
 
+	g_uiAMONInterval_c++;
+
+	// Every cycle for timeouts
 	for(i = 0; i < NUM_LINKS; i++) {
-		//every cycle for timeouts
 		if(g_AMONLinkPhys[i] == AMON_PHY_INITIATE_REQUEST) {
 			if(g_AMONLinkPhyTimeout[i] && --(g_AMONLinkPhyTimeout[i]) == 0) {
-//				DEBUG_LINEOUT("OnAMONInterval: timeout on link %d during AMON_INITIATE_REQUEST, resending", i);
+				// DEBUG_LINEOUT("OnAMONInterval: timeout on link %d during AMON_INITIATE_REQUEST, resending", i);
 				CRM(SendInitiateRequest(i),	"OnAMONInterval: Failed to Send Initiate Request on link %d", i);
 			}
 		}
+	}
 
-		//establish link and link check cycles
-		if((g_uiAMONInterval_c % 1000) == 0) {
+	// Establish link and link check cycles
+	if((g_uiAMONInterval_c % AMON_LINK_INTERVAL_DIV) == 0) {
+
+#ifdef AMON_VERBOSE
+		DEBUG_LINEOUT("OnAMON: Check Link");
+#endif
+
+		for(i = 0; i < NUM_LINKS; i++) {
 			if(g_AMONLinkStates[i] != AMON_LINK_ESTABLISHED) {
 				unsigned char r = (i == 0 || i == 3) ? 50 : 0;
 				unsigned char g = (i == 1 || i == 3) ? 50 : 0;
 				unsigned char b = (i == 2 || i == 3) ? 50 : 0;
 
-
 				CRM(SendByte(i, AMON_BYTE_PING), "OnAMONInterval: Failed to send ping on link %d", i);
-			}		/*else {
-							// If link established we want to check the status
-							// unless it's sending traffic
-							if(AMONLinkBusy(i) == 0 && g_fLinkActivitySinceInterval[i] == FALSE) {
-								CRM(CheckLinkStatus(i), "OnAMONInterval: Failed to check link %d status", i);
-							}
-							else {
-								g_fLinkActivitySinceInterval[i] == FALSE;
-							}
-			}*/
-		}  // TODO: fix the disconnect-reconnect
+			}
+			else {
+				// If link established we want to check the status unless it's sending traffic
+				if(AMONLinkBusy(i) == 0 && g_fLinkActivitySinceInterval[i] == FALSE) {
+					CRM(CheckLinkStatus(i), "OnAMONInterval: Failed to check link %d status", i);
+				}
+				else {
+					g_fLinkActivitySinceInterval[i] = FALSE;
+				}
+			}
+		}
 	}
 
 Error:
@@ -861,7 +868,8 @@ RESULT HandleAMONError(AMON_LINK link, AMONErrorPacket *d_pAMONErrorPacket) {
 	RESULT r = R_OK;
 
 	// Reset the link - master might try to reconnect
-	CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
+	CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
+	//CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
 
 	DEBUG_LINEOUT("HandleAMONPacket: Error: Received error on link %d for message type 0x%x", link, d_pAMONErrorPacket->m_messageType);
 
@@ -1301,7 +1309,8 @@ RESULT HandleAMONPacket_old(AMON_LINK link) {
 			unsigned char errorType = pBuffer[3];
 
 			// Reset the link - master might try to reconnect
-			CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
+			CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
+			//CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
 
 			DEBUG_LINEOUT("HandleAMONPacket: Error: Received error on link %d for message type 0x%x", link, errorType);
 
@@ -1349,9 +1358,10 @@ RESULT SendErrorResetLink(AMON_LINK link, AMON_MESSAGE_TYPE type) {
 
 	DEBUG_LINEOUT("Error: 0x%x, resetting link %d", type, link);
 
-	//SetLEDLinkClearTimeout(AMON_ALL, 50, 0, 0, 600);
+	// SetLEDLinkClearTimeout(AMON_ALL, 50, 0, 0, 600);
 	CRM(SendError(link, type), "SendErrorResetLink: Failed to send error %d on link %d", type, link);
-	CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
+	//CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
+	CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 
 Error:
 	return r;

@@ -113,6 +113,18 @@ Error:
 	return r;
 }
 
+RESULT AMONHandlePHYError(const char *pszStr, AMON_LINK link) {
+	RESULT r = R_OK;
+
+	DEBUG_LINEOUT("AMON_BYTE_ERROR received on link %d, resetting the link", link);
+	CRM(AMONErrorLink(link), "AMONHandlePHYError: Failed to send error on phy link %d", link);
+	//CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+	CRM(InitializeLink(link), "AMONHandlePHYError: Failed to initialize and reset link %d", link);
+
+Error:
+	return r;
+}
+
 RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 	RESULT r = R_OK;
 
@@ -123,10 +135,12 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 				g_AMONLinkPhys[link] = AMON_PHY_PACKET_PENDING;
 
 				CRM(SendByte(link, AMON_INITIATE_REQUEST_ACK), "AMONHandleHalfDuplexPHYByte: Failed to send initiate request ack on link %d", link);
-			} else if(byte == AMON_BYTE_ERROR) {
+			}
+			else if(byte == AMON_BYTE_ERROR) {
 				DEBUG_LINEOUT("AMON_BYTE_ERROR received on link %d, resetting the link", link);
 				CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d", link);
-				CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+				//CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+				CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 			} /*else {
 				DEBUG_LINEOUT("Byte 0x%x received on link %d is not initiate request, ignoring", byte, link);
 //				DEBUG_LINEOUT("Byte 0x%x received on link %d is not initiate request, resetting the link", byte, link);
@@ -150,7 +164,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 			else {
 				DEBUG_LINEOUT("Byte 0x%x received on link %d is not request transmit, resetting the link", byte, link);
 				CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d", link);
-				CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+				//CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+				CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 			}
 		} break;
 
@@ -186,7 +201,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 						g_AMONLinkPhyPacketCount[link] = NumPacketsInQueue(link);
 						unsigned char temp = AMON_REQUEST_TRANSMIT + (g_AMONLinkPhyPacketCount[link] & 0x0F);
 						CRM(SendByte(link, temp), "AMONHandleHalfDuplexPHYByte: Failed to send request transmit on link %d", link);
-					} else if(byte == AMON_TRANSMIT_COMPLETE_WITH_PENDING) {
+					}
+					else if(byte == AMON_TRANSMIT_COMPLETE_WITH_PENDING) {
 						g_AMONLinkPhys[link] = AMON_PHY_PACKET_PENDING;
 
 						CRM(SendByte(link, AMON_INITIATE_REQUEST_ACK), "AMONHandleHalfDuplexPHYByte: Failed to send initiate request ack on link %d", link);
@@ -203,7 +219,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 				else {
 					DEBUG_LINEOUT("Byte 0x%x received on link %d is not transmit complete byte, resetting the link", byte, link);
 					CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d", link);
-					CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+					//CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+					CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 				}
 			}
 		} break;
@@ -235,7 +252,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 //						CRM_NA(DelayPHY(), "Failed to delay");
 
 						CRM(SendByte(link, AMON_INITIATE_REQUEST_ACK), "AMONHandleHalfDuplexPHYByte: Failed to send ack initiate byte on link %d", link);
-					} else {
+					}
+					else {
 						g_AMONLinkPhyTimeout[link] = AMON_PHY_DEFAULT_TIMEOUT;
 					}
 				} /*
@@ -283,7 +301,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 			else {
 				DEBUG_LINEOUT("Byte 0x%x received on link %d in state %d is not accept transmit, reset link", byte, link, g_AMONLinkPhys[link]);
 				CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d state %d", link, g_AMONLinkPhys[link]);
-				CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d state %d", link, g_AMONLinkPhys[link]);
+				//CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d state %d", link, g_AMONLinkPhys[link]);
+				CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 			}
 		} break;
 
@@ -291,7 +310,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 		case AMON_PHY_TRANSMIT_ACTIVE: {
 			DEBUG_LINEOUT("Byte 0x%x received on link %d during transmission - not allowed, resetting the link", byte, link);
 			CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d", link);
-			CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+			//CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+			CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 		} break;
 
 		// Sender
@@ -348,7 +368,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 			else {
 				DEBUG_LINEOUT("Byte 0x%x received on link %d is not transmit complete ACK or request transmit, resetting the link", byte, link);
 				CRM(AMONErrorLink(link), "AMONHandleHalfDuplexPHYByte: Failed to send error on phy link %d", link);
-				CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+				//CRM(ResetLink(link), "AMONHandleHalfDuplexPHYByte: Failed to reset link %d", link);
+				CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 			}
 		} break;
 
@@ -409,7 +430,8 @@ RESULT AMONHandlePHYByte(AMON_LINK link, unsigned char byte) {
 
 		// The device has reset the link, we should as well
 		case AMON_BYTE_LINK_RESET: {
-			CRM(ResetLink(link), "AMONHandlePHYByte: Link %d failed to be reset", link);
+			//CRM(ResetLink(link), "AMONHandlePHYByte: Link %d failed to be reset", link);
+			CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 			g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
 
 			SendByte(link, AMON_BYTE_LINK_RESET_ACK);
@@ -481,7 +503,8 @@ RESULT AMONHandlePHYByte(AMON_LINK link, unsigned char byte) {
 		case AMON_BYTE_ERROR: {
 			g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
 			DEBUG_LINEOUT("Error received on link %d, resetting the link", link);
-			CRM(ResetLink(link), "AMONHandlePHYByte: Failed to reset link %d", link);
+			//CRM(ResetLink(link), "AMONHandlePHYByte: Failed to reset link %d", link);
+			CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 		} break;
 	}
 
