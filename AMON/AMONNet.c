@@ -356,6 +356,10 @@ inline RESULT HandleAMONByte(AMON_LINK link, unsigned char byte) {
 				// TODO: Better error handling - fix the reset on both sides
 				//CRM_NA(SendErrorResetLink(link, g_linkMessageType[link]), "AMONRx: Failed to send error and reset link");
 
+				// Something is clearly wrong, reinitialize the link
+				// This is often happening with ping/echo PHY bytes
+				CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
+
 				// TODO: This is a bridge gap solution
 				// Reset the buffer - ignore the issue (but it won't take down the link for now, just drop the message)
 				link_input_c[link] = 0;
@@ -1360,6 +1364,7 @@ RESULT SendErrorResetLink(AMON_LINK link, AMON_MESSAGE_TYPE type) {
 
 	// SetLEDLinkClearTimeout(AMON_ALL, 50, 0, 0, 600);
 	CRM(SendError(link, type), "SendErrorResetLink: Failed to send error %d on link %d", type, link);
+
 	//CRM(ResetLink(link), "SendErrorResetLink: Failed to reset link %d", link);
 	CRM(InitializeLink(link), "SendErrorResetLink: Failed to initialize and reset link %d", link);
 
