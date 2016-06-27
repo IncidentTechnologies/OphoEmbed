@@ -11,10 +11,16 @@
 #define SYS_TIME_INTERVAL 10		// stay alive
 
 // System Time
-extern volatile uint32_t  g_ulSysTickCount;
-extern volatile uint32_t  g_SysTime;
+//extern volatile uint32_t  g_ulSysTickCount;
+//extern volatile uint32_t  g_SysTime;
 //void SysTickHandler(void);		// TODO: Move this here, generalize the task manager
 
 RESULT InitSysTick();
+
+uint64_t SystemTickCount();
+uint32_t  SystemTime();
+
+uint64_t IncrementSysTick();
+uint32_t IncrementSysTime(uint32_t val);
 
 #endif // !SYS_TICK_CONTROLLER_H_

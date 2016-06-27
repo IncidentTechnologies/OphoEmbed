@@ -65,6 +65,7 @@ typedef enum incident_result
     R_TRUE			= 0x00000000,
     R_OK            = 0x00000000,
     R_DONE          = 0x00000000,
+	R_PASS			= 0x00000000,
     
     // Warning
     R_UNSUPPORTED   = 0x00000010,

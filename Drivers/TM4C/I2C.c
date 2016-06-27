@@ -219,10 +219,10 @@ RESULT I2CSend( uint32_t   ulI2CBase,			// I2C Base (I2CX_MASTER_BASE)
 				I2CMasterControl(ulI2CBase, I2C_MASTER_CMD_BURST_SEND_CONT);
 	    }
 
-	    uiSystickStamp = g_ulSysTickCount;
+	    uiSystickStamp = SystemTickCount();
 		while(I2CMasterBusy(ulI2CBase)){
 			//check timeout
-			if(uiTimeout) CBRM((g_ulSysTickCount - uiSystickStamp > uiTimeout) == 0, "I2CSend: timeout on bus after %d ticks", g_ulSysTickCount - uiSystickStamp);
+			if(uiTimeout) CBRM((SystemTickCount() - uiSystickStamp > uiTimeout) == 0, "I2CSend: timeout on bus after %d ticks", SystemTickCount() - uiSystickStamp);
 		}
 
 		CBRM(((ulError = I2CMasterErr(ulI2CBase)) == I2C_MASTER_ERR_NONE), "I2CSend: I2C Send error 0x%x", ulError);
@@ -276,10 +276,10 @@ RESULT I2CReceive(uint32_t   ulI2CBase,			// I2C Base (I2CX_MASTER_BASE)
 	       		I2CMasterControl(ulI2CBase,  I2C_MASTER_CMD_BURST_RECEIVE_CONT);		// Continued Rx
 	    }
 
-	    uiSystickStamp = g_ulSysTickCount;
+	    uiSystickStamp = SystemTickCount();
 		while(I2CMasterBusy(ulI2CBase)){
 			//check timeout
-			if(uiTimeout) CBRM((g_ulSysTickCount - uiSystickStamp > uiTimeout) == 0, "I2CReceive: timeout on bus after %d ticks", g_ulSysTickCount - uiSystickStamp);
+			if(uiTimeout) CBRM((SystemTickCount() - uiSystickStamp > uiTimeout) == 0, "I2CReceive: timeout on bus after %d ticks", SystemTickCount() - uiSystickStamp);
 		}
 	    CBRM(((ulError = I2CMasterErr(ulI2CBase)) == I2C_MASTER_ERR_NONE), "I2CReceive: I2C Send error 0x%x", ulError);
 

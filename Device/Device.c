@@ -85,6 +85,10 @@ DEVICE_FIRMWARE_VERSION GetDeviceFirmwareVersion() {
 		version.major = (tempVer >> 4) & 0x0F;
 		version.minor = (tempVer >> 0) & 0x0F;
 	}
+	else {
+		version.major = 0;
+		version.minor = 0;
+	}
 
 	return version;
 }

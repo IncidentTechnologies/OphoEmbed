@@ -7,6 +7,7 @@
 // and allows for custom services as needed
 
 #include "../Common/EHM.h"
+#include "../Common/utils.h"
 #include "memorymap.h"
 
 // This will turn on peripheral checks
