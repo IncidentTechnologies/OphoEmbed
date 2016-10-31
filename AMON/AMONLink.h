@@ -80,6 +80,7 @@ RESULT UnegisterAMONLinkDisconnectCallback();
 
 // Link
 RESULT CheckLinkStatus(AMON_LINK link);
+AMON_LINK_STATE GetLinkState(AMON_LINK link);
 
 RESULT InitializeLink(AMON_LINK link);
 RESULT DisconnectLink(AMON_LINK link);

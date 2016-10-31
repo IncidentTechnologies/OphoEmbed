@@ -14,7 +14,7 @@ typedef enum {
 	FW_UPDATE_INVALD
 } FW_UPDATE_STATUS;
 
-#pragma pack(push, 4) // exact fit - no padding
+#pragma pack(push, 1) // exact fit - no padding
 typedef struct {
 	uint8_t DeviceID;
 	uint16_t nSize;				// size in bytes
@@ -30,7 +30,7 @@ typedef struct {
 
 	uint8_t reserved_1;
 	uint8_t reserved_2;
-	uint8_t reserved_3;
+	//uint8_t reserved_3;
 } USER_SPACE;
 #pragma pack(pop)
 

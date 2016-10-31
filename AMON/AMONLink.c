@@ -126,6 +126,10 @@ Error:
 	return r;
 }
 
+AMON_LINK_STATE GetLinkState(AMON_LINK link) {
+	return g_AMONLinkStates[link];
+}
+
 RESULT CheckLinkStatus(AMON_LINK link) {
 	RESULT r = R_OK;
 

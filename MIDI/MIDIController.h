@@ -6,6 +6,7 @@
 #include "../Common/EHM.h"
 #include "../Device/Device.h"
 
+#include "midi.h"
 
 #include "USB/usbmidi.h"
 #include "MIDIMessages.h"
