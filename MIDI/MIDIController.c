@@ -323,6 +323,8 @@ RESULT UnwrapBuffer7F(uint8_t *pBuffer7F, int pBuffer7F_n, uint8_t **n_pBuffer, 
 
 	for(i = 0; i < pBuffer7F_n; i++) {
 
+		DEBUG_LINEOUT("0x%x", pBuffer7F[i]);
+
 		if(i != pBuffer7F_n - 1)
 			(*n_pBuffer)[serial_nc] = (pBuffer7F[i] << k) + (pBuffer7F[i + 1] >> (7 - k));
 		else
@@ -335,12 +337,21 @@ RESULT UnwrapBuffer7F(uint8_t *pBuffer7F, int pBuffer7F_n, uint8_t **n_pBuffer, 
 			k = 1;
 			i++;
 
-			if(i < pBuffer7F_n)
+			DEBUG_LINEOUT("0x%x", pBuffer7F[i]);
+
+			if(i < pBuffer7F_n) {
 				(*n_pBuffer)[serial_nc] = pBuffer7F[i - 1] & 0x01;
+			}
 
 			//printf("yo %d l:%d!\n", i, pBuffer7F_n);
+
 		}
 	}
+
+	/*
+	DEBUG_LINEOUT("*** unwrapped buffer: %d bytes ***", *pn_pBuffer_n);
+	UARTprintfBinaryData(*n_pBuffer, *pn_pBuffer_n, 20);
+	//*/
 
 Error:
 	return r;
@@ -411,7 +422,7 @@ RESULT HandleMIDISysExBuffer() {
 
 	// Handle MIDI Sys Ex!
 
-	/*
+	///*
 	DEBUG_LINEOUT("*** rx sysex buffer: %d bytes ***", m_pSysExBuffer_n);
 	UARTprintfBinaryData(m_pSysExBuffer, m_pSysExBuffer_n, 20);
 	//*/
@@ -445,6 +456,8 @@ RESULT HandleMIDISysExBuffer() {
 
 		// TODO: Generalize MIDI Queue Arch
 		case DEVICE_MSG_REQ_FW_VERSION: {
+			DEBUG_LINEOUT("Firmware Version Requested");
+
 			DEVICE_MIDI_EVENT gme;
 			gme.m_gmet = DEVICE_SEND_FW_VERSION;
 			gme.m_params_n = 0;
@@ -524,7 +537,7 @@ RESULT HandleMIDISysExBuffer() {
 			DEVICE_SET_SERIAL_NUMBER *pDeviceSetSerialNumber = pDeviceMsg;
 			//*/
 			DEBUG_LINEOUT_NA("Set Serial Number");
-			UARTprintfBinaryData(pDeviceSetSerialNumber, 16, 20);
+			UARTprintfBinaryData(pDeviceSetSerialNumber, sizeof(DEVICE_SET_SERIAL_NUMBER), 20);
 			//*/
 
 			uint8_t *pSerialBuffer = NULL;
@@ -538,8 +551,11 @@ RESULT HandleMIDISysExBuffer() {
 
 			//memset(g_UserSpace.serial, 0, sizeof(g_UserSpace.serial));
 			memset(pUserspaceSerialAddress, 0, pUserspaceSerialAddress_n);
-			for(i = 2; i < pSerialBuffer_n; i++)
-				pUserspaceSerialAddress[i] = pSerialBuffer[i - 2];
+			for(i = 0; i < pSerialBuffer_n; i++) {
+				if(i + 2 < 16) {
+					pUserspaceSerialAddress[i + 2] = pSerialBuffer[i];
+				}
+			}
 
 			// Commit serial number to flash
 			OutputSerialToDebug();

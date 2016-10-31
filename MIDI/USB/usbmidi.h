@@ -264,6 +264,7 @@ bool IsUSBConnected();
 // Initialize USB-MIDI
 RESULT InitializeUSBPeripheralConfiguration(USB_PERIPHERAL_INFO *pUSBPeripheral);
 RESULT InitUSBMIDI();
+RESULT DisableUSB();
 
 //USB and Audio connect status HW defines
 #define USB_STATUS_PERIPH	SYSCTL_PERIPH_GPIOK

@@ -27,6 +27,7 @@ typedef enum {
 	// undefined			= 0xFD,
 	MIDI_SYS_REALTIME_ACTIVE_SENSE	= 0xFE,
 	MIDI_SYS_REALTIME_RESET	= 0xFF,
+	MIDI_INVALID
 } MIDI_MSG_TYPE;
 
 // This is used for the MIDI_TYPE union

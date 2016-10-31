@@ -116,8 +116,6 @@ uint8_t GetDeviceUserspaceSerialLength() {
 	return SERIAL_NUMBER_BYTES;
 }
 
-
-
 RESULT ClearUserSpaceMemory() {
 	RESULT r = R_OK;
 
@@ -151,6 +149,7 @@ RESULT EraseUserSpacePreserveSerialNumber() {
 	RESULT r = R_OK;
 	uint8_t tempSerial[16];
 	int32_t  i = 0;
+	int userspacesize = sizeof(USER_SPACE);
 
 	void *ulPtr = (void*)(g_UserSpaceAddr);
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
@@ -304,6 +303,7 @@ RESULT InitUserSpace(int UserSpaceSize, cbInitUserSpace fnInitUserSpace) {
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
 
 	CBRM((UserSpaceSize != 0), "InitUserSpace: UserSpaceSize cannot be zero");
+	CBRM((UserSpaceSize >= sizeof(USER_SPACE)), "InitUserSpace: UserSpaceSize %d is less than UserSpace size %d", UserSpaceSize, sizeof(USER_SPACE));
 	CBRM((UserSpaceSize % 4 == 0), "InitUserSpace: User defined space must be factor of 4 in size");
 	g_UserSpace_n = UserSpaceSize;
 

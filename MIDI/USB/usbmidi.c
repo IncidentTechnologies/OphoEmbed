@@ -2316,6 +2316,19 @@ RESULT InitializeUSBPeripheralConfiguration(USB_PERIPHERAL_INFO *pUSBPeripheral)
 	return R_OK;
 }
 
+RESULT DisableUSB() {
+	RESULT r = R_OK;
+
+	USBDevDisconnect(0);
+	//USBDCDTerm(0);
+	ROM_IntMasterEnable();	// just in case
+
+	DEBUG_LINEOUT_NA("USB-MIDI Terminated!");
+
+Error:
+	return r;
+}
+
 // Audio status code injected into here for now, need to separate into own init function
 RESULT InitUSBMIDI() {
 	RESULT r = R_OK;
