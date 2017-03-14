@@ -8,6 +8,7 @@
 
 #define AMON_MASTER_ID 0
 
+// TODO: All state should be in the AMON Device
 typedef struct {
 	int id;
 	AMON_MASTER_STATE MasterState;

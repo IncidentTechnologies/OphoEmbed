@@ -95,6 +95,7 @@ RESULT RegisterLinkDelayCallback(cbPHYDelay cbDelay);
 RESULT UnregisterLinkDelayCallback();
 
 RESULT InitAMONPHY();
+RESULT ResetAMONPhy(AMON_LINK link);
 
 RESULT AMONHandlePHYError(const char *pszStr, AMON_LINK link);
 

@@ -24,6 +24,7 @@ AMONNode * CreateAMONNode(int numLinks, int ID, void *pContext);
 RESULT AddAMONNode(AMONMap* map, int destID, int linkID, int ID, void *pContext);
 RESULT RemoveAMONNodeByID(AMONMap* map, int ID);
 RESULT RemoveAMONNode(AMONNode* node);
+RESULT ResetAMONNodeLink(AMONMap* map, int destID, int linkID);
 
 int GetNumberOfMapLinks(AMONNode* node, int id, int linkID, int depth);
 int GetNumberOfEastWestMapLinks(AMONMap *map, int id, int westLinkId, int eastLinkId);

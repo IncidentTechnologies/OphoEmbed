@@ -196,6 +196,7 @@ Error:
 }
 
 unsigned int g_uiAMONInterval_c = 0;
+int last_link_input_c[NUM_LINKS];
 
 // AMON OnInterval - called every interval
 RESULT OnAMONInterval() {
@@ -258,6 +259,37 @@ RESULT OnAMONInterval() {
 			}
 		}
 	}
+
+	// Every so often, lets re-initialize the link
+	// TODO: This hack does work - links are not being refreshed (retaining state) when failed
+	// or not timing out
+	if((g_uiAMONInterval_c % (AMON_LINK_INTERVAL_DIV * 5)) == 0) {
+		for(i = 0; i < NUM_LINKS; i++) {
+			if(g_AMONLinkStates[i] != AMON_LINK_ESTABLISHED &&
+					(g_AMONLinkStates[i] != AMON_LINK_UNINITIALIZED || g_AMONLinkPhys[i] != AMON_PHY_UNINITIALIZED))
+			{
+				//CRM(InitializeLink(i), "InitAmon: Failed to initialize link %d", i);
+				CRM(DisconnectLink(i), "InitAmon: Failed to disconnect link %d", i);
+			}
+		}
+	}
+
+	// Check for a hung link
+	// This is being caused due to a link disconnect in the middle of a data transmission
+	// In effect, the bytes are just being pushed to HandAMONByte and given sufficient time they will recover but it'll
+	// take a while - or require a reset.  These set of tests will check for a timeout between a given data byte
+	if((g_uiAMONInterval_c % (AMON_LINK_INTERVAL_DIV * 1)) == 0) {
+		for(i = 0; i < NUM_LINKS; i++) {
+			if(g_LinkRxState[i] == AMON_RX_DATA && link_input_c[i] == last_link_input_c[i]) {
+				CRM(DisconnectLink(i), "InitAmon: Failed to disconnect link %d", i);
+				last_link_input_c[i] = 0;
+			}
+			else {
+				last_link_input_c[i] = link_input_c[i];
+			}
+		}
+	}
+
 
 Error:
 	return r;

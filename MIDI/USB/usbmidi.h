@@ -319,6 +319,9 @@ RESULT SendZLP(uint32_t ui32Base, uint32_t ui32Endpoint);
 RESULT SendUSBBuffer(uint32_t ui32Base, uint32_t ui32Endpoint, uint8_t *pBuffer, uint32_t pBuffer_n);
 RESULT SendUSBBufferNoError(uint32_t ui32Base, uint32_t ui32Endpoint, uint8_t *pBuffer, uint32_t pBuffer_n);
 
+// Device MIDI SysEx
+RESULT SendUSBMidiSysEx(uint8_t deviceID, uint8_t msgType, int8_t *pPayloadBuffer, uint32_t pPayloadBuffer_n);
+
 // Device MIDI Functions
 RESULT SendUSBMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, uint8_t fOnOff);
 RESULT SendUSBMidiCC(uint8_t index, uint8_t value);

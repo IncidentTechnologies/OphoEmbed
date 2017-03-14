@@ -18,16 +18,24 @@ RESULT InitAMONPHY() {
 	int i = 0;
 
 	for(i = 0; i < NUM_LINKS; i++) {
-		g_AMONLinkPhys[i] = AMON_PHY_UNINITIALIZED;
-
 
 		g_PHYSendByteCallbacks[i] = NULL;
 		g_PHYFlushCallbacks[i] = NULL;
 		g_PHYBusyCallbacks[i] = NULL;
 
-		g_AMONLinkPhyPacketCount[i] = 0;
-		g_AMONLinkPhyTimeout[i] = 0;
+		ResetAMONPhy(i);
 	}
+
+Error:
+	return r;
+}
+
+RESULT ResetAMONPhy(AMON_LINK link) {
+	RESULT r = R_OK;
+
+	g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
+	g_AMONLinkPhyPacketCount[link] = 0;
+	g_AMONLinkPhyTimeout[link] = 0;
 
 Error:
 	return r;
@@ -170,6 +178,7 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 		} break;
 
 		// Receiver - We've accepted a transmit and are receiving data
+		// TODO: What if we disconnect in this state - need to have a fall back or timeout
 		case AMON_PHY_ACCEPT_TRANSMIT: {
 			if(g_AMONLinkPhyPacketCount[link] != 0) {
 				CRM(HandleAMONByte(link, byte), "AMONHandleHalfDuplexPHYByte: Failed to handle AMON byte on link %d", link);

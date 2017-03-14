@@ -164,6 +164,22 @@ Error:
 	return r;
 }
 
+RESULT ResetAMONNodeLink(AMONMap* map, int destID, int linkID) {
+	RESULT r = R_OK;
+
+	// First we need to find the node
+	AMONNode *destNode = FindAMONNode(map, destID);
+	CNRM(destNode, "RemoveAMONNode: Node id %d not found in AMON map", destID);
+
+	if(destNode->m_links[linkID] != NULL) {
+		CRM(RemoveAMONNode(destNode->m_links[linkID]), "RemoveAMONNodeByID: Failed to remove node at %d link %d", destID, linkID);
+		destNode->m_links[linkID] = NULL;
+	}
+
+Error:
+	return r;
+}
+
 RESULT RemoveAMONNode(AMONNode* node) {
 	RESULT r = R_OK;
 	int i = 0;

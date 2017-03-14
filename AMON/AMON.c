@@ -53,10 +53,12 @@ unsigned char AMONLinkRxBusy(AMON_LINK link) {
 	return g_amon.links[link].fLinkRxBusy;
 }
 
+// TODO: EHM for lock fail?
 RESULT LockAMONLinkRx(AMON_LINK link) {
 	RESULT r = R_OK;
 
-	CBRM((g_amon.links[link].fLinkRxBusy == 0), "Can't lock link rx %d, already busy", link);
+	//CBRM((g_amon.links[link].fLinkRxBusy == 0), "Can't lock link rx %d, already busy", link);
+	//CBR((g_amon.links[link].fLinkRxBusy == 0));
 	g_amon.links[link].fLinkRxBusy = 1;
 
 Error:
@@ -65,7 +67,8 @@ Error:
 RESULT UnlockAMONLinkRx(AMON_LINK link) {
 	RESULT r = R_OK;
 
-	CBRM((g_amon.links[link].fLinkRxBusy == 1), "Can't unlock link rx %d, not busy", link);
+	//CBRM((g_amon.links[link].fLinkRxBusy == 1), "Can't unlock link rx %d, not busy", link);
+	//CBR((g_amon.links[link].fLinkRxBusy == 1));
 	g_amon.links[link].fLinkRxBusy = 0;
 
 Error:
@@ -79,7 +82,8 @@ unsigned char AMONLinkTxBusy(AMON_LINK link) {
 RESULT LockAMONLinkTx(AMON_LINK link) {
 	RESULT r = R_OK;
 
-	CBRM((g_amon.links[link].fLinkTxBusy == 0), "Can't lock link rx %d, already busy", link);
+	//CBRM((g_amon.links[link].fLinkTxBusy == 0), "Can't lock link rx %d, already busy", link);
+	//CBR((g_amon.links[link].fLinkTxBusy == 0));
 	g_amon.links[link].fLinkTxBusy = 1;
 
 Error:
@@ -89,7 +93,8 @@ Error:
 RESULT UnlockAMONLinkTx(AMON_LINK link) {
 	RESULT r = R_OK;
 
-	CBRM((g_amon.links[link].fLinkTxBusy == 1), "Can't unlock link rx %d, not busy", link);
+	//CBRM((g_amon.links[link].fLinkTxBusy == 1), "Can't unlock link rx %d, not busy", link);
+	//CBR((g_amon.links[link].fLinkTxBusy == 1));
 	g_amon.links[link].fLinkTxBusy = 0;
 
 Error:

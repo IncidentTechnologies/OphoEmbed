@@ -7,7 +7,7 @@
 #include "driverlib/rom.h"
 
 // Sets the frequency of the SysTick Interrupt
-#define SYSTICKS_PER_SECOND 100
+#define SYSTICKS_PER_SECOND 1000
 #define SYS_TIME_INTERVAL 10		// stay alive
 
 // System Time

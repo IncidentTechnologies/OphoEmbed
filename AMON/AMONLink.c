@@ -49,7 +49,7 @@ RESULT ResetLink(AMON_LINK link) {
 	g_linkMessageLength[link] = 0;
 	g_linkMessageType[link] = AMON_NULL;
 
-	g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
+	CRM(ResetAMONPhy(link), "Failed to reset AMON Phy %d", link);
 	g_AMONLinkStates[link] = AMON_LINK_UNINITIALIZED;
 
 	// Unlock the link
@@ -106,7 +106,8 @@ RESULT DisconnectLink(AMON_LINK link) {
 	RESULT r = R_OK;
 
 	// Save the id for later
-	int id = g_amon.links[link].id;
+	int destID = g_amon.links[link].id;
+	int id = g_amon.id;
 
 	// Did we lose the link to master, reset our AMON setup
 	if(g_amon.links[link].fLinkToMaster != 0)
@@ -116,7 +117,8 @@ RESULT DisconnectLink(AMON_LINK link) {
 	CRM(InitializeLink(link), "DisconnectLink: Link %d re-initialization failed", link);
 
 	if(g_amon.MasterState != AMON_MASTER_FALSE) {
-		CRM(RemoveAMONNodeByID(g_AMONmap, id), "DisconnectLink: Failed to remove node %d from AMON map", id);
+		//CRM(RemoveAMONNodeByID(g_AMONmap, destID), "DisconnectLink: Failed to remove node %d from AMON map", id);
+		CRM(ResetAMONNodeLink(g_AMONmap, id, link), "DisconnectLink: Failed to reset link %d of node %d from AMON map", link, id);
 	}
 
 	if(g_AMONLinkDisconnectCallback != NULL)

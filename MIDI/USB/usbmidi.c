@@ -815,7 +815,7 @@ Error:
 	return R_OK;
 }
 
-// SendUSBMidiNoteMsg 
+// SendUSBMidiNoteMsg
 // Sends a USB midi note with the given value, velocity, and channel
 // whether this is an on or off message is indicated by the pszOnOff parameter which is case
 // sensitive
@@ -824,6 +824,66 @@ Error:
 
 uint8_t g_TempSendBuffer[4];	// optimize SendUSBMidiNoteMsg
 int32_t  g_lStat = 0;
+
+RESULT SendUSBMidiSysEx(uint8_t deviceID, uint8_t msgType, int8_t *pPayloadBuffer, uint32_t pPayloadBuffer_n) {
+	RESULT r = R_OK;
+
+	// TODO: Add DeviceID, msgType
+
+	// Add the 7 bit data wrapping
+	uint8_t *pTempBuffer = (uint8_t*)calloc(pPayloadBuffer_n, 1);
+	uint32_t pTempBuffer_n = pPayloadBuffer_n;
+
+	memcpy(pTempBuffer, pPayloadBuffer, pPayloadBuffer_n);
+	CR(WrapMIDIBuffer(&pTempBuffer, &pTempBuffer_n));
+
+	// Parse through SysEx Buffer
+	int i = 0;
+	int remainingBytes = pTempBuffer_n + 2;	// account for the 0xF0 and 0xF7 to start/end the packet
+	int bufferCounter = 0;
+	uint8_t fFirst = TRUE;
+
+	while(remainingBytes > 0) {
+		memset(g_TempSendBuffer, 0, sizeof(uint8_t) * 4);
+
+		for(i = 0; i < 4; i++) {
+			if(i == 0) {
+				if(remainingBytes > 3)
+					g_TempSendBuffer[i] = 0x04;
+				else if(remainingBytes == 3)
+					g_TempSendBuffer[i] = 0x07;
+				else if(remainingBytes == 2)
+					g_TempSendBuffer[i] = 0x06;
+				else if(remainingBytes == 1)
+					g_TempSendBuffer[i] = 0x07;
+			}
+			else {
+				if(fFirst == TRUE) {
+					fFirst = FALSE;
+					g_TempSendBuffer[i] = 0xF0;
+				}
+				else if(remainingBytes == 1) {
+					g_TempSendBuffer[i] = 0xF7;
+				}
+				else {
+					g_TempSendBuffer[i] = pTempBuffer[bufferCounter++];
+				}
+
+				remainingBytes--;
+			}
+		}	// !for
+
+		CR(SendUSBBufferNoError(USB0_BASE, MIDI_OUT_EP, &g_TempSendBuffer, 4));
+	}
+
+Error:
+	if(pTempBuffer != NULL) {
+		free(pTempBuffer);
+		pTempBuffer = NULL;
+	}
+
+	return r;
+}
 
 //inline RESULT SendUSBMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, uint8_t fOnOff) {
 RESULT SendUSBMidiNoteMsg(uint8_t midiVal, uint8_t midiVelocity, uint8_t channel, uint8_t fOnOff) {
