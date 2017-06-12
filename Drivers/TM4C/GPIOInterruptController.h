@@ -21,8 +21,8 @@ void GPIOPortKIntHandler(void);
 
 int GPIOPinToInt(uint8_t pin);
 
-typedef RESULT (*PinInterruptCallback)(void *);
-typedef void (*GPIOInterruptCB)(void);
+typedef RESULT(*PinInterruptCallback)(void *);
+typedef void(*GPIOInterruptCB)(void);
 
 typedef struct {
 	unsigned fEnabled: 1;

@@ -521,7 +521,7 @@ tDeviceInfo gc_MidiDevice_iAP =
 
 tStdRequest GetDescriptorCB(void *pvInstance, tUSBRequest *pUSBRequest) {
 //#ifdef USB_VERBOSE
-	DEBUG_LINEOUT_NA("GetDescriptorCB");
+	DEBUG_LINEOUT("GetDescriptorCB");
 //#endif
 	return NULL;
 }
@@ -538,7 +538,7 @@ tStdRequest RequestHandlerCB(void *pvInstance, tUSBRequest *pUSBRequest) {
 
 tInterfaceCallback InterfaceChangeCB(void *pvInstance, uint8_t ucInterfaceNum, uint8_t ucAlternateSetting) {
 //#ifdef USB_VERBOSE
-	DEBUG_LINEOUT_NA("InterfaceChangeCB");
+	DEBUG_LINEOUT("InterfaceChangeCB");
 //#endif
 	return NULL;	
 }
@@ -565,14 +565,14 @@ tInfoCallback ConfigChangeCB(void *pvInstance, uint32_t  ulInfo) {
 
 tInfoCallback DataReceivedCB(void *pvInstance, uint32_t  ulInfo) {
 //#ifdef USB_VERBOSE
-	DEBUG_LINEOUT_NA("DataReceivedCB");
+	DEBUG_LINEOUT("DataReceivedCB");
 //#endif
 	return NULL;
 }
 
 tUSBIntHandler BusResetCB(void *pvInstance) {
 //#ifdef USB_VERBOSE
-	DEBUG_LINEOUT_NA("BusResetCB");
+	DEBUG_LINEOUT("BusResetCB");
 //#endif
 
 	g_fFirst = 0;
@@ -583,7 +583,7 @@ tUSBIntHandler BusResetCB(void *pvInstance) {
 
 tUSBIntHandler BusSuspendCB(void *pvInstance) {
 //#ifdef USB_VERBOSE
-	DEBUG_LINEOUT_NA("BusSuspendCB");
+	DEBUG_LINEOUT("BusSuspendCB");
 //#endif
 	
 	g_fFirst = 0;
@@ -602,7 +602,7 @@ tUSBIntHandler BusSuspendCB(void *pvInstance) {
 
 tUSBIntHandler BusResumeCB(void *pvInstance) {
 //#ifdef USB_VERBOSE
-	DEBUG_LINEOUT_NA("BusResumeCB");
+	DEBUG_LINEOUT("BusResumeCB");
 //#endif
 
 	return NULL;
@@ -610,7 +610,7 @@ tUSBIntHandler BusResumeCB(void *pvInstance) {
 
 tUSBIntHandler BusDisconnectCB(void *pvInstance) {
 #ifdef USB_VERBOSE
-	DEBUG_LINEOUT_NA("BusDisconnectCB");
+	DEBUG_LINEOUT("BusDisconnectCB");
 #endif
 	return NULL;
 }
@@ -656,7 +656,7 @@ static void EndpointCB(void *pvInstance, uint32_t  ulStatus) {
 		
 		// If we received data on endpoint 1, read it here
 		if(ulStatus & USB_INTEP_DEV_OUT_1) {
-			//DEBUG_LINEOUT_NA("RX iPhone Data\r\n");
+			//DEBUG_LINEOUT("RX iPhone Data\r\n");
 
 			uint32_t  ulBytesReturned = 64;
 			uint8_t Buffer[64]; //Give it the max bytes for now // = (uint8_t *)malloc(ulBytesAvail);
@@ -675,7 +675,7 @@ static void EndpointCB(void *pvInstance, uint32_t  ulStatus) {
 			
 #ifdef USB_VERBOSE
 			// Read out the packet for debug
-			DEBUG_LINEOUT_NA("*** rx pkt ***");
+			DEBUG_LINEOUT("*** rx pkt ***");
 			UARTprintfBinaryData(Buffer, ulBytesReturned, 20);
 #endif
 			
@@ -726,7 +726,7 @@ Error:
 
 tUSBDeviceHandler DeviceHandlerCB(void *pvInstance, uint32_t  ulRequest, void *pvRequestData) {
 #ifdef USB_VERBOSE
-	DEBUG_LINEOUT_NA("DeviceHandlerCB");
+	DEBUG_LINEOUT("DeviceHandlerCB");
 #endif
 	return NULL;
 }
@@ -737,7 +737,7 @@ cbOnBusSuspend g_OnBusSuspendCallback = NULL;
 RESULT RegisterOnBusSuspendCallback(cbOnBusSuspend OnBusSuspendCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_OnBusSuspendCallback == NULL), "RegisterOnBusSuspendCallback: On Bus Suspend Callback already registered");
+	CBRM((g_OnBusSuspendCallback == NULL), "RegisterOnBusSuspendCallback: On Bus Suspend Callback already registered");
 	g_OnBusSuspendCallback = OnBusSuspendCB;
 
 Error:
@@ -747,7 +747,7 @@ Error:
 RESULT UnregisterOnBusSuspendCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_OnBusSuspendCallback != NULL), "UnregisterOnBusSuspendCallback: On Bus Suspend Callback not registered");
+	CBRM((g_OnBusSuspendCallback != NULL), "UnregisterOnBusSuspendCallback: On Bus Suspend Callback not registered");
 	g_OnBusSuspendCallback = NULL;
 
 Error:
@@ -758,7 +758,7 @@ cbOnUSBStatus g_OnUSBStatusCallback = NULL;
 RESULT RegisterOnUSBStatusCallback(cbOnUSBStatus OnUSBStatusCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_OnUSBStatusCallback == NULL), "RegisterOnUSBStatusCallback: On USB Status Callback already registered");
+	CBRM((g_OnUSBStatusCallback == NULL), "RegisterOnUSBStatusCallback: On USB Status Callback already registered");
 	g_OnUSBStatusCallback = OnUSBStatusCB;
 
 Error:
@@ -768,7 +768,7 @@ Error:
 RESULT UnregisterOnUSBStatusCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_OnUSBStatusCallback != NULL), "UnregisterOnUSBStatusCallback: On USB Status Callback not registered");
+	CBRM((g_OnUSBStatusCallback != NULL), "UnregisterOnUSBStatusCallback: On USB Status Callback not registered");
 	g_OnUSBStatusCallback = NULL;
 
 Error:
@@ -1116,11 +1116,11 @@ RESULT WrapMIDIBuffer(uint8_t **pBuffer, uint8_t *pBuffer_np) {
 			endCounter = 6;
 		}
 
-		//CBRM_NA(j < tempBuffer_n, "WrapMIDIBuffer: wrapped data counter mismatch with calc'd value");
+		//CBRM(j < tempBuffer_n, "WrapMIDIBuffer: wrapped data counter mismatch with calc'd value");
 	}
 
 	j++;
-	//CBRM_NA(j == tempBuffer_n, "WrapMIDIBuffer: wrapped data counter mismatch with calc'd value");
+	//CBRM(j == tempBuffer_n, "WrapMIDIBuffer: wrapped data counter mismatch with calc'd value");
 
 	free(*pBuffer);
 	*pBuffer = tempBuffer;
@@ -1184,7 +1184,7 @@ RESULT DeployFirmwarePage() {
 	DEBUG_LINEOUT("*** transmitted buffer:%d bytes ***", g_pBuffer_n);
 	//UARTprintfBinaryData(g_pBuffer, g_pBuffer_n, 20);
 
-	DEBUG_LINEOUT_NA("*** rx buffer ***");
+	DEBUG_LINEOUT("*** rx buffer ***");
 	// need to unwrap the data since it was converted to midi data packets
 	int32_t  g_pBuffer_nc = 0;
 
@@ -1263,7 +1263,7 @@ RESULT DeployFirmwarePage() {
 			g_DownloadedFirmwarePages = g_totPages;
 			SetUSFwUpdateStatus(FW_UPDATE_PENDING);
 
-			DEBUG_LINEOUT_NA("Resetting the device");
+			DEBUG_LINEOUT("Resetting the device");
 			SysCtlDelay(ROM_SysCtlClockGet() / 10);
 			ROM_SysCtlReset();
 		}
@@ -1272,7 +1272,7 @@ RESULT DeployFirmwarePage() {
 		g_DownloadedFirmwarePages = g_totPages;
 		SetUSFwUpdateStatus(FW_UPDATE_PENDING);
 
-		DEBUG_LINEOUT_NA("Resetting the device");
+		DEBUG_LINEOUT("Resetting the device");
 		SysCtlDelay(ROM_SysCtlClockGet() / 10);
 		ROM_SysCtlReset();
 	}
@@ -1314,7 +1314,7 @@ RESULT HandleUSBMIDIPacket(uint8_t *pBuffer, uint16_t pBuffer_n) {
 	RESULT r = R_OK;
 	int32_t i = 0;
 
-	CNRM_NA(pBuffer, "HandleMidiPacket: buffer is null");
+	CNRM(pBuffer, "HandleMidiPacket: buffer is null");
 	CBRM((pBuffer >= 2), "HandleMidiPacket: buffer must be at least 2 bytes, length: %d", pBuffer_n);
 
 	// Print out packet for debug
@@ -1339,7 +1339,7 @@ RESULT HandleUSBMIDIPacket(uint8_t *pBuffer, uint16_t pBuffer_n) {
 			.data2 = data2
 		};
 
-		CRM_NA(HandleMIDIPacket(midiPacket), "Failed to handle MIDI Message");
+		CRM(HandleMIDIPacket(midiPacket), "Failed to handle MIDI Message");
 
 		pBuffer_c += 4;
 	}
@@ -1354,7 +1354,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 	RESULT r = R_OK;
 	 int32_t  i = 0;
 	
-	CNRM_NA(pBuffer, "HandleMidiPacket: buffer is null");
+	CNRM(pBuffer, "HandleMidiPacket: buffer is null");
 	CBRM((pBuffer >= 2), "HandleMidiPacket: buffer must be at least 2 bytes, length: %d", pBuffer_n);
 	
 	// Print out packet for debug
@@ -1383,7 +1383,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 							.data2 = pBuffer[pBuffer_c + 3]
 						};
 
-						CRM_NA(HandleMIDIPacket(midiPacket), "Failed to handle MIDI Message");
+						CRM(HandleMIDIPacket(midiPacket), "Failed to handle MIDI Message");
 
 						g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 					} break;
@@ -1399,7 +1399,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 							.data2 = pBuffer[pBuffer_c + 3]
 						};
 
-						CRM_NA(HandleMIDIPacket(midiPacket), "Failed to handle MIDI Message");
+						CRM(HandleMIDIPacket(midiPacket), "Failed to handle MIDI Message");
 
 						g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 					} break;
@@ -1431,7 +1431,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 					case USB_MIDI_SYS_EX: {
 						// Handle First Packet
 						if(pBuffer[pBuffer_c + 2] != GTAR_DEVICE_ID) {
-							DEBUG_LINEOUT_NA("err: HandleMidiPacket: gTar device id incorrect");
+							DEBUG_LINEOUT("err: HandleMidiPacket: gTar device id incorrect");
 						}
 						else {
 							uint8_t msgType = pBuffer[pBuffer_c + 3];
@@ -1442,7 +1442,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 								case GTAR_MSG_SET_LED_EX: 	g_USBMIDIPacketMachineState = UMPMS_SET_LED_EX_0;
 															break;
 
-								case GTAR_MSG_SET_NOTE_ACTIVE: 	g_USBMIDIPacketMachineState = UMPMS_SET_NA_0;
+								case GTAR_MSG_SET_NOTE_ACTIVE: 	g_USBMIDIPacketMachineState = UMPMS_SET_0;
 																break;
 
 								case GTAR_MSG_SET_FRET_FOLLOW: 	g_USBMIDIPacketMachineState = UMPMS_SET_FW_0;
@@ -1456,7 +1456,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									EraseAuthCert();
 									DownloadAuthCertificate();
 #else
-									DEBUG_LINEOUT_NA("Auth redownload not supported");
+									DEBUG_LINEOUT("Auth redownload not supported");
 #endif
 								} break;
 
@@ -1473,21 +1473,21 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 								case GTAR_MSG_GET_PIEZO_SENSITIVITY: {
 									g_USBMIDIPacketMachineState = UMPMS_GET_PIEZO_SENSITIVITY_0;	// one message operation
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("GetPiezoSensitivity");
+									DEBUG_LINEOUT("GetPiezoSensitivity");
 #endif
 								} break;
 
 								case GTAR_MSG_GET_PIEZO_WINDOW: {
 									g_USBMIDIPacketMachineState = UMPMS_GET_PIEZO_WINDOW_0;
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("GetPiezoWindow");
+									DEBUG_LINEOUT("GetPiezoWindow");
 #endif
 									} break;
 
 								case GTAR_MSG_GET_PIEZO_CT_MATRIX: {
 									g_USBMIDIPacketMachineState = UMPMS_GET_PIEZO_CT_MATRIX_0;
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("GetPiezoCrossTalkMatric");
+									DEBUG_LINEOUT("GetPiezoCrossTalkMatric");
 #endif
 									} break;
 
@@ -1495,7 +1495,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set piezo sensor cross talk matrix
 									g_USBMIDIPacketMachineState = UMPMS_SET_PIEZO_CT_MATRIX_0;
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("SetPiezoCrossTalkMatrix");
+									DEBUG_LINEOUT("SetPiezoCrossTalkMatrix");
 #endif
 									} break;
 
@@ -1503,7 +1503,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set piezo sensor sensitivity
 									g_USBMIDIPacketMachineState = UMPMS_SET_PIEZO_SENSITIVITY_0;
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("SetPiezoSensorSensitivity");
+									DEBUG_LINEOUT("SetPiezoSensorSensitivity");
 #endif
 									} break;
 
@@ -1511,7 +1511,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Calibrate string on piezo
 									g_USBMIDIPacketMachineState = UMPMS_CALIBRATE_PIEZO_STRING_0;
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("CalibratePiezoString");
+									DEBUG_LINEOUT("CalibratePiezoString");
 #endif
 									} break;
 
@@ -1519,7 +1519,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set piezo sensor window
 									g_USBMIDIPacketMachineState = UMPMS_SET_PIEZO_WINDOW_0;
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("SetPiezoSensorWindow");
+									DEBUG_LINEOUT("SetPiezoSensorWindow");
 #endif
 								} break;
 
@@ -1542,7 +1542,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 								case GTAR_MSG_REQ_SERIAL_NUM: {
 									g_USBMIDIPacketMachineState = UMPMS_REQ_SERIAL_NUM_0;
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("ReqSerialNumber");
+									DEBUG_LINEOUT("ReqSerialNumber");
 #endif
 								} break;
 
@@ -1577,7 +1577,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set piezo sensor state
 									g_USBMIDIPacketMachineState = UMPMS_SET_PIEZO_STATE_0;	// set the piezo sensor state
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("SetPiezoSensorState");
+									DEBUG_LINEOUT("SetPiezoSensorState");
 #endif
 									} break;
 
@@ -1585,7 +1585,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set piezo sensor state
 									g_USBMIDIPacketMachineState = UMPMS_SET_PIEZO_THRESH_0;	// set the piezo sensor state
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("SetPiezoSensorThreshold");
+									DEBUG_LINEOUT("SetPiezoSensorThreshold");
 #endif
 									} break;
 
@@ -1593,7 +1593,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set piezo sensor state
 									g_USBMIDIPacketMachineState = UMPMS_PIEZO_CMD;	// set the piezo sensor state
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("PiezoCommand");
+									DEBUG_LINEOUT("PiezoCommand");
 #endif
 									} break;
 
@@ -1601,7 +1601,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set Serial Number
 									if(IsSerialNumberZero() == R_OK) {
 #ifdef USB_VERBOSE
-										DEBUG_LINEOUT_NA("SetSerialNumber");
+										DEBUG_LINEOUT("SetSerialNumber");
 #endif
 										g_SerialNumberCounter = 0;
 										memset(g_TempSerial, 0, sizeof(g_TempSerial));
@@ -1609,7 +1609,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									}
 									else {
 #ifdef USB_VERBOSE
-										DEBUG_LINEOUT_NA("Cannot set serial number, already set");
+										DEBUG_LINEOUT("Cannot set serial number, already set");
 #endif
 										g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 									}
@@ -1620,7 +1620,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set smart pick threshold
 									g_USBMIDIPacketMachineState = UMPMS_SET_SMART_PICK_THRESH_0;	// set the piezo sensor state
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("SetSmartPickThreshold");
+									DEBUG_LINEOUT("SetSmartPickThreshold");
 #endif
 									} break;
 
@@ -1628,7 +1628,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set fret board threshold
 									g_USBMIDIPacketMachineState = UMPMS_SET_FRETBOARD_THRESH_0;	// set the fretboard threshold
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("SetFretboardThreshold");
+									DEBUG_LINEOUT("SetFretboardThreshold");
 #endif
 									} break;
 
@@ -1636,7 +1636,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									// Set fret board threshold
 									g_USBMIDIPacketMachineState = UMPMS_SET_ACCELEROMETER_STATE_0;	// set the accel state
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("SetAccelerometerState");
+									DEBUG_LINEOUT("SetAccelerometerState");
 #endif
 									} break;
 
@@ -1654,7 +1654,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									QueueNewMidiEvent(gme);
 
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("CommitUserSpace");
+									DEBUG_LINEOUT("CommitUserSpace");
 #endif
 									} break;
 
@@ -1672,7 +1672,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									QueueNewMidiEvent(gme);
 
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("ResetUserSpace");
+									DEBUG_LINEOUT("ResetUserSpace");
 #endif
 									} break;
 
@@ -1681,7 +1681,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									g_USBMIDIPacketMachineState = UMPMS_INITIAL;	// one message operation
 									InitJTAG();		// initializes JTAG debug mode
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("EnableDebugMode");
+									DEBUG_LINEOUT("EnableDebugMode");
 #endif
 									} break;
 
@@ -1690,7 +1690,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 									g_USBMIDIPacketMachineState = UMPMS_INITIAL;	// one message operation
 									InitJTAGStrings();		// sets port C as GPIO
 #ifdef USB_VERBOSE
-									DEBUG_LINEOUT_NA("DisableDebugMode");
+									DEBUG_LINEOUT("DisableDebugMode");
 #endif
 									} break;
 
@@ -1713,7 +1713,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 			case UMPMS_SET_LED_0: {
 				if(CodeIndexNumber != 0x04) {
 #ifdef USB_VERBOSE
-					DEBUG_LINEOUT_NA("err: HandleMidiPacket: SET_LED_0 expected 0x04 packet");
+					DEBUG_LINEOUT("err: HandleMidiPacket: SET_LED_0 expected 0x04 packet");
 #endif
 					g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 				}
@@ -1728,7 +1728,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 			case UMPMS_SET_LED_1: {
 				if(CodeIndexNumber != 0x05 || pBuffer[pBuffer_c + 1] != 0xF7 ) {
 #ifdef USB_VERBOSE
-					DEBUG_LINEOUT_NA("err: HandleMidiPacket: SET_LED_1 expected 0x05 packet with second byte of 0xF7");
+					DEBUG_LINEOUT("err: HandleMidiPacket: SET_LED_1 expected 0x05 packet with second byte of 0xF7");
 #endif
 				}
 				else {
@@ -1742,7 +1742,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 			// SET LED EX
 			case UMPMS_SET_LED_EX_0: {
 				if(CodeIndexNumber != 0x04) {
-					DEBUG_LINEOUT_NA("err: HandleMidiPacket: SET_LED_EX_0 expected 0x04 packet");
+					DEBUG_LINEOUT("err: HandleMidiPacket: SET_LED_EX_0 expected 0x04 packet");
 					g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 				}
 				else {
@@ -1755,7 +1755,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 
 			case UMPMS_SET_LED_EX_1: {
 				if(CodeIndexNumber != 0x05 || pBuffer[pBuffer_c + 1] != 0xF7 ) {
-					DEBUG_LINEOUT_NA("err: HandleMidiPacket: SET_LED_EX_1 expected 0x05 packet with second byte of 0xF7");
+					DEBUG_LINEOUT("err: HandleMidiPacket: SET_LED_EX_1 expected 0x05 packet with second byte of 0xF7");
 				}
 				else {
 					//DEBUG_LINEOUT("LED Ex state: str:%d fret: %d MRGB:0x%x", g_StateMachineString, g_StateMachineFret, g_StateMachineMRGB);
@@ -1811,10 +1811,10 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 			} break;
 
 			// SET NOTE ACTIVE
-			case UMPMS_SET_NA_0: {
+			case UMPMS_SET_0: {
 				//if(CodeIndexNumber != 0x06 || pBuffer[pBuffer_c + 2] != 0xF7) {
 				if(pBuffer[pBuffer_c + 2] != 0xF7) {
-					DEBUG_LINEOUT_NA("err: HandleMidiPacket: SET_NA_0 expected 0x06 packet with third byte of 0xF7");
+					DEBUG_LINEOUT("err: HandleMidiPacket: SET_0 expected 0x06 packet with third byte of 0xF7");
 				}
 				else {
 					SetNoteActiveRGBM(pBuffer[pBuffer_c + 1]);
@@ -1827,7 +1827,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 			case UMPMS_SET_FW_0: {
 				//if(CodeIndexNumber != 0x06 || pBuffer[pBuffer_c + 2] != 0xF7) {
 				if(pBuffer[pBuffer_c + 2] != 0xF7) {
-					DEBUG_LINEOUT_NA("err: HandleMidiPacket: SET_FW_0 expected third byte of 0xF7");
+					DEBUG_LINEOUT("err: HandleMidiPacket: SET_FW_0 expected third byte of 0xF7");
 				}
 				else {
 					SetFretFollowRGBM(pBuffer[pBuffer_c + 1], 10);
@@ -1983,7 +1983,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 
 									if(result == R_OK && cmdStatus != 1) {
 										result = R_ERROR;
-										 DEBUG_LINEOUT_NA("err: HandleMidiPacket: UMPMS_PIEZO_CMD command not successful");
+										 DEBUG_LINEOUT("err: HandleMidiPacket: UMPMS_PIEZO_CMD command not successful");
 									}
 								}
 
@@ -2092,14 +2092,14 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 						g_pBuffer_PiezoCmd = malloc(g_piezoCmd_txBytes*sizeof(uint8_t));
 
 						if(g_pBuffer_PiezoCmd == NULL) {
-							DEBUG_LINEOUT_NA("err: HandleMidiPacket: UMPMS_PIEZO_CMD couldn't allocate unwrapping buffers");
+							DEBUG_LINEOUT("err: HandleMidiPacket: UMPMS_PIEZO_CMD couldn't allocate unwrapping buffers");
 							ClearPiezoCmd();
 							g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 						}
 					}
 				}
 				else {
-					DEBUG_LINEOUT_NA("err: HandleMidiPacket: UMPMS_PIEZO_CMD command invalid value: 0.");
+					DEBUG_LINEOUT("err: HandleMidiPacket: UMPMS_PIEZO_CMD command invalid value: 0.");
 					g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 				}
 
@@ -2155,7 +2155,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 				DEBUG_LINEOUT("HandleMidiPacket: DWLD_FW_1: totPages: %d curPage: %d", g_totPages, g_curPage);
 
 				if(pBuffer[pBuffer_c + 3] != 0x00) {
-					DEBUG_LINEOUT_NA("err: HandleMidiPacket: DWLD_FW_1 expected 0x00 as last packet");
+					DEBUG_LINEOUT("err: HandleMidiPacket: DWLD_FW_1 expected 0x00 as last packet");
 					g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 					if(g_DownloadedFirmwareIsPiezo)
 						g_DownloadedFirmwareIsPiezo = 0;
@@ -2242,7 +2242,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 							break;
 						}
 						else {
-							DEBUG_LINEOUT_NA("err: HandleMidiPacket: DWLD_FW_2 too many bytes!");
+							DEBUG_LINEOUT("err: HandleMidiPacket: DWLD_FW_2 too many bytes!");
 							g_USBMIDIPacketMachineState = UMPMS_INITIAL;
 							if(g_DownloadedFirmwareIsPiezo) g_DownloadedFirmwareIsPiezo = 0;
 							break;
@@ -2305,7 +2305,7 @@ RESULT HandleMidiPacket_old(uint8_t *pBuffer, uint16_t pBuffer_n) {
 		pBuffer_c += 4;
 	} // ! while(pBuffer_c < pBuffer_n)
 	
-	//DEBUG_LINEOUT_NA("- HandleMidiPacket ");
+	//DEBUG_LINEOUT("- HandleMidiPacket ");
 
 Error:
 	return r;	
@@ -2335,11 +2335,11 @@ RESULT USBStatusCallback(void *pContext) {
 
 		if(g_USBStatus) {
 			USBDCDInit(0, &gc_MidiDevice_iAP, NULL);
-			DEBUG_LINEOUT_NA("USB init IAP");
+			DEBUG_LINEOUT("USB init IAP");
 		}
 		else {
 			USBDCDInit(0, &gc_MidiDevice, NULL);
-			DEBUG_LINEOUT_NA("USB init MIDI");
+			DEBUG_LINEOUT("USB init MIDI");
 
 			// iPhone disconnected, need to re-authenticate and ensure no
 			// SetiPodPreferences msg sent for line-out
@@ -2383,7 +2383,7 @@ RESULT DisableUSB() {
 	//USBDCDTerm(0);
 	ROM_IntMasterEnable();	// just in case
 
-	DEBUG_LINEOUT_NA("USB-MIDI Terminated!");
+	DEBUG_LINEOUT("USB-MIDI Terminated!");
 
 Error:
 	return r;
@@ -2395,7 +2395,7 @@ RESULT InitUSBMIDI() {
 
 #ifdef IPHONE_IAP
 	// Set up the handler for port H to handle iPhone connect / disconnect
-	CBRM_NA(ROM_SysCtlPeripheralPresent(USB_STATUS_PERIPH), "InitUSBMIDI: USB_STATUS_PERIPH is not present");
+	CBRM(ROM_SysCtlPeripheralPresent(USB_STATUS_PERIPH), "InitUSBMIDI: USB_STATUS_PERIPH is not present");
 	ROM_SysCtlPeripheralEnable(USB_STATUS_PERIPH);
 
 	// Init pin
@@ -2407,20 +2407,20 @@ RESULT InitUSBMIDI() {
 #endif
 
 	// For some reason this doesn't seem to work on LM3S3748
-	CBRM_NA_WARN(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_USB0), "InitUSBMIDI: USB0 is not present");
+	CBRM_WARN(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_USB0), "InitUSBMIDI: USB0 is not present");
 
 	if(!g_device.m_fUSB0) g_device.m_fUSB0 = true;
 	else return R_NO_EFFECT;
 
 	// Set up the handler for port H to handle iPhone connect / disconnect
 	/*
-	CBRM_NA(ROM_SysCtlPeripheralPresent(USB_MIDI_PERIPH), "InitUSBMIDI: USBMIDI GPIO port is not present");
+	CBRM(ROM_SysCtlPeripheralPresent(USB_MIDI_PERIPH), "InitUSBMIDI: USBMIDI GPIO port is not present");
 	ROM_SysCtlPeripheralEnable(USB_MIDI_PERIPH);
 	ROM_GPIOPinTypeUSBAnalog(USB_MIDI_PORT_BASE, USB_MIDI_DP_PIN | USB_MIDI_DM_PIN);
 	*/
 
 	CNRM(m_pUSBPeripheral, "USB Peripheral Configuration not set");
-	CBRM_NA(ROM_SysCtlPeripheralPresent(m_pUSBPeripheral->gpio.GPIOPeripheral), "InitUSBMIDI: USBMIDI GPIO port is not present");
+	CBRM(ROM_SysCtlPeripheralPresent(m_pUSBPeripheral->gpio.GPIOPeripheral), "InitUSBMIDI: USBMIDI GPIO port is not present");
 	ROM_SysCtlPeripheralEnable(m_pUSBPeripheral->gpio.GPIOPeripheral);
 	ROM_GPIOPinTypeUSBAnalog(m_pUSBPeripheral->gpio.GPIOPort, m_pUSBPeripheral->gpio.dp_pin | m_pUSBPeripheral->gpio.dm_pin);
 	m_pUSBPeripheral->fInitialized = 1;
@@ -2455,12 +2455,12 @@ RESULT InitUSBMIDI() {
 
 		case IAP_MIDI: {
 			USBDCDInit(0, &gc_MidiDevice_iAP, NULL);
-			DEBUG_LINEOUT_NA("USB (iAP) initialized!");
+			DEBUG_LINEOUT("USB (iAP) initialized!");
 		} break;
 
 		case USB_MIDI: {
 			USBDCDInit(0, &gc_MidiDevice, NULL);
-			DEBUG_LINEOUT_NA("USB-MIDI initialized!");
+			DEBUG_LINEOUT("USB-MIDI initialized!");
 		} break;
 
 		default: {
@@ -2470,7 +2470,7 @@ RESULT InitUSBMIDI() {
 	}
 #else
 	USBDCDInit(0, &gc_MidiDevice, NULL);
-	DEBUG_LINEOUT_NA("USB-MIDI initialized!");
+	DEBUG_LINEOUT("USB-MIDI initialized!");
 	ROM_IntMasterEnable();	// just in case
 #endif
 

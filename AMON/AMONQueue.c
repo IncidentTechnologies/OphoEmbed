@@ -25,7 +25,7 @@ RESULT InitializeAMONQueue() {
 
 		g_AMONQueueSending[i] = FALSE;
 
-		CNRM_NA(g_pAMONQueue[i], "InitializeAMONQueue: Failed to initialize AMON Queue");
+		CNRM(g_pAMONQueue[i], "InitializeAMONQueue: Failed to initialize AMON Queue");
 
 		g_NumQueuedPackets[i] = 0;
 	}
@@ -106,7 +106,7 @@ RESULT SendAMONQueue(AMON_LINK link) {
 		}
 
 		if(g_pAMONQueue[link]->m_count > 1) {
-			CRM_NA(DelayPHY(), "SendAMONQueue: Failed to delay PHY");
+			CRM(DelayPHY(), "SendAMONQueue: Failed to delay PHY");
 		}
 
 		AMONPacket *pAMONPacket = (AMONPacket*)PopFrontItem(g_pAMONQueue[link]);

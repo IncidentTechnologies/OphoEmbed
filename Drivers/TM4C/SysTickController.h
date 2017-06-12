@@ -17,6 +17,9 @@
 
 RESULT InitSysTick();
 
+RESULT EnableSysTick();
+RESULT DisableSysTick();
+
 uint64_t SystemTickCount();
 uint32_t  SystemTime();
 

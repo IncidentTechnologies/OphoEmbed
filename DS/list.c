@@ -37,7 +37,7 @@ RESULT DeleteList(list *list) {
 		while(tempNode != NULL) {
 			listNode *tempDel = tempNode;
 			tempNode = tempNode->m_next;
-			CRM_NA(DeleteListNode(tempDel), "DeleteList: Failed to delete node");
+			CRM(DeleteListNode(tempDel), "DeleteList: Failed to delete node");
 		}
 
 		free(list);
@@ -153,7 +153,7 @@ RESULT TestList(Console *pc, char *pszCount_n) {
 	PrintToOutput(pc, "Testing Linked List");
 
 	list *newList = CreateList();
-	CNRM_NA(newList, "TestList: Failed to create list");
+	CNRM(newList, "TestList: Failed to create list");
 
 	for(i = 0; i < count_n; i++) {
 		char *pszTemp = (char *)calloc(25, sizeof(char));
@@ -173,7 +173,7 @@ RESULT TestList(Console *pc, char *pszCount_n) {
 
 	PrintToOutput(pc, "Popped: %d items new count: %d", popped_n, newList->m_count);
 
-	CRM_NA(DeleteList(newList), "TestList: Failed to delete list");
+	CRM(DeleteList(newList), "TestList: Failed to delete list");
 Error:
 	return r;
 }

@@ -104,7 +104,7 @@ Error:
 RESULT RegisterLinkDelayCallback(cbPHYDelay cbDelay) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_PHYDelayCallback == NULL), "RegisterLinkDelayCallback: Failed to register delay callback");
+	CBRM((g_PHYDelayCallback == NULL), "RegisterLinkDelayCallback: Failed to register delay callback");
 	g_PHYDelayCallback = cbDelay;
 
 Error:
@@ -114,7 +114,7 @@ Error:
 RESULT UnregisterLinkDelayCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_PHYDelayCallback != NULL), "UnegisterLinkDelayCallback: Failed to unregister delay callback");
+	CBRM((g_PHYDelayCallback != NULL), "UnegisterLinkDelayCallback: Failed to unregister delay callback");
 	g_PHYDelayCallback = NULL;
 
 Error:
@@ -257,8 +257,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 						#endif
 
 						// Need to delay a moment
-//						CRM_NA(DelayPHY(), "Failed to delay");
-//						CRM_NA(DelayPHY(), "Failed to delay");
+//						CRM(DelayPHY(), "Failed to delay");
+//						CRM(DelayPHY(), "Failed to delay");
 
 						CRM(SendByte(link, AMON_INITIATE_REQUEST_ACK), "AMONHandleHalfDuplexPHYByte: Failed to send ack initiate byte on link %d", link);
 					}
@@ -300,8 +300,8 @@ RESULT AMONHandleHalfDuplexPHYByte(AMON_LINK link, unsigned char byte) {
 					DEBUG_LINEOUT("Sending transmit complete on link %d for %d packets", link, numPacketsToSend);
 				#endif
 
-//				CRM_NA(DelayPHY(), "Failed to delay PHY");
-//				CRM_NA(DelayPHY(), "Failed to delay PHY");
+//				CRM(DelayPHY(), "Failed to delay PHY");
+//				CRM(DelayPHY(), "Failed to delay PHY");
 
 				unsigned char temp = NumPacketsInPendingQueue(link) == 0 ? AMON_TRANSMIT_COMPLETE : AMON_TRANSMIT_COMPLETE_WITH_PENDING;
 				CRM(SendByte(link, temp), "AMONHandleHalfDuplexPHYByte: Failed to send transmit complete byte on link %d state %d", link, g_AMONLinkPhys[link]);
@@ -414,7 +414,7 @@ RESULT AMONErrorLink(AMON_LINK link) {
 	RESULT r = R_OK;
 
 	g_AMONLinkPhys[link] = AMON_PHY_UNINITIALIZED;
-	CRM_NA(SendByte(link, AMON_BYTE_ERROR), "AMONErrorLink: Failed to send Error byte");
+	CRM(SendByte(link, AMON_BYTE_ERROR), "AMONErrorLink: Failed to send Error byte");
 
 Error:
 	return R_ERROR;
@@ -524,10 +524,10 @@ Error:
 RESULT BroadcastByte(unsigned char byte) {
 	RESULT r = R_OK;
 
-	CRM_NA(SendByte(AMON_NORTH, byte), "Broadcast failed on north link");
-	CRM_NA(SendByte(AMON_SOUTH, byte), "Broadcast failed on south link");
-	CRM_NA(SendByte(AMON_EAST, byte), "Broadcast failed on east link");
-	CRM_NA(SendByte(AMON_WEST, byte), "Broadcast failed on west link");
+	CRM(SendByte(AMON_NORTH, byte), "Broadcast failed on north link");
+	CRM(SendByte(AMON_SOUTH, byte), "Broadcast failed on south link");
+	CRM(SendByte(AMON_EAST, byte), "Broadcast failed on east link");
+	CRM(SendByte(AMON_WEST, byte), "Broadcast failed on west link");
 
 Error:
 	return r;
@@ -592,8 +592,8 @@ Error:
 RESULT DelayPHY() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_PHYDelayCallback != NULL), "DelayPHY: Delay callback not present");
-	CRM_NA(g_PHYDelayCallback(), "DelayPHY: Delay phy callback failed");
+	CBRM((g_PHYDelayCallback != NULL), "DelayPHY: Delay callback not present");
+	CRM(g_PHYDelayCallback(), "DelayPHY: Delay phy callback failed");
 
 Error:
 	return r;

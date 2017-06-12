@@ -247,7 +247,7 @@ RESULT PrintAMONMap(Console *pc, AMONMap *map) {
 		nodeInfo = NULL;
 	}
 
-	CRM_NA(DeleteList(searchQueue), "PrintAMONMap: Failed to delete list");
+	CRM(DeleteList(searchQueue), "PrintAMONMap: Failed to delete list");
 
 Error:
 	return r;

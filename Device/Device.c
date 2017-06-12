@@ -24,7 +24,7 @@ RESULT EraseFirmwareUpdateEraseFlashArea() {
 	uint32_t  ulRes;
 	 int32_t  i = 0;
 
-	//DEBUG_LINEOUT_NA("EraseFirmwareUpdateEraseFlashArea: Starting erase");
+	//DEBUG_LINEOUT("EraseFirmwareUpdateEraseFlashArea: Starting erase");
 
 	for(i = 0; i < MAX_FIRMWARE_UPGRADE_SIZE; i++) {
 		uint32_t  tempAddr = (uint32_t )(g_FirmwareDownloadAddress + (0x400 * i));
@@ -32,7 +32,7 @@ RESULT EraseFirmwareUpdateEraseFlashArea() {
 		CBRM((ulRes == 0), "EraseFirmwareUpdateFlashArea: Erase of flash address 0x%x failed", tempAddr);
 	}
 
-	DEBUG_LINEOUT_NA("EraseFirmwareUpdateEraseFlashArea: Finished erase with no error");
+	DEBUG_LINEOUT("EraseFirmwareUpdateEraseFlashArea: Finished erase with no error");
 
 Error:
 	return r;

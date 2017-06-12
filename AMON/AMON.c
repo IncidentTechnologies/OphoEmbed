@@ -29,7 +29,7 @@ Error:
 RESULT StartAMON() {
 	g_amon.fStart = 1;
 
-	DEBUG_LINEOUT_NA("AMON Started");
+	DEBUG_LINEOUT("AMON Started");
 
 	return R_OK;
 }
@@ -37,7 +37,7 @@ RESULT StartAMON() {
 RESULT StopAMON() {
 	g_amon.fStart = 0;
 
-	DEBUG_LINEOUT_NA("AMON Stopped");
+	DEBUG_LINEOUT("AMON Stopped");
 
 	return R_OK;
 }

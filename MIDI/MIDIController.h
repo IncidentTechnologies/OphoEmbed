@@ -48,7 +48,7 @@ RESULT SendCommitUserspaceAck(uint8_t status);
 RESULT SendResetUserspaceAck(uint8_t status);
 
 RESULT HandleMIDIPacket(MIDI_MSG midiPacket);
-RESULT HandleMIDISysExPacket(midiPacket);
+RESULT HandleMIDISysExPacket(MIDI_MSG midiPacket);
 
 RESULT UnwrapBuffer7F(uint8_t *pBuffer7F, int pBuffer7F_n, uint8_t **n_pBuffer, int *pn_pBuffer_n);
 RESULT WrapBuffer7F(uint8_t *pBuffer, int pBuffer_n, uint8_t **n_pBuffer7F, int *pn_pBuffer7F_n);

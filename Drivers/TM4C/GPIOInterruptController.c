@@ -64,7 +64,7 @@ RESULT InitializeGPIOInterruptController() {
 		}
 	}
 
-	DEBUG_LINEOUT_NA("GPIO Interrupt Controller Initialized");
+	DEBUG_LINEOUT("GPIO Interrupt Controller Initialized");
 
 Error:
 	return r;

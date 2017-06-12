@@ -18,7 +18,7 @@ Error:
 RESULT InitializeTaskQueue() {
 	RESULT r = R_OK;
 
-	CRM_NA(CreateTaskQueue(&g_taskQueue), "InitializeTaskQueue: Failed to initialize task queue");
+	CRM(CreateTaskQueue(&g_taskQueue), "InitializeTaskQueue: Failed to initialize task queue");
 
 Error:
 	return r;
@@ -40,9 +40,9 @@ RESULT AddTaskLoop(fnQueueTask fnTask, int argc, char *argv[]) {
 	RESULT r = R_OK;
 
 	QUEUE_TASK *newTask = CreateTask(fnTask, argc, argv, TRUE);
-	CNRM_NA(newTask, "AddTaskLoop: Failed to allocate new task");
+	CNRM(newTask, "AddTaskLoop: Failed to allocate new task");
 
-	CRM_NA(PushItem(g_taskQueue.m_pTaskQueue, newTask), "AddTaskLoop: Failed to push new task to queue");
+	CRM(PushItem(g_taskQueue.m_pTaskQueue, newTask), "AddTaskLoop: Failed to push new task to queue");
 
 Error:
 	return r;
@@ -52,9 +52,9 @@ RESULT AddTask(fnQueueTask fnTask, int argc, char *argv[]) {
 	RESULT r = R_OK;
 
 	QUEUE_TASK *newTask = CreateTask(fnTask, argc, argv, FALSE);
-	CNRM_NA(newTask, "AddTask: Failed to allocate new task");
+	CNRM(newTask, "AddTask: Failed to allocate new task");
 
-	CRM_NA(PushItem(g_taskQueue.m_pTaskQueue, newTask), "AddTask: Failed to push new task to queue");
+	CRM(PushItem(g_taskQueue.m_pTaskQueue, newTask), "AddTask: Failed to push new task to queue");
 
 Error:
 	return r;
@@ -76,7 +76,7 @@ RESULT UpdateTaskQueue() {
 	RESULT r = R_OK;
 
 	if(TaskPending())
-		CRM_NA(ExecuteTaskQueue(), "UpdateTaskQueue: Failed to execute task queue");
+		CRM(ExecuteTaskQueue(), "UpdateTaskQueue: Failed to execute task queue");
 
 Error:
 	return r;
@@ -96,7 +96,7 @@ RESULT ExecuteTaskQueue() {
 	// If the loop flag is set, don't deallocate and run the task again
 	if(task->m_fLoop == TRUE) {
 		fDeallocate = FALSE;
-		CRM_NA(PushItem(g_taskQueue.m_pTaskQueue, task), "ExecuteTaskQueue: Failed to push task back into queue");
+		CRM(PushItem(g_taskQueue.m_pTaskQueue, task), "ExecuteTaskQueue: Failed to push task back into queue");
 	}
 
 Error:

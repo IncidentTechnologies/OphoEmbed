@@ -19,7 +19,7 @@ RESULT InitializeMIDIController() {
 	memset(&m_pSysExBuffer, 0, sizeof(m_pSysExBuffer));
 	m_pSysExBuffer_n = 0;
 
-	DEBUG_LINEOUT_NA("Device MIDI Controller Initialized");
+	DEBUG_LINEOUT("Device MIDI Controller Initialized");
 
 Error:
 	return r;
@@ -29,7 +29,7 @@ cbHandleCustomDeviceSysEx g_HandleCustomDeviceSysExCallback = NULL;
 RESULT RegisterHandleCustomDeviceSysExCallback(cbHandleCustomDeviceSysEx HandleCustomDeviceSysExCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleCustomDeviceSysExCallback == NULL), "RegisterHandleCustomDeviceSysExCallback: Handle Custom Device SysEx Callback already registered");
+	CBRM((g_HandleCustomDeviceSysExCallback == NULL), "RegisterHandleCustomDeviceSysExCallback: Handle Custom Device SysEx Callback already registered");
 	g_HandleCustomDeviceSysExCallback = HandleCustomDeviceSysExCB;
 
 Error:
@@ -39,7 +39,7 @@ Error:
 RESULT UnregisterHandleCustomDeviceSysExCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleCustomDeviceSysExCallback != NULL), "UnregisterHandleCustomDeviceSysExCallback: Handle Custom Device SysEx Callback not registered");
+	CBRM((g_HandleCustomDeviceSysExCallback != NULL), "UnregisterHandleCustomDeviceSysExCallback: Handle Custom Device SysEx Callback not registered");
 	g_HandleCustomDeviceSysExCallback = NULL;
 
 Error:
@@ -50,7 +50,7 @@ cbHandleDebugSysEx g_HandleDebugSysExCallback = NULL;
 RESULT RegisterHandleDebugSysExCallback(cbHandleDebugSysEx HandleDebugSysExCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleDebugSysExCallback == NULL), "RegisterHandleDebugSysExCallback: Handle Debug SysEx Callback already registered");
+	CBRM((g_HandleDebugSysExCallback == NULL), "RegisterHandleDebugSysExCallback: Handle Debug SysEx Callback already registered");
 	g_HandleDebugSysExCallback = HandleDebugSysExCB;
 
 Error:
@@ -60,7 +60,7 @@ Error:
 RESULT UnregisterHandleDebugSysExCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleDebugSysExCallback != NULL), "UnregisterHandleDebugSysExCallback: Handle Debug SysEx Callback not registered");
+	CBRM((g_HandleDebugSysExCallback != NULL), "UnregisterHandleDebugSysExCallback: Handle Debug SysEx Callback not registered");
 	g_HandleDebugSysExCallback = NULL;
 
 Error:
@@ -71,7 +71,7 @@ cbHandleLEDStateCC g_HandleLEDStateCCCallback = NULL;
 RESULT RegisterHandleLEDStateCCCallback(cbHandleLEDStateCC HandleLEDStateCCCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleLEDStateCCCallback == NULL), "RegisterHandleLEDStateCCCallback: Handle LED State CC Callback already registered");
+	CBRM((g_HandleLEDStateCCCallback == NULL), "RegisterHandleLEDStateCCCallback: Handle LED State CC Callback already registered");
 	g_HandleLEDStateCCCallback = HandleLEDStateCCCB;
 
 Error:
@@ -81,7 +81,7 @@ Error:
 RESULT UnregisterHandleLEDStateCCCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleLEDStateCCCallback != NULL), "UnregisterHandleLEDStateCCCallback: Handle LED State CC Callback not registered");
+	CBRM((g_HandleLEDStateCCCallback != NULL), "UnregisterHandleLEDStateCCCallback: Handle LED State CC Callback not registered");
 	g_HandleLEDStateCCCallback = NULL;
 
 Error:
@@ -230,7 +230,7 @@ RESULT HandleMIDISysExPacket(MIDI_MSG midiPacket) {
 		}
 		else {
 			if(dataByte == MIDI_SYS_EX) {
-				//CRM_NA(SysExError(), "HandleMIDISysExPacket: got 0xF0 inside a sysex message");
+				//CRM(SysExError(), "HandleMIDISysExPacket: got 0xF0 inside a sysex message");
 				//DEBUG_LINEOUT("Warning: 0xF0 inside of SysEx message");
 				// TODO: Fix the iOS app to use the new MRGB format!!
 			}
@@ -263,7 +263,7 @@ RESULT HandleMIDIPacket(MIDI_MSG midiPacket) {
 		} break;
 
 		case MIDI_NIBBLE_CONTROL_CHANGE: {
-			DEBUG_LINEOUT_NA("CC!");
+			DEBUG_LINEOUT("CC!");
 
 			if(midiPacket.data1 == GTAR_MIDI_CC_SET_LED_0) {
 				m_fCCSetLED = true;
@@ -272,7 +272,7 @@ RESULT HandleMIDIPacket(MIDI_MSG midiPacket) {
 			}
 			else if(midiPacket.data1 == GTAR_MIDI_CC_SET_LED_1) {
 				if(m_fCCSetLED == false) {
-					CRM_NA(CCSetLEDError(), "Rx second set CC LED message");
+					CRM(CCSetLEDError(), "Rx second set CC LED message");
 				}
 
 				m_CCSetLEDColor = UintToRGBM(midiPacket.data2);
@@ -282,7 +282,7 @@ RESULT HandleMIDIPacket(MIDI_MSG midiPacket) {
 				if(g_HandleLEDStateCCCallback != NULL) {
 					r = g_HandleLEDStateCCCallback(m_CCSetLEDString, m_CCSetLEDFret, RGBMToUint(m_CCSetLEDColor));
 					ResetCCSetLED();
-					CRM_NA(r, "Failed to set CC Set LED msg");
+					CRM(r, "Failed to set CC Set LED msg");
 				}
 				else {
 					DEBUG_LINEOUT("No LED RGBM Handler present");
@@ -319,7 +319,7 @@ RESULT UnwrapBuffer7F(uint8_t *pBuffer7F, int pBuffer7F_n, uint8_t **n_pBuffer, 
 	*n_pBuffer = (uint8_t *)malloc(sizeof(uint8_t) * count);
 
 	memset((*n_pBuffer), 0, sizeof(sizeof(uint8_t) * count));
-	CNRM_NA((*n_pBuffer), "Failed to allocate memory for the unwrapped buffer");
+	CNRM((*n_pBuffer), "Failed to allocate memory for the unwrapped buffer");
 
 	for(i = 0; i < pBuffer7F_n; i++) {
 
@@ -368,7 +368,7 @@ RESULT WrapBuffer7F(uint8_t *pBuffer, int pBuffer_n, uint8_t **n_pBuffer7F, int 
 	(*n_pBuffer7F) = (uint8_t *)malloc(sizeof(uint8_t) * count);
 
 	memset((*n_pBuffer7F), 0x00, sizeof(sizeof(uint8_t) * count));
-	CNRM_NA((*n_pBuffer7F), "Failed to allocate memory for the wrapped buffer");
+	CNRM((*n_pBuffer7F), "Failed to allocate memory for the wrapped buffer");
 
 	uint8_t left, right;
 	j = 1;
@@ -435,9 +435,9 @@ RESULT HandleMIDISysExBuffer() {
 
 		case DEVICE_MSG_ENABLE_DEBUG: {
 			// This needs to be a callback
-			//CRM_NA(InitJTAGStrings(), "Failed to disable debug mode");
+			//CRM(InitJTAGStrings(), "Failed to disable debug mode");
 			if(g_HandleDebugSysExCallback != NULL) {
-				CRM_NA(g_HandleDebugSysExCallback(TRUE), "Failed to enable debug mode");
+				CRM(g_HandleDebugSysExCallback(TRUE), "Failed to enable debug mode");
 			}
 			else {
 				DEBUG_LINEOUT("No enable debug callback registered");
@@ -445,9 +445,9 @@ RESULT HandleMIDISysExBuffer() {
 		} break;
 
 		case DEVICE_MSG_DISABLE_DEBUG: {
-			//CRM_NA(InitJTAG(), "Failed to enter debug mode");
+			//CRM(InitJTAG(), "Failed to enter debug mode");
 			if(g_HandleDebugSysExCallback != NULL) {
-				CRM_NA(g_HandleDebugSysExCallback(FALSE), "Failed to disable debug mode");
+				CRM(g_HandleDebugSysExCallback(FALSE), "Failed to disable debug mode");
 			}
 			else {
 				DEBUG_LINEOUT("No disable debug callback registered");
@@ -529,21 +529,21 @@ RESULT HandleMIDISysExBuffer() {
 		} break;
 
 		case DEVICE_MSG_EXEC_FW_UPDATE: {
-			DEBUG_LINEOUT_NA("Execute FW update not currently implemented");
+			DEBUG_LINEOUT("Execute FW update not currently implemented");
 		} break;
 
 		// TODO: Verify ALL wrap / unwrap functions!
 		case DEVICE_MSG_SET_SERIAL_NUMBER: {
 			DEVICE_SET_SERIAL_NUMBER *pDeviceSetSerialNumber = pDeviceMsg;
 			//*/
-			DEBUG_LINEOUT_NA("Set Serial Number");
+			DEBUG_LINEOUT("Set Serial Number");
 			UARTprintfBinaryData(pDeviceSetSerialNumber, sizeof(DEVICE_SET_SERIAL_NUMBER), 20);
 			//*/
 
 			uint8_t *pSerialBuffer = NULL;
 			int pSerialBuffer_n = -1;
 
-			CRM_NA(UnwrapBuffer7F(pDeviceSetSerialNumber->serialNumber7F, 16, &pSerialBuffer, &pSerialBuffer_n), "Failed to unwrap 7F buffer for serial number");
+			CRM(UnwrapBuffer7F(pDeviceSetSerialNumber->serialNumber7F, 16, &pSerialBuffer, &pSerialBuffer_n), "Failed to unwrap 7F buffer for serial number");
 
 			// Copy over serial number
 			uint8_t *pUserspaceSerialAddress = GetDeviceUserspaceSerialAddress();
@@ -574,7 +574,7 @@ RESULT HandleMIDISysExBuffer() {
 			EraseAuthCert();
 			DownloadAuthCertificate();
 #else
-			DEBUG_LINEOUT_NA("Auth redownload not supported");
+			DEBUG_LINEOUT("Auth redownload not supported");
 #endif
 		} break;
 		*/

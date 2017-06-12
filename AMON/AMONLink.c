@@ -64,7 +64,7 @@ cbAMONLink g_AMONLinkEstablishedCallback = NULL;
 RESULT RegisterAMONLinkEstablishedCallback(cbAMONLink AMONLinkEstablishedCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_AMONLinkEstablishedCallback == NULL), "RegisterAMONLinkEstablishedCallback: AMON Link Established callback already registered");
+	CBRM((g_AMONLinkEstablishedCallback == NULL), "RegisterAMONLinkEstablishedCallback: AMON Link Established callback already registered");
 	g_AMONLinkEstablishedCallback = AMONLinkEstablishedCB;
 
 Error:
@@ -74,7 +74,7 @@ Error:
 RESULT UnegisterAMONLinkEstablishedCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_AMONLinkEstablishedCallback != NULL), "UnregisterAMONLinkEstablishedCallback: AMON Link Established callback not registered");
+	CBRM((g_AMONLinkEstablishedCallback != NULL), "UnregisterAMONLinkEstablishedCallback: AMON Link Established callback not registered");
 	g_AMONLinkEstablishedCallback = NULL;
 
 Error:
@@ -85,7 +85,7 @@ cbAMONLink g_AMONLinkDisconnectCallback = NULL;
 RESULT RegisterAMONLinkDisconnectCallback(cbAMONLink AMONLinkDisconnectCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_AMONLinkDisconnectCallback == NULL), "RegisterAMONLinkDisconnectCallback: AMON Link Disconnect callback already registered");
+	CBRM((g_AMONLinkDisconnectCallback == NULL), "RegisterAMONLinkDisconnectCallback: AMON Link Disconnect callback already registered");
 	g_AMONLinkDisconnectCallback = AMONLinkDisconnectCB;
 
 Error:
@@ -95,7 +95,7 @@ Error:
 RESULT UnegisterAMONLinkDisconnectCallback()  {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_AMONLinkDisconnectCallback != NULL), "UnregisterAMONLinkDisconnectCallback: AMON Link Disconnect callback not registered");
+	CBRM((g_AMONLinkDisconnectCallback != NULL), "UnregisterAMONLinkDisconnectCallback: AMON Link Disconnect callback not registered");
 	g_AMONLinkDisconnectCallback = NULL;
 
 Error:

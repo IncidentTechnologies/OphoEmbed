@@ -9,16 +9,16 @@ Console *GetConsole() {
 RESULT InitializeConsole(cbUpdateConsoleInput UpdateConsoleInputCB, cbUpdateConsoleOutput UpdateConsoleOutputCB) {
 	RESULT r = R_OK;
 
-	CNRM_NA(UpdateConsoleInputCB, "Must set a console update input CB");
-	CRM_NA(RegisterUpdateConsoleInputCallback(UpdateConsoleInputCB), "InitializeConsole: Failed to register Input update callback");
+	CNRM(UpdateConsoleInputCB, "Must set a console update input CB");
+	CRM(RegisterUpdateConsoleInputCallback(UpdateConsoleInputCB), "InitializeConsole: Failed to register Input update callback");
 
-	CNRM_NA(UpdateConsoleOutputCB, "Must set a console update output CB");
-	CRM_NA(RegisterUpdateConsoleOutputCallback(UpdateConsoleOutputCB), "InitializeConsole: Failed to register output update callback");
+	CNRM(UpdateConsoleOutputCB, "Must set a console update output CB");
+	CRM(RegisterUpdateConsoleOutputCallback(UpdateConsoleOutputCB), "InitializeConsole: Failed to register output update callback");
 
 	m_pConsole = CreateConsole();
-	CNRM_NA(m_pConsole, "InitializeConsole: Failed to allocate console");
+	CNRM(m_pConsole, "InitializeConsole: Failed to allocate console");
 
-	DEBUG_LINEOUT_NA("Console initialized");
+	DEBUG_LINEOUT("Console initialized");
 
 Error:
 	return r;
@@ -28,7 +28,7 @@ cbSystemReset m_SystemResetCallback = NULL;
 RESULT RegisterSystemResetCallback(cbSystemReset SystemResetCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_SystemResetCallback == NULL), "RegisterSystemResetCallback: Console system reset callback already registered");
+	CBRM((m_SystemResetCallback == NULL), "RegisterSystemResetCallback: Console system reset callback already registered");
 	m_SystemResetCallback = SystemResetCB;
 
 Error:
@@ -38,7 +38,7 @@ Error:
 RESULT UnegisterSystemResetCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_SystemResetCallback != NULL), "UnegisterSystemResetCallback: Console system reset callback not registered");
+	CBRM((m_SystemResetCallback != NULL), "UnegisterSystemResetCallback: Console system reset callback not registered");
 	m_SystemResetCallback = NULL;
 
 Error:
@@ -49,7 +49,7 @@ cbUpdateConsoleInput m_UpdateConsoleInputCallback = NULL;
 RESULT RegisterUpdateConsoleInputCallback(cbUpdateConsoleInput UpdateConsoleInputCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_UpdateConsoleInputCallback == NULL), "RegisterUpdateConsoleInputCallback: Console update input Callback already registered");
+	CBRM((m_UpdateConsoleInputCallback == NULL), "RegisterUpdateConsoleInputCallback: Console update input Callback already registered");
 	m_UpdateConsoleInputCallback = UpdateConsoleInputCB;
 
 Error:
@@ -59,7 +59,7 @@ Error:
 RESULT UnegisterUpdateConsoleInputCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_UpdateConsoleInputCallback != NULL), "UnregisterUpdateConsoleInputCallback: Console Update Input Callback not registered");
+	CBRM((m_UpdateConsoleInputCallback != NULL), "UnregisterUpdateConsoleInputCallback: Console Update Input Callback not registered");
 	m_UpdateConsoleInputCallback = NULL;
 
 Error:
@@ -70,7 +70,7 @@ cbUpdateConsoleOutput m_UpdateConsoleOutputCallback = NULL;
 RESULT RegisterUpdateConsoleOutputCallback(cbUpdateConsoleOutput UpdateConsoleOutputCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_UpdateConsoleOutputCallback == NULL), "RegisterUpdateConsoleOutputCallback: Console update Output Callback already registered");
+	CBRM((m_UpdateConsoleOutputCallback == NULL), "RegisterUpdateConsoleOutputCallback: Console update Output Callback already registered");
 	m_UpdateConsoleOutputCallback = UpdateConsoleOutputCB;
 
 Error:
@@ -80,7 +80,7 @@ Error:
 RESULT UnegisterUpdateConsoleOutputCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_UpdateConsoleOutputCallback != NULL), "UnregisterUpdateConsoleOutputCallback: Console Update Output Callback not registered");
+	CBRM((m_UpdateConsoleOutputCallback != NULL), "UnregisterUpdateConsoleOutputCallback: Console Update Output Callback not registered");
 	m_UpdateConsoleOutputCallback = NULL;
 
 Error:
@@ -91,7 +91,7 @@ cbSystemPrintBuffer m_SystemPrintBufferCallback = NULL;
 RESULT RegisterSystemPrintBufferCallback(cbSystemPrintBuffer SystemPrintBufferCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_SystemPrintBufferCallback == NULL), "RegisterSystemPrintBufferCallback: Console system print buffer callback already registered");
+	CBRM((m_SystemPrintBufferCallback == NULL), "RegisterSystemPrintBufferCallback: Console system print buffer callback already registered");
 	m_SystemPrintBufferCallback = SystemPrintBufferCB;
 
 Error:
@@ -101,7 +101,7 @@ Error:
 RESULT UnegisterSystemPrintBufferCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_SystemPrintBufferCallback != NULL), "UnregisterSystemPrintBufferCallback: Console system print buffer callback not registered");
+	CBRM((m_SystemPrintBufferCallback != NULL), "UnregisterSystemPrintBufferCallback: Console system print buffer callback not registered");
 	m_SystemPrintBufferCallback = NULL;
 
 Error:
@@ -123,7 +123,7 @@ RESULT Reset(Console *pc) {
 	RESULT r = R_OK;
 
 	if(m_SystemResetCallback != NULL) {
-		CRM_NA(m_SystemResetCallback(), "reset: Failed to call system reset callback");
+		CRM(m_SystemResetCallback(), "reset: Failed to call system reset callback");
 	}
 	else {
 		CR(PrintToOutput(pc, "No system reset registered"));
@@ -237,7 +237,7 @@ RESULT ExecuteConsoleFunction(Console *pc, char *pszCommand, int pszCommand_n) {
     char** Args = NULL;
     int Args_n;
 	unsigned char fUseDefaultArguments = false;
-    CRM_NA(ConvertToArgumentList(pc, TempBuffer, &Args, &Args_n), "Failed to convert command to arguments list");
+    CRM(ConvertToArgumentList(pc, TempBuffer, &Args, &Args_n), "Failed to convert command to arguments list");
 
     // Search for the command
     ConsoleFunction *ppCmdList = GetCommandList(pc);
@@ -272,7 +272,7 @@ RESULT ExecuteConsoleFunction(Console *pc, char *pszCommand, int pszCommand_n) {
 		}
     }
 
-    CRM_NA(ClearCommandLine(pc), "Failed to clear command line");
+    CRM(ClearCommandLine(pc), "Failed to clear command line");
 
 	int CallbackRet = -1;
     switch(ppCmdList[i].arguments) {
@@ -391,7 +391,7 @@ RESULT Path(Console *pc, char** ppn_pszPath) {
     int path_n = strlen(BASE_CONSOLE_PATH_STRING) + strlen("\r>");
 
     *ppn_pszPath = (char*)malloc(sizeof(char) * path_n);
-    CNRM_NA(*ppn_pszPath, "Could not allocate the path string");
+    CNRM(*ppn_pszPath, "Could not allocate the path string");
     sprintf(*ppn_pszPath, "\r%s>", BASE_CONSOLE_PATH_STRING);
 
 Error:
@@ -403,7 +403,7 @@ RESULT PrintPath(Console *pc, char *pszOptString) {
 
 	char *tempPath = NULL;
 
-	CRM_NA(Path(pc, &tempPath), "Cant make path!");
+	CRM(Path(pc, &tempPath), "Cant make path!");
     PrintToOutputPsz(pc, tempPath);
 
     if(pszOptString != NULL)
@@ -418,7 +418,7 @@ RESULT ClearLine(Console *pc) {
 	int i = 0;
 
 	for(i = 0; i < pc->m_InputBuffer_n + strlen(BASE_CONSOLE_PATH_STRING) + strlen("\r>"); i++)
-		CRM_NA(PrintToOutputChar(pc, (char)(127)), "Failed to print delete char to terminal");
+		CRM(PrintToOutputChar(pc, (char)(127)), "Failed to print delete char to terminal");
 
 Error:
 	return r;
@@ -429,7 +429,7 @@ RESULT ClearCommandLine(Console *pc) {
 	int i = 0;
 
 	for(i = 0; i < pc->m_InputBuffer_n + strlen(BASE_CONSOLE_PATH_STRING) + strlen("\r>"); i++)
-		CRM_NA(PrintToOutputChar(pc, (char)(127)), "Failed to print delete char to terminal");
+		CRM(PrintToOutputChar(pc, (char)(127)), "Failed to print delete char to terminal");
 
 	memset(pc->m_InputBuffer, 0, sizeof(pc->m_InputBuffer));
 	    pc->m_InputBuffer_n = 0;
@@ -442,11 +442,11 @@ RESULT RefreshCommandLine(Console *pc, char *pszOptString) {
 	RESULT r = R_OK;
 
 	if(pszOptString == NULL) {
-		CRM_NA(ClearLine(pc), "Failed to clear line");
-		CRM_NA(PrintPath(pc, pc->m_InputBuffer), "Failed to print current path");
+		CRM(ClearLine(pc), "Failed to clear line");
+		CRM(PrintPath(pc, pc->m_InputBuffer), "Failed to print current path");
 	}
 	else {
-		CRM_NA(ResetCommandBuffer(pc, pszOptString), "Failed to reset command buffer");
+		CRM(ResetCommandBuffer(pc, pszOptString), "Failed to reset command buffer");
 	}
 
 Error:
@@ -457,12 +457,12 @@ RESULT ResetCommandBuffer(Console *pc, char *pszOptString) {
     RESULT r = R_OK;
     char *tempPath = NULL;
 
-    CRM_NA(ClearLine(pc), "Failed to clear line");
+    CRM(ClearLine(pc), "Failed to clear line");
 
     memset(pc->m_InputBuffer, 0, sizeof(pc->m_InputBuffer));
     pc->m_InputBuffer_n = 0;
 
-    CRM_NA(PrintPath(pc, pszOptString), "Failed to print current path");
+    CRM(PrintPath(pc, pszOptString), "Failed to print current path");
     if(pszOptString != NULL) {
     	pc->m_InputBuffer_n = strlen(pszOptString);
     	memcpy(pc->m_InputBuffer, pszOptString, strlen(pszOptString));
@@ -493,13 +493,13 @@ RESULT PrintToOutputBinaryBuffer(Console *pc, unsigned char *Buffer, int Buffer_
 	RESULT r = R_OK;
 	int i = 0;
 
-	CRM_NA(ClearLine(pc), "Failed to clear line");
-	CRM_NA(PrintToOutputChar(pc, '\r'), "Failed to print carriage return");
+	CRM(ClearLine(pc), "Failed to clear line");
+	CRM(PrintToOutputChar(pc, '\r'), "Failed to print carriage return");
 
 	for(i = 1; i <= Buffer_n; i++) {
 		char HexBuffer[MAX_COMMAND];
 		sprintf(HexBuffer, "%02x ", (unsigned char)(Buffer[i - 1]));
-		CRM_NA(PrintToOutputPsz(pc, HexBuffer), "Could not print hex buffer!");
+		CRM(PrintToOutputPsz(pc, HexBuffer), "Could not print hex buffer!");
 
 		if(i % itemsPerRow == 0 && i != 0)
 			PrintNewline(pc);
@@ -517,7 +517,7 @@ RESULT PrintToOutputPsz(Console *pc, char* pszOutput) {
     int i = 0;
 
     for(i = 0; i < strlen(pszOutput); i++)
-        CRM_NA(PrintToOutputChar(pc, pszOutput[i]), "Could not print char to output");
+        CRM(PrintToOutputChar(pc, pszOutput[i]), "Could not print char to output");
 
 Error:
     return r;
@@ -527,8 +527,8 @@ RESULT PrintToOutput(Console *pc, const char* output_format, ...) {
     RESULT r = R_OK;
     int i = 0;
 
-    CRM_NA(ClearLine(pc), "Failed to clear line");
-    CRM_NA(PrintToOutputChar(pc, '\r'), "Failed to print carriage return");
+    CRM(ClearLine(pc), "Failed to clear line");
+    CRM(PrintToOutputChar(pc, '\r'), "Failed to print carriage return");
 
     va_list ap;
     va_start(ap, output_format);
@@ -543,12 +543,12 @@ RESULT PrintToOutput(Console *pc, const char* output_format, ...) {
                     char IntBuffer[MAX_COMMAND];
                     sprintf(IntBuffer, "%d", InputInt);
 
-                    CRM_NA(PrintToOutputPsz(pc, IntBuffer), "Could not print int buffer!");
+                    CRM(PrintToOutputPsz(pc, IntBuffer), "Could not print int buffer!");
                 } break;   
 
                 case 'c': {
                     char InputChar = va_arg(ap, char);
-                    CRM_NA(PrintToOutputChar(pc, InputChar), "Could not print char to buffer!");
+                    CRM(PrintToOutputChar(pc, InputChar), "Could not print char to buffer!");
                 } break;
 
                 case 'x':
@@ -556,7 +556,7 @@ RESULT PrintToOutput(Console *pc, const char* output_format, ...) {
                     char InputValue = va_arg(ap, int);
                     char HexBuffer[MAX_COMMAND];
                     sprintf(HexBuffer, "%x", InputValue);
-                    CRM_NA(PrintToOutputPsz(pc, HexBuffer), "Could not print hex buffer!");
+                    CRM(PrintToOutputPsz(pc, HexBuffer), "Could not print hex buffer!");
                 } break;
 
                 // For wide strings
@@ -564,29 +564,29 @@ RESULT PrintToOutput(Console *pc, const char* output_format, ...) {
                     wchar_t *wpszInput = va_arg(ap, wchar_t*);
                     char WideBuffer[MAX_COMMAND];
                     int Converted_n = wcstombs(WideBuffer, wpszInput, MAX_COMMAND);
-                    CRM_NA(PrintToOutputPsz(pc, WideBuffer), "Could not print wide string buffer!");
+                    CRM(PrintToOutputPsz(pc, WideBuffer), "Could not print wide string buffer!");
                 } break;
 
                 case 's': {
                     char* InputBuffer = va_arg(ap, char*);
-                    CRM_NA(PrintToOutputPsz(pc, InputBuffer), "Could not print input buffer!");
+                    CRM(PrintToOutputPsz(pc, InputBuffer), "Could not print input buffer!");
                 } break;
 
-                default: CBRM_NA(0, "Unknown format specifier");
+                default: CBRM(0, "Unknown format specifier");
             }
         }
         else if(output_format[i] == '\\') {
             i++;
             switch(output_format[i]) {
                 case 'n': {
-                    CRM_NA(PrintToOutputChar(pc, '\n'), "Could not print newline to output");
+                    CRM(PrintToOutputChar(pc, '\n'), "Could not print newline to output");
                 } break;
 
-                default: CBRM_NA(0, "Unknown special character");
+                default: CBRM(0, "Unknown special character");
             }
         }
         else {
-            CRM_NA(PrintToOutputChar(pc, output_format[i]), "Could not print char to output!");
+            CRM(PrintToOutputChar(pc, output_format[i]), "Could not print char to output!");
         }
     }
 
@@ -705,7 +705,7 @@ RESULT ReceiveInput(Console *pc, char** ppd_input, int ppd_input_n) {
     int i = 0;
 
     for(i = 0; i < ppd_input_n; i++)
-        CRM_NA(ReceiveInputChar(pc, *ppd_input[i]), "Since character receive failed");
+        CRM(ReceiveInputChar(pc, *ppd_input[i]), "Since character receive failed");
 
 Error:
 	free(*ppd_input);
@@ -723,7 +723,7 @@ RESULT CheckForOutput(Console *pc) {
 RESULT DispatchOutputBlocking(Console *pc) {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_SystemPrintBufferCallback != NULL), "System Print Buffer callback is not registered");
+	CBRM((m_SystemPrintBufferCallback != NULL), "System Print Buffer callback is not registered");
 
 	// This must finish off the data since it gets reset shortly after
 	m_SystemPrintBufferCallback(pc->m_pOutputBuffer->m_pBuffer, pc->m_pOutputBuffer->m_pBuffer_n);
@@ -788,13 +788,13 @@ RESULT AddConsoleFunction(Console *pc, ConsoleFunction cf) {
 
 	if(pc->m_Commands_n >= MAX_CONSOLE_COMMANDS) {
 		PrintToOutput(pc, "Max command amount reached %d!", pc->m_Commands_n);
-		CBRM_NA(0, "");
+		CBRM(0, "");
 	}
 
     for(i = 0; i < ppCmdList_n; i++) {
         if((strcmp(ppCmdList[i].pszCommand, cf.pszCommand) == 0 ) || (ppCmdList[i].Function == cf.Function)) {
             PrintToOutput(pc, "Console Function %s already present!", cf.pszCommand);
-            CBRM_NA(0, "");
+            CBRM(0, "");
         }
 
         if(ppCmdList[i].ID == cf.ID) {
@@ -850,7 +850,7 @@ RESULT AddConsoleFunctionByArgs(Console *pc, void *fun, char *pszCommand, int ar
     va_list ap;
     va_start(ap, nDefaultArgs);
 
-    CNRM_NA((pc), "AddConsoleFunctionByArgs: Console has not been initialized");
+    CNRM((pc), "AddConsoleFunctionByArgs: Console has not been initialized");
 
     ConsoleFunction cf = {0, fun, pszCommand, NULL, 0, arguments};
 

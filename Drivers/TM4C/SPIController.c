@@ -33,7 +33,7 @@ RESULT InitializeSSIConfiguration(SSI_PERIPHERAL_INFO *pSSIPeripherals, int SSIP
 RESULT SSIInit(uint8_t spiNum) {
 	RESULT r = R_OK;
 
-	CNRM_NA((m_pSSIPeripherals), "SSIInit: SPI Configuration not initialized");
+	CNRM((m_pSSIPeripherals), "SSIInit: SPI Configuration not initialized");
 	CBRM((spiNum < m_SSIPeripherals_n), "SSIInit: SPI configuration %d not available", spiNum);
 	//SSI_PERIPHERAL_INFO *pSSIInfo = &(m_pSSIPeripherals[spiNum]);
 	SSI_PERIPHERAL_INFO *pSSIInfo = GetSSIConfig(spiNum);

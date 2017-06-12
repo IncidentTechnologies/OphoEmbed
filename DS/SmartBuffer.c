@@ -41,11 +41,11 @@ RESULT DeleteSmartBuffer(SmartBuffer *psb) {
 RESULT IncrementBufferSize(SmartBuffer *psb) {
     RESULT r = R_OK;
 
-    CPRM_NA(psb->m_pBuffer, "SmartBuffer is not initialized!\n");
-    CBRM_NA((psb->m_pBuffer_n > 0), "SmartBuffer size is 0!\n");
+    CPRM(psb->m_pBuffer, "SmartBuffer is not initialized!\n");
+    CBRM((psb->m_pBuffer_n > 0), "SmartBuffer size is 0!\n");
 
     char *SaveBuffer = (char*)malloc(sizeof(char) * psb->m_pBuffer_n);
-    CNRM_NA(SaveBuffer, "SmartBuffer: Failed to allocate memory for save pBuffer");
+    CNRM(SaveBuffer, "SmartBuffer: Failed to allocate memory for save pBuffer");
     memcpy(SaveBuffer, psb->m_pBuffer, psb->m_pBuffer_n);
 
     free(psb->m_pBuffer);
@@ -53,7 +53,7 @@ RESULT IncrementBufferSize(SmartBuffer *psb) {
     psb->m_pBuffer_bn++;
     psb->m_pBuffer = (char*)malloc(sizeof(char) * SMART_BUFFER_BLOCK_SIZE * (psb->m_pBuffer_bn + 1));
 
-    CNRM_NA(psb->m_pBuffer, "SmartBuffer: Failed to allocate memory for new pBuffer");
+    CNRM(psb->m_pBuffer, "SmartBuffer: Failed to allocate memory for new pBuffer");
     memset(psb->m_pBuffer, 0, SMART_BUFFER_BLOCK_SIZE * (psb->m_pBuffer_bn + 1));
 
     memcpy(psb->m_pBuffer, SaveBuffer, psb->m_pBuffer_n);
@@ -73,7 +73,7 @@ RESULT SetBufferToBuffer(SmartBuffer *psb, const char *pBuffer, int pBuffer_n) {
     RESULT r = R_OK;
     int i = 0;
 
-    CRM_NA(ResetBuffer(psb), "ResetBuffer: Failed to reset pBuffer");
+    CRM(ResetBuffer(psb), "ResetBuffer: Failed to reset pBuffer");
 
     for(i = 0; i < pBuffer_n; i++)
         CRM(SBAppendByte(psb, pBuffer[i]), "ResetBuffer: Failed to append %c", pBuffer[i]);
@@ -131,7 +131,7 @@ RESULT SBAppendByte(SmartBuffer *psb, char byte) {
     psb->m_pBuffer_n++;
 
     if(psb->m_pBuffer_n >= (psb->m_pBuffer_bn + 1) * SMART_BUFFER_BLOCK_SIZE)
-        CRM_NA(IncrementBufferSize(psb), "SmartBuffer: Failed to increment the pBuffer size!");
+        CRM(IncrementBufferSize(psb), "SmartBuffer: Failed to increment the pBuffer size!");
 
 Error:
     return r;
@@ -191,7 +191,7 @@ RESULT RemoveCharacter(SmartBuffer *psb, char *pChar) {
     RESULT r = R_OK;
 
     if((pChar < psb->m_pBuffer) || (pChar > psb->m_pBuffer + ((psb->m_pBuffer_bn + 1) * SMART_BUFFER_BLOCK_SIZE)))
-        CBRM_NA(0, "RemoveCharacter: Char pointer out of the bounds of the SmartBuffer Buffer");
+        CBRM(0, "RemoveCharacter: Char pointer out of the bounds of the SmartBuffer Buffer");
 
     // Two cases, either char is last character (then it's easy!) or not
     if(pChar == psb->m_pBuffer + psb->m_pBuffer_n) {

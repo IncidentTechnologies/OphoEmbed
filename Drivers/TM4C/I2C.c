@@ -5,8 +5,8 @@
 RESULT InitI2C0(uint8_t fAuthChipOn) {
 	RESULT r = R_OK;
 
-	CBRM_NA(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_GPIOB), "GPIO port B not present");
-	CBRM_NA(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_I2C0), "I2C0 not present");
+	CBRM(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_GPIOB), "GPIO port B not present");
+	CBRM(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_I2C0), "I2C0 not present");
 
 	if(!g_device.m_fI2C0) g_device.m_fI2C0 = true;
 	else return R_NO_EFFECT;
@@ -26,13 +26,13 @@ RESULT InitI2C0(uint8_t fAuthChipOn) {
 	// TODO: Remove this and speed up our ACCEL
     if(fAuthChipOn != 0) {
     	HWREG(I2C0_BASE + I2C_O_MTPR) = 0x32;
-    	DEBUG_LINEOUT_NA("I2C0 set for 50Mhz operation");
+    	DEBUG_LINEOUT("I2C0 set for 50Mhz operation");
     }
     else {
-    	DEBUG_LINEOUT_NA("I2C0 set for normal operation");
+    	DEBUG_LINEOUT("I2C0 set for normal operation");
     }
 	
-	DEBUG_LINEOUT_NA("I2C0 initialized");
+	DEBUG_LINEOUT("I2C0 initialized");
 	
 Error:
 	return r;	
@@ -41,8 +41,8 @@ Error:
 RESULT InitI2C1() {
 	RESULT r = R_OK;
 	
-	CBRM_NA(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_GPIOA), "GPIO port A not present");
-	CBRM_NA(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_I2C1), "I2C1 not present");
+	CBRM(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_GPIOA), "GPIO port A not present");
+	CBRM(ROM_SysCtlPeripheralPresent(SYSCTL_PERIPH_I2C1), "I2C1 not present");
 	
 	if(!g_device.m_fI2C1) g_device.m_fI2C1 = true;
 	else return R_NO_EFFECT;
@@ -68,7 +68,7 @@ RESULT InitI2C1() {
     
     I2CMasterInitExpClk(I2C1_BASE, ROM_SysCtlClockGet(), false);	// not fast mode
 
-	DEBUG_LINEOUT_NA("I2C1 initialized");
+	DEBUG_LINEOUT("I2C1 initialized");
 
 Error:
 	return r;	

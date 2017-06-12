@@ -24,7 +24,7 @@ RESULT InitializeIncomingBLEQueue() {
 	m_gTarPendingIncomingBLEMsgs_c = 0;	// event cursor (to add events)
 	m_gTarPendingIncomingBLEMsgs_e = 0;	// event execute
 
-	DEBUG_LINEOUT_NA("Incoming BLE Msgs Queue initialized!");
+	DEBUG_LINEOUT("Incoming BLE Msgs Queue initialized!");
 
 Error:
 	return r;
@@ -66,11 +66,11 @@ uint8_t IsIncomingBLEMsgPending() {
 RESULT HandleQueuedIncomingBLEMsg() {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_gTarPendingIncomingBLEMsgs_n > 0), "HandleQueuedIncomingBLEMsg: Cannot handle message as queue is empty");
+	CBRM((m_gTarPendingIncomingBLEMsgs_n > 0), "HandleQueuedIncomingBLEMsg: Cannot handle message as queue is empty");
 
 	//DEBUG_LINEOUT("Handling incoming BLE message 0x%x", m_gTarPendingIncomingBLEMsgs[m_gTarPendingIncomingBLEMsgs_e].type);
 
-	CRM_NA(HandleMIDIPacket(m_gTarPendingIncomingBLEMsgs[m_gTarPendingIncomingBLEMsgs_e]), "HandleQueuedIncomingBLEMsg: Failed to handle MIDI Message");
+	CRM(HandleMIDIPacket(m_gTarPendingIncomingBLEMsgs[m_gTarPendingIncomingBLEMsgs_e]), "HandleQueuedIncomingBLEMsg: Failed to handle MIDI Message");
 
 	/*
 	DEBUG_LINEOUT("Message handled type 0x%x c:%d n:%d e:%d",
@@ -109,7 +109,7 @@ RESULT HandleSPIMIDIInterrupt(void *pContext) {
 			//DEBUG_LINEOUT("spi midi: 0x%x %d %d", pSPIMidiMessage->midiMsg.type, pSPIMidiMessage->midiMsg.data1, pSPIMidiMessage->midiMsg.data2);
 
 			// Queue incoming MIDI
-			// CRM_NA(HandleMIDIPacket(pSPIMidiMessage->midiMsg), "HandleSPIMIDI: Failed to handle MIDI Message");
+			// CRM(HandleMIDIPacket(pSPIMidiMessage->midiMsg), "HandleSPIMIDI: Failed to handle MIDI Message");
 
 			//if(QueueNewIncomingBLEMsg(pSPIMidiMessage->midiMsg) != R_OK) {
 			if(QueueNewIncomingBLEMsg(((SPI_MIDI_MESSAGE *)(pSPIMessage))->midiMsg) != R_OK) {
@@ -121,16 +121,16 @@ RESULT HandleSPIMIDIInterrupt(void *pContext) {
 
 		case SPI_MSG_SYS: {
 			SPI_SYS_MESSAGE *pSPISysMessage = (SPI_SYS_MESSAGE *)(pSPIMessage);
-			//DEBUG_LINEOUT_NA("spi sys msg");
+			//DEBUG_LINEOUT("spi sys msg");
 			switch(pSPISysMessage->msgType) {
 				case SPI_SYS_BLE_CONNECTED: {
 					SetBLEConnect(true);
-					DEBUG_LINEOUT_NA("BLE Connected!");
+					DEBUG_LINEOUT("BLE Connected!");
 				} break;
 
 				case SPI_SYS_BLE_DISCONNECTED: {
 					SetBLEConnect(false);
-					DEBUG_LINEOUT_NA("BLE Disconnected!");
+					DEBUG_LINEOUT("BLE Disconnected!");
 				} break;
 
 				default: {
@@ -149,7 +149,7 @@ RESULT HandleSPIMIDIInterrupt(void *pContext) {
 RESULT CheckForSPIMIDIHangCondition() {
 	if(g_fSPIMIDIInterrupt == false && m_fSPIMIDIInitialized == true) {
 		if(SSICheckInterruptLine(m_SPIMidiConfig) == true) {
-			DEBUG_LINEOUT_NA("SPI hang detected");
+			DEBUG_LINEOUT("SPI hang detected");
 			return HandleSPIMIDIInterrupt(NULL);
 		}
 	}
@@ -170,8 +170,8 @@ inline RESULT SSIReadSPIMessage(SPI_MESSAGE **n_ppSPIMessage) {
 
 	SSI_PERIPHERAL_INFO *pSSIPeripheral = GetSSIConfig(m_SPIMidiConfig);
 
-	CNRM_NA(pSSIPeripheral, "SSIReadSPIMessage: Failed to get config");
-	CBRM_NA((*n_ppSPIMessage == NULL), "SSIReadSPIMessage: spi message must be null");
+	CNRM(pSSIPeripheral, "SSIReadSPIMessage: Failed to get config");
+	CBRM((*n_ppSPIMessage == NULL), "SSIReadSPIMessage: spi message must be null");
 
 	memset(&rxBuffer, 0, sizeof(rxBuffer));
 
@@ -229,9 +229,9 @@ RESULT InitializeSPIMIDI(int spiConfigNum) {
 
 	pConfig->intpin.cbInt = HandleSPIMIDIInterrupt;
 
-	CRM_NA(InitializeIncomingBLEQueue(), "Failed to initialize BLE Msg Queue");
+	CRM(InitializeIncomingBLEQueue(), "Failed to initialize BLE Msg Queue");
 
-	//CRM_NA(SPI1Init(), "init: Failed to initialize SPI1 at %d bitrate");
+	//CRM(SPI1Init(), "init: Failed to initialize SPI1 at %d bitrate");
 	CRM(SSIInit(m_SPIMidiConfig), "init: Failed to initialize SPI%d at %d bitrate", m_SPIMidiConfig);
 
 	m_fSPIMIDIInitialized = true;

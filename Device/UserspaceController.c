@@ -19,7 +19,7 @@ volatile cbHandleCommitFirmware g_HandleCommitFirmwareCallback = NULL;
 RESULT RegisterHandleCommitFirmwareCallback(cbHandleCommitFirmware HandleCommitFirmwareCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleCommitFirmwareCallback == NULL), "RegisterHandleCommitFirmwareCallback: Handle Commit Firmware Callback already registered");
+	CBRM((g_HandleCommitFirmwareCallback == NULL), "RegisterHandleCommitFirmwareCallback: Handle Commit Firmware Callback already registered");
 	g_HandleCommitFirmwareCallback = HandleCommitFirmwareCB;
 
 Error:
@@ -29,7 +29,7 @@ Error:
 RESULT UnregisterHandleCommitFirmwareCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleCommitFirmwareCallback != NULL), "UnregisterHandleCommitFirmwareCallback: Handle Commit Firmware Callback not registered");
+	CBRM((g_HandleCommitFirmwareCallback != NULL), "UnregisterHandleCommitFirmwareCallback: Handle Commit Firmware Callback not registered");
 	g_HandleCommitFirmwareCallback = NULL;
 
 Error:
@@ -80,13 +80,13 @@ RESULT OutputSerialToDebug() {
 	int32_t  i = 0;
 	//int32_t  count = sizeof(g_pUserSpace->serial) / sizeof(g_pUserSpace->serial[0]);
 
-	DEBUG_MSG_NA("Serial Number: 0x");
+	DEBUG_MSG("Serial Number: 0x");
 	//for(i = 0; i < count; i++)
 
 	for(i = 0; i < SERIAL_NUMBER_BYTES; i++)
 		DEBUG_MSG("%x", g_pUserSpace->serial[i]);
 
-	DEBUG_MSG_NA("\n\r");
+	DEBUG_MSG("\n\r");
 
 	return R_OK;
 }
@@ -139,7 +139,7 @@ RESULT EraseUserSpace() {
 
 	SysCtlDelay(ROM_SysCtlClockGet() / 100);
 
-	DEBUG_LINEOUT_NA("-EraseUserSpace");
+	DEBUG_LINEOUT("-EraseUserSpace");
 
 Error:
 	return r;
@@ -154,7 +154,7 @@ RESULT EraseUserSpacePreserveSerialNumber() {
 	void *ulPtr = (void*)(g_UserSpaceAddr);
 	USER_SPACE *pUserSpace = (USER_SPACE*)(ulPtr);
 
-	DEBUG_LINEOUT_NA("+EraseUserSpacePreserveSerialNumber");
+	DEBUG_LINEOUT("+EraseUserSpacePreserveSerialNumber");
 	CNRM(g_pUserSpace, "EraseUserSpacePreserveSerialNumber: Device Userspace not allocated");
 
 	// Save the serial
@@ -173,10 +173,10 @@ RESULT EraseUserSpacePreserveSerialNumber() {
 	memcpy(g_pUserSpace->serial, tempSerial, sizeof(tempSerial));
 
 	// Commit back to userspace flash
-	CRM_NA(CommitUserSpace(),"EraseUserSpacePreserveSerialNumber: Failed to Commit UserSpace");
+	CRM(CommitUserSpace(),"EraseUserSpacePreserveSerialNumber: Failed to Commit UserSpace");
 
 Error:
-	DEBUG_LINEOUT_NA("-EraseUserSpacePreserveSerialNumber");
+	DEBUG_LINEOUT("-EraseUserSpacePreserveSerialNumber");
 	return r;
 }
 
@@ -245,7 +245,7 @@ RESULT FlashProgramUserspace() {
 	CBRM((g_UserSpace_n % 4 == 0), "User defined user space size must be factor of 4");
 
 	uint32_t  ulRes = ROM_FlashProgram((uint32_t  *)(g_pUserSpace), (void*)g_UserSpaceAddr, g_UserSpace_n);
-	CBRM_NA_WARN((ulRes == 0), "SetUSFwUpdateStatus: failed to program new user space into flash");
+	CBRM_WARN((ulRes == 0), "SetUSFwUpdateStatus: failed to program new user space into flash");
 
 	ROM_SysCtlDelay(ROM_SysCtlClockGet() / 100);
 
@@ -348,7 +348,7 @@ RESULT InitUserSpace(int UserSpaceSize, cbInitUserSpace fnInitUserSpace) {
 		while(tempSerial[i] == 0xFF) {
 			i++;
 			if(i == 16) {
-				DEBUG_LINEOUT_NA("Overwriting 0xFF all serial with 0");
+				DEBUG_LINEOUT("Overwriting 0xFF all serial with 0");
 				memset(tempSerial, 0, sizeof(tempSerial));
 				break;
 			}
@@ -381,7 +381,7 @@ RESULT InitUserSpace(int UserSpaceSize, cbInitUserSpace fnInitUserSpace) {
 	CRM(PrintUserspace(), "Failed to print userspace");
 	SysCtlDelay(ROM_SysCtlClockGet() / 10);
 
-	DEBUG_LINEOUT_NA("-InitUserSpace()");
+	DEBUG_LINEOUT("-InitUserSpace()");
 
 Error:
 	return r;

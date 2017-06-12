@@ -117,9 +117,9 @@ typedef enum USBMIDIPacketMachineStates {
 	UMPMS_SET_LED_EX_0,		// set led ex (same as set led, but uses 0b0MRRGGBB format for color)
 	UMPMS_SET_LED_EX_1,
 	UMPMS_SET_LED_EX_2,
-	UMPMS_SET_NA_0,		// note active
-	UMPMS_SET_NA_1,
-	UMPMS_SET_NA_2,
+	UMPMS_SET_0,		// note active
+	UMPMS_SET_1,
+	UMPMS_SET_2,
 	UMPMS_SET_FW_0,		// fret follow
 	UMPMS_SET_FW_1,
 	UMPMS_SET_FW_2,

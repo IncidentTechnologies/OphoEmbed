@@ -22,7 +22,7 @@ RESULT InitUART0(uint32_t  ulBaudRate) {
 	ROM_UARTIntEnable(UART0_BASE, (UART_INT_OE | UART_INT_BE | UART_INT_PE |
 	                      UART_INT_FE | UART_INT_RT | UART_INT_TX | UART_INT_RX));
 
-	DEBUG_LINEOUT_NA("UART0 initialized");
+	DEBUG_LINEOUT("UART0 initialized");
 
 Error:
 	return r;
@@ -51,7 +51,7 @@ RESULT UART0printf(const int8_t *pcString, ...) {
     va_list vaArgP;
 
     // Check the arguments.
-    CNRM_NA((pcString != NULL), "UART0printf: pcString cannot be null");
+    CNRM((pcString != NULL), "UART0printf: pcString cannot be null");
 
     // Start the varargs processing.
     va_start(vaArgP, pcString);

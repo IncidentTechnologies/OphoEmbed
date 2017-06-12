@@ -14,7 +14,7 @@ cbHandleMIDIQueueEvent g_HandleMIDIQueueEventCallback = NULL;
 RESULT RegisterHandleMIDIQueueEventCallback(cbHandleMIDIQueueEvent HandleMIDIQueueEventCB) {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleMIDIQueueEventCallback == NULL), "RegisterHandleMIDIQueueEventCallback: Handle MIDI Queue Event Callback already registered");
+	CBRM((g_HandleMIDIQueueEventCallback == NULL), "RegisterHandleMIDIQueueEventCallback: Handle MIDI Queue Event Callback already registered");
 	g_HandleMIDIQueueEventCallback = HandleMIDIQueueEventCB;
 
 Error:
@@ -24,7 +24,7 @@ Error:
 RESULT UnregisterHandleMIDIQueueEventCallback() {
 	RESULT r = R_OK;
 
-	CBRM_NA((g_HandleMIDIQueueEventCallback != NULL), "UnregisterHandleMIDIQueueEventCallback: Handle MIDI Queue Event Callback not registered");
+	CBRM((g_HandleMIDIQueueEventCallback != NULL), "UnregisterHandleMIDIQueueEventCallback: Handle MIDI Queue Event Callback not registered");
 	g_HandleMIDIQueueEventCallback = NULL;
 
 Error:
@@ -41,7 +41,7 @@ RESULT InitializeMIDIQueue() {
 	m_gTarPendingMidiEvents_c = 0;	// event cursor (to add events)
 	m_gTarPendingMidiEvents_e = 0;	// event execute
 
-	DEBUG_LINEOUT_NA("MIDI Queue initialized!");
+	DEBUG_LINEOUT("MIDI Queue initialized!");
 
 Error:
 	return r;
@@ -50,7 +50,7 @@ Error:
 RESULT QueueNewMidiEvent(DEVICE_MIDI_EVENT event) {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_gTarPendingMidiEvents_n < MAX_PENDING_EVENTS), "QueueNewMidiEvent: Cannot queue another event as queue is full!");
+	CBRM((m_gTarPendingMidiEvents_n < MAX_PENDING_EVENTS), "QueueNewMidiEvent: Cannot queue another event as queue is full!");
 
 	int32_t  i = m_gTarPendingMidiEvents_c;
 	int32_t  j = 0;
@@ -84,7 +84,7 @@ uint8_t IsMidiEventPending() {
 RESULT ExecuteQueuedMidiEvent() {
 	RESULT r = R_OK;
 
-	CBRM_NA((m_gTarPendingMidiEvents_n > 0), "ExecuteQueuedMidiEvent: Cannot execute event as queue is empty");
+	CBRM((m_gTarPendingMidiEvents_n > 0), "ExecuteQueuedMidiEvent: Cannot execute event as queue is empty");
 
 	int32_t i = m_gTarPendingMidiEvents_e;
 
@@ -94,7 +94,7 @@ RESULT ExecuteQueuedMidiEvent() {
 
 	switch(m_gTarPendingMidiEvents[i].m_gmet) {
 		case DEVICE_SEND_MIDI_NOTE: {
-			CRM_NA(SendMidiNoteMsg( m_gTarPendingMidiEvents[i].m_params[0],
+			CRM(SendMidiNoteMsg( m_gTarPendingMidiEvents[i].m_params[0],
 									m_gTarPendingMidiEvents[i].m_params[1],
 									m_gTarPendingMidiEvents[i].m_params[2],
 									m_gTarPendingMidiEvents[i].m_params[3]), "ExecuteQueuedMidiEvent: Failed to send usb midi note msg");
@@ -102,43 +102,43 @@ RESULT ExecuteQueuedMidiEvent() {
 
 		/*
 		case DEVICE_SEND_MIDI_FRET: {
-			CRM_NA(SendMidiFret( m_gTarPendingMidiEvents[i].m_params[0],
+			CRM(SendMidiFret( m_gTarPendingMidiEvents[i].m_params[0],
 								 m_gTarPendingMidiEvents[i].m_params[1],
 								 m_gTarPendingMidiEvents[i].m_params[2]), g_SendUSBMidiFret_errmsg);
 		} break;
 		*/
 
 		case DEVICE_SEND_MIDI_CONTROL_CHANGE: {
-			CRM_NA(SendMidiCC( m_gTarPendingMidiEvents[i].m_params[0], m_gTarPendingMidiEvents[i].m_params[1]),
+			CRM(SendMidiCC( m_gTarPendingMidiEvents[i].m_params[0], m_gTarPendingMidiEvents[i].m_params[1]),
 					"ExecuteQueuedMidiEvent: Failed to send usb midi CC msg");
 		} break;
 
 		case DEVICE_SEND_FW_VERSION: {
-			CRM_NA(SendFirmwareVersion(), "ExecuteQueuedMidiEvent: SendFirmwareVersion failed");
+			CRM(SendFirmwareVersion(), "ExecuteQueuedMidiEvent: SendFirmwareVersion failed");
 		} break;
 
 		case DEVICE_SEND_FW_ACK: {
-			CRM_NA(SendFirmwareDownloadAck( m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueuedMidiEvent: Failed to FW downlaod ACK");
+			CRM(SendFirmwareDownloadAck( m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueuedMidiEvent: Failed to FW downlaod ACK");
 		} break;
 
 		case DEVICE_SEND_BATTERY_STATUS: {
-			CRM_NA(SendBatteryStatusAck(), "ExecuteQueuedMidiEvent: Failed to send battery status ACK");
+			CRM(SendBatteryStatusAck(), "ExecuteQueuedMidiEvent: Failed to send battery status ACK");
 		} break;
 
 		case DEVICE_SEND_BATTERY_CHARGE: {
-			CRM_NA(SendBatteryChargePercentageAck(), "ExecuteQueuedMidiEvent: Failed to send battery int8_tge percentage ACK");
+			CRM(SendBatteryChargePercentageAck(), "ExecuteQueuedMidiEvent: Failed to send battery int8_tge percentage ACK");
 		} break;
 
 		case DEVICE_SEND_SERIAL_NUMBER: {
-			CRM_NA(SendRequestSerialNumberAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send RequestSerialNumberAck");
+			CRM(SendRequestSerialNumberAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send RequestSerialNumberAck");
 		} break;
 
 		case DEVICE_SEND_COMMIT_USERSPACE: {
-			CRM_NA(SendCommitUserspaceAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send CommitUserspaceaAck");
+			CRM(SendCommitUserspaceAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send CommitUserspaceaAck");
 		} break;
 
 		case DEVICE_SEND_RESET_USERSPACE: {
-			CRM_NA(SendResetUserspaceAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send ResetUserspaceaAck");
+			CRM(SendResetUserspaceAck(m_gTarPendingMidiEvents[i].m_params[0]), "ExecuteQueueMidiEvent: Failed to send ResetUserspaceaAck");
 		} break;
 
 		// Pass event to device - still hits Error if there's an issue
@@ -155,31 +155,31 @@ RESULT ExecuteQueuedMidiEvent() {
 		// Gtar Stuff (TODO: Move to Gtar)
 		/*
 		case GTAR_SEND_PIEZO_FW_ACK: {
-			CRM_NA(SendPiezoFirmwareDownloadAck( m_gTarPendingMidiEvents[i].m_params[0]), g_SendPiezoFirmwareDownloadAck_errmsg);
+			CRM(SendPiezoFirmwareDownloadAck( m_gTarPendingMidiEvents[i].m_params[0]), g_SendPiezoFirmwareDownloadAck_errmsg);
 		} break;
 
 		case GTAR_SEND_PIEZO_CT_MATRIX: {
-			CRM_NA(SendGetPiezoCrossTalkMatrixAck(m_gTarPendingMidiEvents[i].m_params[0], m_gTarPendingMidiEvents[i].m_params[1]), g_SendGetPiezoCrossTalkMatrixAck_errmsg);
+			CRM(SendGetPiezoCrossTalkMatrixAck(m_gTarPendingMidiEvents[i].m_params[0], m_gTarPendingMidiEvents[i].m_params[1]), g_SendGetPiezoCrossTalkMatrixAck_errmsg);
 		} break;
 
 		case GTAR_SEND_PIEZO_SENSITIVITY: {
-			CRM_NA(SendGetPiezoSensitivityAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendGetPiezoSensitivityAck_errmsg);
+			CRM(SendGetPiezoSensitivityAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendGetPiezoSensitivityAck_errmsg);
 		} break;
 
 		case GTAR_SEND_PIEZO_WINDOW: {
-			CRM_NA(SendGetPiezoWindowAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendGetPiezoWindowAck_errmsg);
+			CRM(SendGetPiezoWindowAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendGetPiezoWindowAck_errmsg);
 		} break;
 
 		case GTAR_SEND_CALIBRATE_PIEZO_STRING: {
-			CRM_NA(SendCalibratePiezoStringAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendCalibratePiezoStringAck_errmsg);
+			CRM(SendCalibratePiezoStringAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendCalibratePiezoStringAck_errmsg);
 		} break;
 
 		case GTAR_SEND_PIEZO_CMD_ACK: {
-			CRM_NA(SendPiezoCmdAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendPiezoCmdAck_errmsg);
+			CRM(SendPiezoCmdAck(m_gTarPendingMidiEvents[i].m_params[0]), g_SendPiezoCmdAck_errmsg);
 		} break;
 
 		case GTAR_SEND_PIEZO_CMD_RESPONSE: {
-			CRM_NA(SendAck((uint8_t *)(m_gTarPendingMidiEvents[i].m_params)), g_SendAck_errmsg);
+			CRM(SendAck((uint8_t *)(m_gTarPendingMidiEvents[i].m_params)), g_SendAck_errmsg);
 		} break;
 		*/
 	}
