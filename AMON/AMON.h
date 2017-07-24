@@ -37,5 +37,6 @@ RESULT LockAMONLinkTx(AMON_LINK link);
 RESULT UnlockAMONLinkTx(AMON_LINK link);
 
 unsigned char IsAMONMaster();
+bool IsAMONConnected();
 
 #endif // ! AMON_H_

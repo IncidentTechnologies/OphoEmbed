@@ -49,6 +49,17 @@ unsigned char IsAMONMaster() {
 		return false;
 }
 
+bool IsAMONConnected() {
+    uint8_t i = 0;
+    for(i = 0; i < NUM_LINKS; i++) {
+        if(g_AMONLinkStates[i] != AMON_LINK_UNINITIALIZED) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 unsigned char AMONLinkRxBusy(AMON_LINK link) {
 	return g_amon.links[link].fLinkRxBusy;
 }
