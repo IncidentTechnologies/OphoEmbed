@@ -6,8 +6,8 @@ static const int8_t * const g_pcHex = "0123456789abcdef";
 RESULT InitUART0(uint32_t  ulBaudRate) {
 	RESULT r = R_OK;
 
-	if(!g_device.m_fUART0) g_device.m_fUART0 = true;
-	else return R_NO_EFFECT;
+	//if(!g_device.m_fUART0) g_device.m_fUART0 = true;
+	//else return R_NO_EFFECT;
 
 	ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
     ROM_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
