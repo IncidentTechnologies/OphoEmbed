@@ -1,0 +1,25 @@
+﻿<Window x:Class="AMONProtocolTester.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AMONProtocolTester"
+        mc:Ignorable="d"
+        Title="AMON Protocol Tester" Height="831" Width="968.333">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Background="Gray" Grid.Column="0">
+
+        </Grid>
+
+        <Grid Background="White" Grid.Column="1">
+
+        </Grid>
+    </Grid>
+
+
+</Window>
