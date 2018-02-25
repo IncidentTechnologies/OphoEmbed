@@ -15,11 +15,14 @@ using System.Windows.Shapes;
 
 namespace AMONProtocolTester {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for AMONDevice.xaml
     /// </summary>
-    public partial class MainWindow : Window {
-        public MainWindow() {
+    
+    public partial class AMONDevice : UserControl {
+        public AMONDevice() {
             InitializeComponent();
         }
     }
+
+
 }

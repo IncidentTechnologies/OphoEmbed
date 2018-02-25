@@ -8,12 +8,15 @@
         Title="AMON Protocol Tester" Height="831" Width="968.333">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="180" />
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Background="Gray" Grid.Column="0">
-
+        <Grid Background="Gray" Grid.Column="0" >
+            <Button x:Name="btnResetAMONNetwork" Height="40" Width="120" Margin="35,10,25,751.333" Content="Reset AMON Net"/>
+            <Button x:Name="btnEnableAMONNet" Height="40" Width="120" Margin="35,100,25,661.333" Content="Enable AMON"/>
+            <Button x:Name="btnDisableAMONNet" Height="40" Width="120" Margin="35,145,25,616.333" Content="Disable AMON"/>
+            <Button x:Name="btnNewAMONDevice" Height="40" Width="120" Margin="35,235,25,526.333" Content="New AMON Device"/>
         </Grid>
 
         <Grid Background="White" Grid.Column="1">
