@@ -1,7 +1,9 @@
 #include "CRC.h"
 #include "memorymap.h"
 
+#ifndef _VS_PROJ
 #include "driverlib/sw_crc.h"
+#endif
 
 uint32_t m_FWLength = 0;
 uint32_t m_CRC32Value = 0;

@@ -33,7 +33,11 @@
 #endif
 
 // Debug Console
-#if defined(DEBUG)
+#if defined(_VS_PROJ)
+	#define DEBUG_MSG(x, ...) printf(x, ##__VA_ARGS__)
+	#define DEBUG_CURRENT_LINE() printf(CurrentFileLine)
+	#define DEBUG_LINEOUT(x, ...) do { printf(x, ##__VA_ARGS__); printf("\r\n"); } while(0);
+#elif defined(DEBUG)
 	#define DEBUG_MSG(x, ...) UART0printf(x, ##__VA_ARGS__)
 	#define DEBUG_CURRENT_LINE() UART0printf(CurrentFileLine)
 	#define DEBUG_LINEOUT(x, ...) do { UART0printf(x, ##__VA_ARGS__); UART0printf("\r\n"); } while(0);
