@@ -1,5 +1,8 @@
 #include "Device.h"
+
+#ifndef _VS_PROJ
 #include "../MIDI/USB/usbmidi.h"
+#endif
 
 DEVICE g_device;
 
@@ -109,7 +112,11 @@ uint8_t GetDeviceBatteryPercentage() {
 
 // USB Layer Access
 uint8_t GetDeviceUSBStatus() {
+#ifndef _VS_PROJ
 	return 	g_USBStatus;
+#else
+	return 0;
+#endif
 }
 
 

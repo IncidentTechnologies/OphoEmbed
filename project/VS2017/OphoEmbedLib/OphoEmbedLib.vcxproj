@@ -18,6 +18,50 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\AMON\AMON.c" />
+    <ClCompile Include="..\..\..\AMON\AMONLink.c" />
+    <ClCompile Include="..\..\..\AMON\amonmap.c" />
+    <ClCompile Include="..\..\..\AMON\AMONNet.c" />
+    <ClCompile Include="..\..\..\AMON\AMONPacket.c" />
+    <ClCompile Include="..\..\..\AMON\AMONPHY.c" />
+    <ClCompile Include="..\..\..\AMON\AMONQueue.c" />
+    <ClCompile Include="..\..\..\Common\STRINGS.c" />
+    <ClCompile Include="..\..\..\Common\utils.c" />
+    <ClCompile Include="..\..\..\Device\CRC.c" />
+    <ClCompile Include="..\..\..\Device\Device.c" />
+    <ClCompile Include="..\..\..\Device\UserspaceController.c" />
+    <ClCompile Include="..\..\..\DS\CircleBuffer.c" />
+    <ClCompile Include="..\..\..\DS\list.c" />
+    <ClCompile Include="..\..\..\DS\SmartBuffer.c" />
+    <ClCompile Include="..\..\..\NRFBLESPI\BLEController.c" />
+    <ClCompile Include="..\..\..\OS\Console.c" />
+    <ClCompile Include="..\..\..\OS\taskqueue.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\AMON\AMON.h" />
+    <ClInclude Include="..\..\..\AMON\AMONLink.h" />
+    <ClInclude Include="..\..\..\AMON\amonmap.h" />
+    <ClInclude Include="..\..\..\AMON\AMONNet.h" />
+    <ClInclude Include="..\..\..\AMON\AMONPacket.h" />
+    <ClInclude Include="..\..\..\AMON\AMONPHY.h" />
+    <ClInclude Include="..\..\..\AMON\AMONQueue.h" />
+    <ClInclude Include="..\..\..\Common\EHM.h" />
+    <ClInclude Include="..\..\..\Common\RESULT.h" />
+    <ClInclude Include="..\..\..\Common\STRINGS.h" />
+    <ClInclude Include="..\..\..\Common\utils.h" />
+    <ClInclude Include="..\..\..\Device\CRC.h" />
+    <ClInclude Include="..\..\..\Device\Device.h" />
+    <ClInclude Include="..\..\..\Device\memorymap.h" />
+    <ClInclude Include="..\..\..\Device\UserspaceController.h" />
+    <ClInclude Include="..\..\..\DS\CircleBuffer.h" />
+    <ClInclude Include="..\..\..\DS\list.h" />
+    <ClInclude Include="..\..\..\DS\SmartBuffer.h" />
+    <ClInclude Include="..\..\..\NRFBLESPI\BLEController.h" />
+    <ClInclude Include="..\..\..\OS\Console.h" />
+    <ClInclude Include="..\..\..\OS\sched.h" />
+    <ClInclude Include="..\..\..\OS\taskqueue.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{B4052D13-1B9A-4D69-83C1-31DEECDD1D52}</ProjectGuid>
@@ -39,13 +83,13 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -75,6 +119,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <CompileAs>CompileAsC</CompileAs>
+      <AdditionalIncludeDirectories>C:\ti\TivaWare_C_Series-2.1.4.178\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -82,6 +128,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_VS_PROJ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -104,6 +152,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_VS_PROJ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
