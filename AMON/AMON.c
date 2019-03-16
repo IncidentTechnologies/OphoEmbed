@@ -42,11 +42,22 @@ RESULT StopAMON() {
 	return R_OK;
 }
 
+/*
 unsigned char IsAMONMaster() {
 	if(g_amon.MasterState != AMON_MASTER_FALSE)
 		return true;
 	else
 		return false;
+}
+*/
+
+bool IsAMONMaster() {
+    if(g_amon.MasterState > AMON_MASTER_FALSE && g_amon.MasterState < AMON_MASTER_INVALID) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 bool IsAMONConnected() {

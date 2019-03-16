@@ -18,16 +18,17 @@
 // The starting address of the application.  Normally the interrupt vectors
 // must be located at the beginning of the application.
 
-#define APP_START_ADDRESS 			0x00002800
 //#define APP_LENGTH					0x00040000
 #define APP_LENGTH					0x00030000
-#define BOOTLOADER_OFFSET			APP_START_ADDRESS
 
-#define _BUILD_FOR_BOOTLOADER
+//#define _BUILD_FOR_BOOTLOADER
 
 #ifdef _BUILD_FOR_BOOTLOADER
+    #define BOOTLOADER_OFFSET           0x00002800
 	#define APP_BASE 					(FLASH_BASE + BOOTLOADER_OFFSET)
+    #define APP_START_ADDRESS           BOOTLOADER_OFFSET
 #else
+    #define APP_START_ADDRESS           0x00000000
 	#define APP_BASE 					FLASH_BASE
 #endif
 
