@@ -7,7 +7,7 @@
 //#include "AMON.h"
 
 #define NUM_LINKS 4
-#define LINK_STATUS_COUNTER_THRESHOLD 1
+#define LINK_STATUS_COUNTER_THRESHOLD 3
 
 typedef enum {
 	AMON_ALL	= -1,

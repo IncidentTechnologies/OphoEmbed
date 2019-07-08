@@ -272,7 +272,6 @@ RESULT OnAMONInterval() {
 			if(g_AMONLinkStates[i] != AMON_LINK_ESTABLISHED &&
 					(g_AMONLinkStates[i] != AMON_LINK_UNINITIALIZED || g_AMONLinkPhys[i] != AMON_PHY_UNINITIALIZED))
 			{
-				//CRM(InitializeLink(i), "InitAmon: Failed to initialize link %d", i);
 				CRM(DisconnectLink(i), "InitAmon: Failed to disconnect link %d", i);
 			}
 		}
@@ -508,10 +507,10 @@ unsigned char CalculateChecksum(unsigned char *pBuffer, int pBuffer_n) {
 RESULT HandleAMONPing(AMON_LINK link, AMONPingPacket *d_pAMONPingPacket) {
 	RESULT r = R_OK;
 
-	//#ifdef AMON_VERBOSE
+	#ifdef AMON_VERBOSE
 		DEBUG_LINEOUT("Received PING on link %d from device %d to device %d",
 				link, d_pAMONPingPacket->m_originID, d_pAMONPingPacket->m_destID);
-	//#endif
+	#endif
 
 	if(g_amon.id == d_pAMONPingPacket->m_destID ) {
 		CRM(SendEchoNetwork(link, d_pAMONPingPacket->m_originID),
@@ -534,9 +533,9 @@ Error:
 RESULT HandleAMONEcho(AMON_LINK link, AMONEchoPacket *d_pAMONEchoPacket) {
 	RESULT r = R_OK;
 
-	//#ifdef AMON_VERBOSE
+	#ifdef AMON_VERBOSE
 		DEBUG_LINEOUT("Received ECHO on link %d from device %d to device %d", link, d_pAMONEchoPacket->m_originID, d_pAMONEchoPacket->m_destID);
-	//#endif
+	#endif
 
 	if(g_amon.id == d_pAMONEchoPacket->m_destID ) {
 
@@ -546,6 +545,7 @@ RESULT HandleAMONEcho(AMON_LINK link, AMONEchoPacket *d_pAMONEchoPacket) {
 
 		if(g_amon.links[link].fPendingLinkStatus != 0)
 			g_amon.links[link].LinkStatusCounter = 0;
+		    g_amon.links[link].fPendingLinkStatus = 0;
 	}
 	else {
 		CRM(PassThruAMONBuffer(link, (unsigned char*)d_pAMONEchoPacket, d_pAMONEchoPacket->m_header.m_length),
@@ -581,6 +581,7 @@ RESULT HandleAMONResetLinkAck(AMON_LINK link, AMONResetLinkAckPacket *d_pAMONRes
 	RESULT r = R_OK;
 
 	DEBUG_LINEOUT("HandleAMONPacket: Reset link message on link %d, sending ACK", link);
+
 	//CRM(ResetLink(link), "HandleAMONPacket: Failed to reset link %d on reset link ACK", link);
 	CRM(DisconnectLink(link), "HandleAMONPacket: Failed to disconnect link %d on reset link ACK", link);
 

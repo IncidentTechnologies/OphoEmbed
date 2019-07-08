@@ -154,6 +154,8 @@ RESULT CheckLinkStatus(AMON_LINK link) {
 		g_amon.links[link].LinkStatusCounter++;
 		g_amon.links[link].fPendingLinkStatus = 0;
 
+		DEBUG_LINEOUT("Missed ping/echos %d on line %d", g_amon.links[link].LinkStatusCounter, link);
+
 		if(g_amon.links[link].LinkStatusCounter > LINK_STATUS_COUNTER_THRESHOLD) {
 			return DisconnectLink(link);
 		}
