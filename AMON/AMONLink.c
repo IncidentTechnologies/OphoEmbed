@@ -108,12 +108,19 @@ RESULT DisconnectLink(AMON_LINK link) {
 	// Save the id for later
 	int destID = g_amon.links[link].id;
 	int id = g_amon.id;
+	unsigned char fLinkToMaster = g_amon.links[link].fLinkToMaster;
+
+	DEBUG_LINEOUT("DisconnectLink: Link %d (linktomaster:%d) has been disconnected from device %d, reinitializing link", link, fLinkToMaster, id);
 
 	// Did we lose the link to master, reset our AMON setup
-	if(g_amon.links[link].fLinkToMaster != 0)
+	if(fLinkToMaster != 0) {
 		CRM(InitializeAMON(), "DisconnectLink: Failed to re-initialize AMON on link %d disconnect", link);
 
-	DEBUG_LINEOUT("DisconnectLink: Link %d has been disconnected from device %d, reinitializing link", link, id);
+		// DEBUG: Try to reset the device
+		//MAP_SysCtlReset();
+		//while(1) {/* empty stub */}
+	}
+
 	CRM(InitializeLink(link), "DisconnectLink: Link %d re-initialization failed", link);
 
 	if(g_amon.MasterState != AMON_MASTER_FALSE) {
@@ -121,8 +128,9 @@ RESULT DisconnectLink(AMON_LINK link) {
 		CRM(ResetAMONNodeLink(g_AMONmap, id, link), "DisconnectLink: Failed to reset link %d of node %d from AMON map", link, id);
 	}
 
-	if(g_AMONLinkDisconnectCallback != NULL)
-		g_AMONLinkDisconnectCallback(link);
+	if(g_AMONLinkDisconnectCallback != NULL) {
+		g_AMONLinkDisconnectCallback(link, (unsigned char)(fLinkToMaster));
+	}
 
 Error:
 	return r;
@@ -145,6 +153,8 @@ RESULT CheckLinkStatus(AMON_LINK link) {
 	if(g_amon.links[link].fPendingLinkStatus != 0) {
 		g_amon.links[link].LinkStatusCounter++;
 		g_amon.links[link].fPendingLinkStatus = 0;
+
+		DEBUG_LINEOUT("Missed ping/echos %d on line %d", g_amon.links[link].LinkStatusCounter, link);
 
 		if(g_amon.links[link].LinkStatusCounter > LINK_STATUS_COUNTER_THRESHOLD) {
 			return DisconnectLink(link);

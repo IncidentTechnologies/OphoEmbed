@@ -7,7 +7,7 @@
 //#include "AMON.h"
 
 #define NUM_LINKS 4
-#define LINK_STATUS_COUNTER_THRESHOLD 1
+#define LINK_STATUS_COUNTER_THRESHOLD 3
 
 typedef enum {
 	AMON_ALL	= -1,
@@ -69,7 +69,8 @@ extern unsigned char link_input[NUM_LINKS][MAX_MSG_LENGTH];
 extern int link_input_c[NUM_LINKS];
 extern int g_linkMessageLength[NUM_LINKS];
 
-typedef RESULT (*cbAMONLink)(AMON_LINK);
+typedef RESULT (*cbAMONLink)(AMON_LINK, unsigned char);
+
 extern cbAMONLink g_AMONLinkEstablishedCallback;
 RESULT RegisterAMONLinkEstablishedCallback(cbAMONLink AMONLinkEstablishedCB);
 RESULT UnegisterAMONLinkEstablishedCallback();
